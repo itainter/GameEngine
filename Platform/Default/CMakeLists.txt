@@ -1,0 +1,9 @@
+add_executable(
+    Default
+    DefaultApplication.cpp
+)
+target_link_libraries(
+    Default
+    Common
+    Log
+)
