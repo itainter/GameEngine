@@ -73,7 +73,7 @@ namespace Engine
 #define DECLARE_LISTENER()                                                                          \
     EventListener listener
 
-#define LISTEN_EVENT(id, func)                                                                     \
+#define LISTEN_EVENT(id, func)                                                                      \
     {                                                                                               \
         auto f = func;                                                                              \
         typedef function_traits<decltype(f)> traits;                                                \
