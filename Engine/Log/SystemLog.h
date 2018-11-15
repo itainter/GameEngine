@@ -16,7 +16,7 @@ namespace Engine
         void Shutdown() override;
 
     private:
-        typedef Event<std::string, ESystemEvent, eLogStream> LogStreamEvent;
+        typedef Event<std::string, ESystemEvent, eEv_System_AppLog> LogStreamEvent;
         typedef std::shared_ptr<LogStreamEvent> LogStreamEventPtr;
         typedef std::function<void(LogStreamEventPtr)> LogStreamEventFunc;
     

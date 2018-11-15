@@ -29,7 +29,7 @@
             "preLaunchTask": "Build Engine"
         },
         {
-            "name": "Launch Event Test",
+            "name": "(Test) Launch Event Test",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/Test/Debug/EventTest.exe",

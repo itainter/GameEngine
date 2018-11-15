@@ -3,13 +3,14 @@
 #include <string>
 #include "IApplication.h"
 #include "IEvent.h"
+#include "IInput.h"
 #include "ILog.h"
 
 namespace Engine
 {
     enum ESystemEvent
     {
-        eLogStream = 1,
+        eEv_System_AppLog = 1,
     };
 
     class BaseApplication : public IApplication
@@ -26,6 +27,7 @@ namespace Engine
         bool IsQuit() const override;
 
     private:
+        std::shared_ptr<IInput> m_pInput;
         std::shared_ptr<ILog> m_pLog;
     };
 }

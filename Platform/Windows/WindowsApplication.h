@@ -10,11 +10,9 @@ namespace Platform
         WindowsApplication() {};
         virtual ~WindowsApplication() {};
 
-        //void Initialize() override;
-        //void Shutdown() override;
+        void Initialize() override;
+        void Shutdown() override;
 
-        //void Tick() override;
-
-        //bool IsQuit() const override;
+        void Tick() override;
     };
 }

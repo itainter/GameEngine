@@ -9,12 +9,12 @@ using namespace Engine;
 void SystemLog::Initialize()
 {
     m_logStreamEventFunc = std::bind(&SystemLog::OutputLogStream, this, std::placeholders::_1);
-    LISTEN_EVENT(eLogStream, m_logStreamEventFunc);
+    LISTEN_EVENT(eEv_System_AppLog, m_logStreamEventFunc);
 }
 
 void SystemLog::Shutdown()
 {
-    DISPATCH_EVENT(eLogStream, m_logStreamEventFunc);
+    DISPATCH_EVENT(eEv_System_AppLog, m_logStreamEventFunc);
 }
 
 void SystemLog::OutputLogStream(LogStreamEventPtr data)
