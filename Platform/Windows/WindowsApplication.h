@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Windows.h>
+
 #include "BaseApplication.h"
 
 namespace Platform
@@ -14,5 +16,13 @@ namespace Platform
         void Shutdown() override;
 
         void Tick() override;
+
+    private:
+        void CreateMainWindow();
+        static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+    protected:
+        HWND m_hWnd;
+        HDC  m_hDc;
     };
 }

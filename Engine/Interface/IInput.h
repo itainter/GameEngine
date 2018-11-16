@@ -9,7 +9,9 @@ namespace Engine
 {
     enum EInputEvent
     {
-        eEv_Input_KeyDow = 101,
+        eEv_Input_Unknown = 100,
+
+        eEv_Input_KeyDown = 101,
         eEv_Input_KeyUp = 102,
         eEv_Input_KeyDbClick = 103,
 

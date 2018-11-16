@@ -1,11 +1,12 @@
 #pragma once
 
+#include <queue>
+
 #include "IInput.h"
-#include "IEvent.h"
 
 namespace Engine
 {
-    class InputMsg : public IEventData
+    class InputMsg
     {
     public:
         InputMsg(size_t _ctrID, int _param1 = 0, int _param2 = 0) : ctrID(_ctrID), param1(_param1), param2(_param2) {}
@@ -17,11 +18,7 @@ namespace Engine
         int param1;
         int param2;
     };
-
-    std::ostream& operator<< (std::ostream &out, InputMsg const& e)
-    {
-        return out << "(control ID: " << e.CtrID() << ", param 1: " << e.Param1() << ", param 2: " << e.Param2() << ")" << std::endl;
-    }
+    std::ostream& operator<< (std::ostream &out, InputMsg const& e);
 
     class Input : public IInput
     {
@@ -29,12 +26,19 @@ namespace Engine
         Input() {};
         virtual ~Input() {};
 
-        void Initialize() override {};
-        void Shutdown() override {};
+        void Initialize() override;
+        void Shutdown() override;
+        void Tick() override;
 
-        void Tick() override {};
+        virtual void DispatchInputEvent(EInputEvent event, InputMsg msg);
 
-        virtual void ProcessInputEvent() {};
-        virtual void DispatchInputEvent(EInputEvent event) {};
+    private:
+        struct InputMsgInfo
+        {
+            InputMsgInfo(EInputEvent _event, InputMsg _msg) : event(_event), msg(_msg){}
+            EInputEvent event;
+            InputMsg msg;
+        };
+        std::queue<InputMsgInfo> m_inputQueue;
     };
 }
