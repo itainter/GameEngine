@@ -1,7 +1,8 @@
 #include <memory>
 #include <iostream>
-#include "Event.h"
-#include "EventManager.h"
+
+#include "ILog.h"
+#include "IEvent.h"
 #include "SystemLog.h"
 
 using namespace Engine;
@@ -15,6 +16,10 @@ void SystemLog::Initialize()
 void SystemLog::Shutdown()
 {
     DISPATCH_EVENT(eEv_System_AppLog, m_logStreamEventFunc);
+}
+
+void SystemLog::Tick()
+{
 }
 
 void SystemLog::OutputLogStream(LogStreamEventPtr data)

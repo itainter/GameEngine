@@ -1,17 +1,18 @@
 #include <memory>
 #include <stdexcept>
 #include <iostream>
+
+#include "Global.h"
 #include "IApplication.h"
 
 using namespace Engine;
 
-namespace Engine
-{
-    extern std::unique_ptr<IApplication> g_pApp;
-}
-
 int main(int argc, char** argv)
 {
+    auto g_pApp = gpGlobal->GetApplication();
+    if (!g_pApp)
+        return 0;
+
     try
     {
         g_pApp->Initialize();

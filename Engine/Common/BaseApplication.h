@@ -1,10 +1,8 @@
 #pragma once
 
 #include <string>
+
 #include "IApplication.h"
-#include "IEvent.h"
-#include "IInput.h"
-#include "ILog.h"
 
 namespace Engine
 {
@@ -13,6 +11,8 @@ namespace Engine
         eEv_System_AppLog = 1,
     };
 
+    class IInputManager;
+    class ILog;
     class BaseApplication : public IApplication
     {
     public:
@@ -27,7 +27,8 @@ namespace Engine
         bool IsQuit() const override;
 
     private:
-        std::shared_ptr<IInput> m_pInput;
+        std::shared_ptr<IEventManager> m_pEventManager;
+        std::shared_ptr<IInputManager> m_pInputManager;
         std::shared_ptr<ILog> m_pLog;
     };
 }

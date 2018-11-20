@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 template<typename T>
 struct function_traits : public function_traits<decltype(&T::operator())>
 {};
@@ -10,7 +12,7 @@ struct function_traits<ReturnType(ClassType::*)(Args...) const>
     enum { arity = sizeof...(Args) };
     typedef ReturnType result_type;
 
-    template <size_t i>
+    template <uint64_t i>
     struct arg
     {
         typedef typename std::tuple_element<i, std::tuple<Args...>>::type type;

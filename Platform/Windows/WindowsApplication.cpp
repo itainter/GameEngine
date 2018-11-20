@@ -1,16 +1,30 @@
 #include <memory>
 
-#include "Event.h"
-#include "EventManager.h"
+#include "Global.h"
+#include "IEvent.h"
 #include "WindowsApplication.h"
+#include "EventManager.h"
+#include "Input.h"
+#include "SystemLog.h"
 
 using namespace Engine;
 using namespace Platform;
 
 namespace Engine
 {
-    WindowsApplication g_App;
-    std::unique_ptr<IApplication> g_pApp = std::make_unique<WindowsApplication>(g_App);
+    class WindowsSetup : public Setup
+    {
+    public:
+        WindowsSetup()
+        {
+            gpGlobal->RegisterRuntimeModule<WindowsApplication, eRTModule_App>();
+            gpGlobal->RegisterRuntimeModule<EventManager, eRTModule_EventManager>();
+            gpGlobal->RegisterRuntimeModule<InputManager, eRTModule_InputManager>();
+            gpGlobal->RegisterRuntimeModule<SystemLog, eRTModule_SystemLog>();
+        }
+    };
+
+    static WindowsSetup setup;
 }
 
 void WindowsApplication::Initialize()
@@ -32,6 +46,13 @@ void WindowsApplication::Shutdown()
 void WindowsApplication::Tick()
 {
     BaseApplication::Tick();
+
+    MSG msg;
+    if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg); 
+    }
 }
 
 void WindowsApplication::CreateMainWindow()
@@ -55,12 +76,12 @@ void WindowsApplication::CreateMainWindow()
 
     m_hWnd = CreateWindowEx(0,
                             "GameEngineApplication",
-                            m_Config.appName,
+                            gpGlobal->GetConfiguration().appName,
                             WS_OVERLAPPEDWINDOW,
                             CW_USEDEFAULT,
                             CW_USEDEFAULT,
-                            m_Config.screenWidth + width_adjust,
-                            m_Config.screenHeight + height_adjust,
+                            gpGlobal->GetConfiguration().width + width_adjust,
+                            gpGlobal->GetConfiguration().height + height_adjust,
                             NULL,
                             NULL,
                             hInstance,

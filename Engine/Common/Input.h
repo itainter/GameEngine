@@ -1,6 +1,7 @@
 #pragma once
 
 #include <queue>
+#include <stdint.h>
 
 #include "IInput.h"
 
@@ -9,22 +10,22 @@ namespace Engine
     class InputMsg
     {
     public:
-        InputMsg(size_t _ctrID, int _param1 = 0, int _param2 = 0) : ctrID(_ctrID), param1(_param1), param2(_param2) {}
-        size_t CtrID() const { return ctrID; }
+        InputMsg(uint32_t _ctrID, int _param1 = 0, int _param2 = 0) : ctrID(_ctrID), param1(_param1), param2(_param2) {}
+        uint32_t CtrID() const { return ctrID; }
         int Param1() const { return param1; }
         int Param2() const { return param2; }
     private:
-        size_t ctrID;
+        uint32_t ctrID;
         int param1;
         int param2;
     };
     std::ostream& operator<< (std::ostream &out, InputMsg const& e);
 
-    class Input : public IInput
+    class InputManager : public IInputManager
     {
     public:
-        Input() {};
-        virtual ~Input() {};
+        InputManager() {};
+        virtual ~InputManager() {};
 
         void Initialize() override;
         void Shutdown() override;

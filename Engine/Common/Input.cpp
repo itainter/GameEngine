@@ -1,5 +1,4 @@
 #include "IInput.h"
-#include "Event.h"
 #include "EventManager.h"
 #include "Input.h"
 
@@ -10,17 +9,17 @@ std::ostream& operator<< (std::ostream &out, InputMsg const& e)
     return out << "(control ID: " << e.CtrID() << ", param 1: " << e.Param1() << ", param 2: " << e.Param2() << ")" << std::endl;
 }
 
-void Input::Initialize()
+void InputManager::Initialize()
 {
 }
 
-void Input::Shutdown()
+void InputManager::Shutdown()
 {
     while (!m_inputQueue.empty())
         m_inputQueue.pop();
 }
 
-void Input::Tick()
+void InputManager::Tick()
 {
     while (!m_inputQueue.empty())
     {
@@ -79,7 +78,7 @@ void Input::Tick()
     }
 }
 
-void Input::DispatchInputEvent(EInputEvent event, InputMsg msg)
+void InputManager::DispatchInputEvent(EInputEvent event, InputMsg msg)
 {
     m_inputQueue.push(InputMsgInfo(event, msg));
 }

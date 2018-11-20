@@ -21,10 +21,10 @@ namespace Engine
         eEv_Input_ControlHover = 114,
     };
 
-    class IInput : public IRuntimeModule
+    class IInputManager : public IRuntimeModule
     {
     public:
-        virtual ~IInput() {};
+        virtual ~IInputManager() {};
 
         virtual void Initialize() = 0;
         virtual void Shutdown() = 0;

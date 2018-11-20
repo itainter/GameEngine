@@ -1,6 +1,27 @@
+#include "Global.h"
 #include "EventManager.h"
 
 using namespace Engine;
+
+void EventManager::Initialize()
+{
+}
+
+void EventManager::Shutdown()
+{
+    m_eventQueue.clear();
+    for (auto& it : m_eventListeners)
+    {
+        auto & list = it.second;
+        list.clear();
+    }
+    m_eventListeners.clear();
+}
+
+void EventManager::Tick()
+{
+    ProcessEvents();
+}
 
 bool EventManager::AddListener(IEventData::id_t id, EventDelegate proc)
 {
@@ -56,6 +77,11 @@ void EventManager::ProcessEvents()
         }
         it = m_eventQueue.erase(it);
     }
+}
+
+EventListener::EventListener()
+{
+    el_mEventManager = gpGlobal->GetEventManager();
 }
 
 EventListener::~EventListener()

@@ -1,9 +1,10 @@
 #pragma once
 
-#include "ILog.h"
-#include "BaseApplication.h"
-#include "EventManager.h"
+#include <functional>
 
+#include "ILog.h"
+#include "Global.h"
+#include "BaseApplication.h"
 namespace Engine
 {
     class SystemLog : public ILog
@@ -14,6 +15,8 @@ namespace Engine
 
         void Initialize() override;
         void Shutdown() override;
+
+        void Tick() override;
 
     private:
         typedef Event<std::string, ESystemEvent, eEv_System_AppLog> LogStreamEvent;

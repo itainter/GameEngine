@@ -1,8 +1,24 @@
 #include <memory>
+
+#include "Global.h"
 #include "BaseApplication.h"
+#include "EventManager.h"
+#include "Input.h"
+#include "SystemLog.h"
 
 namespace Engine
 {
-    BaseApplication g_App;
-    std::unique_ptr<IApplication> g_pApp = std::make_unique<BaseApplication>(g_App);
+    class DefaultSetup : public Setup
+    {
+    public:
+        DefaultSetup()
+        {
+            gpGlobal->RegisterRuntimeModule<BaseApplication, eRTModule_App>();
+            gpGlobal->RegisterRuntimeModule<EventManager, eRTModule_EventManager>();
+            gpGlobal->RegisterRuntimeModule<InputManager, eRTModule_InputManager>();
+            gpGlobal->RegisterRuntimeModule<SystemLog, eRTModule_SystemLog>();
+        }
+    };
+
+    DefaultSetup setup;
 }

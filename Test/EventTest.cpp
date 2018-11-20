@@ -2,10 +2,25 @@
 #include <memory>
 #include <iostream>
 
-#include "Event.h"
+#include "Global.h"
+#include "IEvent.h"
 #include "EventManager.h"
 
 using namespace Engine;
+
+namespace Engine
+{
+    class TestSetup : public Setup
+    {
+    public:
+        TestSetup()
+        {
+            gpGlobal->RegisterRuntimeModule<EventManager, eRTModule_EventManager>();
+        }
+    };
+
+    TestSetup setup;
+}
 
 enum ETestEvent
 {
@@ -20,12 +35,12 @@ struct EventData
 
     int val;
     std::string data;
-};
 
-std::ostream& operator<< (std::ostream &out, EventData const& d)
-{
-  return out << "(val: " << d.val << ", data: " << d.data << ")";
-}
+    friend std::ostream& operator<< (std::ostream &out, EventData const& d)
+    {
+        return out << "(val: " << d.val << ", data: " << d.data << ")";
+    }
+};
 
 int main()
 {
@@ -60,7 +75,7 @@ int main()
         EMITTER_EVENT(TestEvent_3);
     }
 
-    EventManager::Get()->ProcessEvents();
+    gpGlobal->GetEventManager()->ProcessEvents();
 
     return 0;
 }
