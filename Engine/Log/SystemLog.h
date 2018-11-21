@@ -5,6 +5,7 @@
 #include "ILog.h"
 #include "Global.h"
 #include "BaseApplication.h"
+
 namespace Engine
 {
     class SystemLog : public ILog
@@ -19,14 +20,14 @@ namespace Engine
         void Tick() override;
 
     private:
-        typedef Event<std::string, ESystemEvent, eEv_System_AppLog> LogStreamEvent;
-        typedef std::shared_ptr<LogStreamEvent> LogStreamEventPtr;
-        typedef std::function<void(LogStreamEventPtr)> LogStreamEventFunc;
+        typedef Event<std::string, ESystemEvent, eEv_System_App> LogSystemEvent;
+        typedef std::shared_ptr<LogSystemEvent> LogSystemEventPtr;
+        typedef std::function<void(LogSystemEventPtr)> LogSystemEventFunc;
     
-        void OutputLogStream(LogStreamEventPtr data);
+        void OutputLogStream(LogSystemEventPtr data) const;
 
     private:
         DECLARE_LISTENER();
-        LogStreamEventFunc m_logStreamEventFunc;
+        LogSystemEventFunc m_logSystemEventFunc;
     };
 }

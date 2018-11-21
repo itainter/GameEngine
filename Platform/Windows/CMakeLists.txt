@@ -1,6 +1,7 @@
 add_executable(
     WindowsApp
     WindowsApplication.cpp
+    WindowsInput.cpp
 )
 target_link_libraries(
     WindowsApp

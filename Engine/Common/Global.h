@@ -34,7 +34,8 @@ namespace Engine
         eRTModule_App = 1,
         eRTModule_EventManager = 2,
         eRTModule_InputManager = 3,
-        eRTModule_SystemLog = 4,
+        eRTModule_Log_System = 4,
+        eRTModule_Log_Input = 5,
     };
 
     class IApplication;
@@ -51,7 +52,8 @@ namespace Engine
         std::shared_ptr<IApplication> GetApplication();
         std::shared_ptr<IEventManager> GetEventManager();
         std::shared_ptr<IInputManager> GetInputManager();
-        std::shared_ptr<ILog> GetSystemLog();
+        std::shared_ptr<ILog> GetLogSystem();
+        std::shared_ptr<ILog> GetLogInput();
 
         Configuration& GetConfiguration();
 

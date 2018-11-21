@@ -1,7 +1,9 @@
 #pragma once
 
 #include <Windows.h>
+#include <memory>
 
+#include "WindowsInput.h"
 #include "BaseApplication.h"
 
 namespace Platform
@@ -9,8 +11,8 @@ namespace Platform
     class WindowsApplication : public Engine::BaseApplication
     {
     public:
-        WindowsApplication() {};
-        virtual ~WindowsApplication() {};
+        WindowsApplication() {}
+        virtual ~WindowsApplication() {}
 
         void Initialize() override;
         void Shutdown() override;
@@ -22,6 +24,7 @@ namespace Platform
         static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
     protected:
+        std::shared_ptr<WindowsInput> m_pWindowsInputManager;
         HWND m_hWnd;
         HDC  m_hDc;
     };

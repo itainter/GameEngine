@@ -19,8 +19,8 @@ namespace Engine
         typedef uint32_t id_t;
         typedef std::string name_t;
 
-        virtual id_t GetID() = 0;
-        virtual name_t GetName() = 0;
+        virtual id_t GetID() const = 0;
+        virtual name_t GetName() const = 0;
     };
 
     template <typename T, typename E, E e,
@@ -33,9 +33,9 @@ namespace Engine
         Event() {}
         Event(const msg_t t, const char* n) : m_id(e), m_name(n), m_msg(t) {}
 
-        id_t GetID()        override { return m_id; }
-        name_t GetName()    override { return m_name; }
-        msg_t GetMsg()               { return m_msg; }
+        id_t GetID() const override     { return m_id; }
+        name_t GetName() const override { return m_name; }
+        msg_t GetMsg() const            { return m_msg; }
 
     private:
         id_t m_id;

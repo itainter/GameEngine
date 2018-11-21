@@ -8,7 +8,7 @@ namespace Engine
     class IApplication : public IRuntimeModule
     {
     public:
-        virtual ~IApplication() {};
+        virtual ~IApplication() {}
 
         virtual void Initialize() = 0;
         virtual void Shutdown() = 0;

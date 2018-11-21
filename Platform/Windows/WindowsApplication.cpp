@@ -6,6 +6,7 @@
 #include "EventManager.h"
 #include "Input.h"
 #include "SystemLog.h"
+#include "InputLog.h"
 
 using namespace Engine;
 using namespace Platform;
@@ -20,7 +21,8 @@ namespace Engine
             gpGlobal->RegisterRuntimeModule<WindowsApplication, eRTModule_App>();
             gpGlobal->RegisterRuntimeModule<EventManager, eRTModule_EventManager>();
             gpGlobal->RegisterRuntimeModule<InputManager, eRTModule_InputManager>();
-            gpGlobal->RegisterRuntimeModule<SystemLog, eRTModule_SystemLog>();
+            gpGlobal->RegisterRuntimeModule<SystemLog, eRTModule_Log_System>();
+            gpGlobal->RegisterRuntimeModule<InputLog, eRTModule_Log_Input>();
         }
     };
 
@@ -34,18 +36,26 @@ void WindowsApplication::Initialize()
 
     BaseApplication::Initialize();
 
-    DECLARE_EVENT(eEv_System_AppLog, AppInitEv, std::string("WindowsApplication initialize"));
+    m_pWindowsInputManager = std::dynamic_pointer_cast<WindowsInput>(m_pInputManager);
+    if (m_pWindowsInputManager)
+        m_pWindowsInputManager->Initialize();
+
+    DECLARE_EVENT(eEv_System_App, AppInitEv, std::string("WindowsApplication initialize"));
     EMITTER_EVENT(AppInitEv);
 }
 
 void WindowsApplication::Shutdown()
 {
+    if (m_pWindowsInputManager)
+        m_pWindowsInputManager->Shutdown();
+
     BaseApplication::Shutdown();
 }
 
 void WindowsApplication::Tick()
 {
-    BaseApplication::Tick();
+    if (m_pWindowsInputManager)
+        m_pWindowsInputManager->Tick();
 
     MSG msg;
     if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -53,6 +63,9 @@ void WindowsApplication::Tick()
         TranslateMessage(&msg);
         DispatchMessage(&msg); 
     }
+
+    BaseApplication::Tick();
+
 }
 
 void WindowsApplication::CreateMainWindow()
@@ -88,4 +101,10 @@ void WindowsApplication::CreateMainWindow()
                             this);
 
     ShowWindow(m_hWnd, SW_SHOW);
+}
+
+LRESULT CALLBACK WindowsApplication::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    WindowsInput::PeekWindowsInputMessage(message, wParam, lParam);
+    return DefWindowProc (hWnd, message, wParam, lParam); 
 }

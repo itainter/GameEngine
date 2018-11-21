@@ -26,6 +26,12 @@ void InputManager::Tick()
         auto info = m_inputQueue.front();
         switch(info.event)
         {
+            case eEv_Input_KeyChar:
+            {
+                DECLARE_EVENT(eEv_Input_KeyChar, inputEvent, info.msg);
+                EMITTER_EVENT(inputEvent);
+                break;
+            }
             case eEv_Input_KeyDown:
             {
                 DECLARE_EVENT(eEv_Input_KeyDown, inputEvent, info.msg);
@@ -34,7 +40,7 @@ void InputManager::Tick()
             }
             case eEv_Input_KeyUp:
             {
-                DECLARE_EVENT(eEv_Input_KeyDown, inputEvent, info.msg);
+                DECLARE_EVENT(eEv_Input_KeyUp, inputEvent, info.msg);
                 EMITTER_EVENT(inputEvent);
                 break;
             }
@@ -75,6 +81,8 @@ void InputManager::Tick()
                 break;
             }
         }
+
+        m_inputQueue.pop();
     }
 }
 

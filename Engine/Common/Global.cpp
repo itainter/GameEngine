@@ -32,9 +32,14 @@ std::shared_ptr<IInputManager> Global::GetInputManager()
     return GetRuntimeModule<IInputManager, eRTModule_InputManager>();
 }
 
-std::shared_ptr<ILog> Global::GetSystemLog()
+std::shared_ptr<ILog> Global::GetLogSystem()
 {
-    return GetRuntimeModule<ILog, eRTModule_SystemLog>();
+    return GetRuntimeModule<ILog, eRTModule_Log_System>();
+}
+
+std::shared_ptr<ILog> Global::GetLogInput()
+{
+    return GetRuntimeModule<ILog, eRTModule_Log_Input>();
 }
 
 Configuration& Global::GetConfiguration()
