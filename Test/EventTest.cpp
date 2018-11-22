@@ -15,7 +15,7 @@ namespace Engine
     public:
         TestSetup()
         {
-            gpGlobal->RegisterRuntimeModule<EventManager, eRTModule_EventManager>();
+            gpGlobal->RegisterRuntimeModule<EventManager>(eRTModule_EventManager);
         }
     };
 
@@ -58,21 +58,21 @@ int main()
     }
 
     {
-        DECLARE_EVENT(eTestEvent_1, TestEvent_1, std::string("This is TestEvent_1"));
+        DECLARE_EVENT(eTestEvent_1, Test_1_Ev, std::string("This is Test_1_Ev"));
 
-        DECLARE_EVENT(eTestEvent_2, TestEvent_2_1, EventData(201, "This is TestEvent_2_1"));
-        DECLARE_EVENT(eTestEvent_2, TestEvent_2_2, EventData(202, "This is TestEvent_2_2"));
-        DECLARE_EVENT(eTestEvent_2, TestEvent_2_3, EventData(202, "This is TestEvent_2_3"));
+        DECLARE_EVENT(eTestEvent_2, Test_2_1_Ev, EventData(201, "This is Test_2_1_Ev"));
+        DECLARE_EVENT(eTestEvent_2, Test_2_2_Ev, EventData(202, "This is Test_2_2_Ev"));
+        DECLARE_EVENT(eTestEvent_2, Test_2_3_Ev, EventData(202, "This is Test_2_3_Ev"));
 
-        DECLARE_EVENT(eTestEvent_3, TestEvent_3, EventData(300, "This is TestEvent_3"));
+        DECLARE_EVENT(eTestEvent_3, Test_3_Ev, EventData(300, "This is Test_3_Ev"));
 
         for(int i = 0; i < 2; i++)
-            EMITTER_EVENT(TestEvent_1);
+            EMITTER_EVENT(Test_1_Ev);
 
-        EMITTER_EVENT(TestEvent_2_1);
-        EMITTER_EVENT(TestEvent_2_2);
+        EMITTER_EVENT(Test_2_1_Ev);
+        EMITTER_EVENT(Test_2_2_Ev);
 
-        EMITTER_EVENT(TestEvent_3);
+        EMITTER_EVENT(Test_3_Ev);
     }
 
     gpGlobal->GetEventManager()->ProcessEvents();

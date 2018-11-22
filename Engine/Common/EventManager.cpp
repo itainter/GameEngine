@@ -35,7 +35,7 @@ bool EventManager::AddListener(IEventData::id_t id, EventDelegate proc)
         if (p.target<EventDelegate>() == proc.target<EventDelegate>())
             return false;
     }
-    list.push_back(proc);
+    list.emplace_back(proc);
 
     return true;
 }
@@ -61,7 +61,7 @@ bool EventManager::RemoveListener(IEventData::id_t id, EventDelegate proc)
 
 void EventManager::QueueEvent(IEventDataPtr e)
 {
-    m_eventQueue.push_back(e);
+    m_eventQueue.emplace_back(e);
 }
 
 void EventManager::ProcessEvents()
@@ -99,7 +99,7 @@ bool EventListener::OnEvent(IEventData::id_t id, EventDelegate proc)
         return false; 
     auto em = el_mEventManager.lock(); 
     if (em->AddListener(id, proc)){
-        el_mEvent.push_back(EventPair(id, proc)); 
+        el_mEvent.emplace_back(id, proc); 
     }
     return true;
 }

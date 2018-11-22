@@ -52,10 +52,10 @@ namespace Engine
     public:
         virtual ~IInputManager() {}
 
-        virtual void Initialize() = 0;
-        virtual void Shutdown() = 0;
+        virtual void Initialize() override = 0;
+        virtual void Shutdown() override = 0;
 
-        virtual void Tick() = 0;
+        virtual void Tick() override = 0;
 
         virtual void DispatchInputEvent(EInputEvent event, InputMsg msg) = 0;
     };

@@ -28,56 +28,56 @@ void InputManager::Tick()
         {
             case eEv_Input_KeyChar:
             {
-                DECLARE_EVENT(eEv_Input_KeyChar, inputEvent, info.msg);
-                EMITTER_EVENT(inputEvent);
+                DECLARE_EVENT(eEv_Input_KeyChar, InputKeyCharEv, info.msg);
+                EMITTER_EVENT(InputKeyCharEv);
                 break;
             }
             case eEv_Input_KeyDown:
             {
-                DECLARE_EVENT(eEv_Input_KeyDown, inputEvent, info.msg);
-                EMITTER_EVENT(inputEvent);
+                DECLARE_EVENT(eEv_Input_KeyDown, InputKeyDownEv, info.msg);
+                EMITTER_EVENT(InputKeyDownEv);
                 break;
             }
             case eEv_Input_KeyUp:
             {
-                DECLARE_EVENT(eEv_Input_KeyUp, inputEvent, info.msg);
-                EMITTER_EVENT(inputEvent);
+                DECLARE_EVENT(eEv_Input_KeyUp, InputKeyUpEv, info.msg);
+                EMITTER_EVENT(InputKeyUpEv);
                 break;
             }
             case eEv_Input_KeyDbClick:
             {
-                DECLARE_EVENT(eEv_Input_KeyDbClick, inputEvent, info.msg);
-                EMITTER_EVENT(inputEvent);
+                DECLARE_EVENT(eEv_Input_KeyDbClick, InputKeyDbClickEv, info.msg);
+                EMITTER_EVENT(InputKeyDbClickEv);
                 break;
             }
             case eEv_Input_ControlMove:
             {
-                DECLARE_EVENT(eEv_Input_ControlMove, inputEvent, info.msg);
-                EMITTER_EVENT(inputEvent);
+                DECLARE_EVENT(eEv_Input_ControlMove, InputControlMoveEv, info.msg);
+                EMITTER_EVENT(InputControlMoveEv);
                 break;
             }
             case eEv_Input_ControlLeave:
             {
-                DECLARE_EVENT(eEv_Input_ControlLeave, inputEvent, info.msg);
-                EMITTER_EVENT(inputEvent);
+                DECLARE_EVENT(eEv_Input_ControlLeave, InputControlLeaveEv, info.msg);
+                EMITTER_EVENT(InputControlLeaveEv);
                 break;
             }
             case eEv_Input_ControlWheel:
             {
-                DECLARE_EVENT(eEv_Input_ControlWheel, inputEvent, info.msg);
-                EMITTER_EVENT(inputEvent);
+                DECLARE_EVENT(eEv_Input_ControlWheel, InputControlWheelEv, info.msg);
+                EMITTER_EVENT(InputControlWheelEv);
                 break;
             }
             case eEv_Input_ControlHover:
             {
-                DECLARE_EVENT(eEv_Input_ControlHover, inputEvent, info.msg);
-                EMITTER_EVENT(inputEvent);
+                DECLARE_EVENT(eEv_Input_ControlHover, InputControlHoverEv, info.msg);
+                EMITTER_EVENT(InputControlHoverEv);
                 break;
             }
             default:
             {
-                DECLARE_EVENT(eEv_Input_Unknown, inputEvent, info.msg);
-                EMITTER_EVENT(inputEvent);
+                DECLARE_EVENT(eEv_Input_Unknown, InputUnknownEv, info.msg);
+                EMITTER_EVENT(InputUnknownEv);
                 break;
             }
         }
@@ -88,5 +88,5 @@ void InputManager::Tick()
 
 void InputManager::DispatchInputEvent(EInputEvent event, InputMsg msg)
 {
-    m_inputQueue.push(InputMsgInfo(event, msg));
+    m_inputQueue.emplace(event, msg);
 }

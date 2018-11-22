@@ -14,6 +14,8 @@
 
 using namespace Engine;
 
+bool BaseApplication::m_bQuit = false;
+
 void BaseApplication::Initialize()
 {
     m_pEventManager = gpGlobal->GetEventManager();
@@ -69,5 +71,5 @@ void BaseApplication::Tick()
 
 bool BaseApplication::IsQuit() const
 {
-    return false;
+    return m_bQuit;
 }

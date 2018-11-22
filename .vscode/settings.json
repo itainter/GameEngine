@@ -46,7 +46,8 @@
         "xfunctional": "cpp",
         "queue": "cpp",
         "algorithm": "cpp",
-        "deque": "cpp"
+        "deque": "cpp",
+        "hash_map": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

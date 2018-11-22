@@ -38,6 +38,9 @@ void WindowsInput::PeekWindowsInputMessage(UINT message, WPARAM wParam, LPARAM l
             bool bCatched = true;
             switch(wParam)
             {
+                case VK_ESCAPE:
+                    msg.setCtrID(eEm_InputControl_Escape);
+                    break; 
                 case VK_TAB:
                     msg.setCtrID(eEm_InputControl_Tab);
                     break;

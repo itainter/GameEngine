@@ -44,6 +44,13 @@ namespace Engine
     };
 
     template<>
+    inline void InputLog::OutputLogStream<eEv_Input_KeyChar>(LogInputKeyCharPtr data) const
+    {
+        auto msg = data->GetMsg();
+        std::cout << "Key Char: "<< msg << " Character: " << static_cast<char>(msg.Param1()) << std::endl;
+    };
+
+    template<>
     inline void InputLog::OutputLogStream<eEv_Input_KeyDown>(LogInputKeyDownPtr data) const
     {
         std::cout << "Key Down: " << data->GetMsg() << std::endl;

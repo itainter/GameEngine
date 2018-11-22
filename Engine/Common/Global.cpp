@@ -3,6 +3,8 @@
 #include "IApplication.h"
 #include "IEvent.h"
 #include "IInput.h"
+#include "IDrawingDevice.h"
+#include "IDrawingManager.h"
 #include "Ilog.h"
 
 using namespace Engine;

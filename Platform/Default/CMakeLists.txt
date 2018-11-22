@@ -5,5 +5,6 @@ add_executable(
 target_link_libraries(
     Default
     Common
+    Graphics
     Log
 )

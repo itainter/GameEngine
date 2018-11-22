@@ -6,6 +6,7 @@ project (GameEngine)
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Util")
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Interface")
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Common")
+include_directories("${PROJECT_SOURCE_DIR}/Engine/Graphics")
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Log")
 
 add_subdirectory(Engine)

@@ -18,11 +18,11 @@ namespace Engine
     public:
         WindowsSetup()
         {
-            gpGlobal->RegisterRuntimeModule<WindowsApplication, eRTModule_App>();
-            gpGlobal->RegisterRuntimeModule<EventManager, eRTModule_EventManager>();
-            gpGlobal->RegisterRuntimeModule<InputManager, eRTModule_InputManager>();
-            gpGlobal->RegisterRuntimeModule<SystemLog, eRTModule_Log_System>();
-            gpGlobal->RegisterRuntimeModule<InputLog, eRTModule_Log_Input>();
+            gpGlobal->RegisterRuntimeModule<WindowsApplication>(eRTModule_App);
+            gpGlobal->RegisterRuntimeModule<EventManager>(eRTModule_EventManager);
+            gpGlobal->RegisterRuntimeModule<InputManager>(eRTModule_InputManager);
+            gpGlobal->RegisterRuntimeModule<SystemLog>(eRTModule_Log_System);
+            gpGlobal->RegisterRuntimeModule<InputLog>(eRTModule_Log_Input);
         }
     };
 
@@ -106,5 +106,17 @@ void WindowsApplication::CreateMainWindow()
 LRESULT CALLBACK WindowsApplication::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     WindowsInput::PeekWindowsInputMessage(message, wParam, lParam);
+
+    switch (message)
+    {
+        case WM_DESTROY:
+        {
+            DECLARE_EVENT(eEv_System_App, WindowsDestroyEv, std::string("Windows Destroy"));
+            EMITTER_EVENT(WindowsDestroyEv);
+            PostQuitMessage(0);
+            m_bQuit = true;
+        } 
+    }
+
     return DefWindowProc (hWnd, message, wParam, lParam); 
 }

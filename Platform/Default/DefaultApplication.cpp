@@ -13,10 +13,10 @@ namespace Engine
     public:
         DefaultSetup()
         {
-            gpGlobal->RegisterRuntimeModule<BaseApplication, eRTModule_App>();
-            gpGlobal->RegisterRuntimeModule<EventManager, eRTModule_EventManager>();
-            gpGlobal->RegisterRuntimeModule<InputManager, eRTModule_InputManager>();
-            gpGlobal->RegisterRuntimeModule<SystemLog, eRTModule_Log_System>();
+            gpGlobal->RegisterRuntimeModule<BaseApplication>(eRTModule_App);
+            gpGlobal->RegisterRuntimeModule<EventManager>(eRTModule_EventManager);
+            gpGlobal->RegisterRuntimeModule<InputManager>(eRTModule_InputManager);
+            gpGlobal->RegisterRuntimeModule<SystemLog>(eRTModule_Log_System);
         }
     };
 

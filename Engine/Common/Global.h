@@ -57,8 +57,8 @@ namespace Engine
 
         Configuration& GetConfiguration();
 
-        template<typename T, ERTModule e>
-        void RegisterRuntimeModule()
+        template<typename T>
+        void RegisterRuntimeModule(ERTModule e)
         {
             auto it = m_RTModuleMap.find(e);
             if (it != m_RTModuleMap.end())

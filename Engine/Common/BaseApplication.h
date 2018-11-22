@@ -27,6 +27,7 @@ namespace Engine
         bool IsQuit() const override;
 
     protected:
+        static bool m_bQuit;
         std::shared_ptr<IEventManager> m_pEventManager;
         std::shared_ptr<IInputManager> m_pInputManager;
         std::shared_ptr<ILog> m_pSystemLog;

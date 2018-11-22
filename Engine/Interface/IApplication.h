@@ -10,10 +10,10 @@ namespace Engine
     public:
         virtual ~IApplication() {}
 
-        virtual void Initialize() = 0;
-        virtual void Shutdown() = 0;
+        virtual void Initialize() override = 0;
+        virtual void Shutdown() override = 0;
 
-        virtual void Tick() = 0;
+        virtual void Tick() override = 0;
 
         virtual bool IsQuit() const = 0;
     };
