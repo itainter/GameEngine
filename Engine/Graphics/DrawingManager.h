@@ -7,8 +7,8 @@ namespace Engine
     class DrawingManager : public IDrawingManager
     {
     public:
-        DrawingManager() {}
-        virtual ~DrawingManager() {}
+        DrawingManager();
+        virtual ~DrawingManager();
 
         void Initialize() override;
         void Shutdown() override;
