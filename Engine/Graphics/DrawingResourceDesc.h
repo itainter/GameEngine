@@ -16,7 +16,7 @@ namespace Engine
     public:
         DrawingResourceDesc() = default;
         DrawingResourceDesc(const DrawingResourceDesc& desc);
-        DrawingResourceDesc(const DrawingResourceDesc&& desc);
+        DrawingResourceDesc(DrawingResourceDesc&& desc);
         virtual ~DrawingResourceDesc();
 
         DrawingResourceDesc& operator= (const DrawingResourceDesc& rhs);
@@ -41,7 +41,7 @@ namespace Engine
     public:
         DrawingProgramDesc();
         DrawingProgramDesc(const DrawingProgramDesc& desc);
-        DrawingProgramDesc(const DrawingProgramDesc&& desc);
+        DrawingProgramDesc(DrawingProgramDesc&& desc);
         virtual ~DrawingProgramDesc();
 
         DrawingProgramDesc& operator= (const DrawingProgramDesc& rhs);
@@ -57,7 +57,7 @@ namespace Engine
     public:
         DrawingShaderDesc();
         DrawingShaderDesc(const DrawingShaderDesc& desc);
-        DrawingShaderDesc(const DrawingShaderDesc&& desc);
+        DrawingShaderDesc(DrawingShaderDesc&& desc);
         virtual ~DrawingShaderDesc();
 
         DrawingShaderDesc& operator= (const DrawingShaderDesc& rhs);
@@ -72,7 +72,7 @@ namespace Engine
     public:
         DrawingVertexShaderDesc();
         DrawingVertexShaderDesc(const DrawingVertexShaderDesc& desc);
-        DrawingVertexShaderDesc(const DrawingVertexShaderDesc&& desc);
+        DrawingVertexShaderDesc(DrawingVertexShaderDesc&& desc);
         virtual ~DrawingVertexShaderDesc();
 
         DrawingVertexShaderDesc& operator= (const DrawingVertexShaderDesc& rhs);
@@ -86,7 +86,7 @@ namespace Engine
     public:
         DrawingPixelShaderDesc();
         DrawingPixelShaderDesc(const DrawingPixelShaderDesc& desc);
-        DrawingPixelShaderDesc(const DrawingPixelShaderDesc&& desc);
+        DrawingPixelShaderDesc(DrawingPixelShaderDesc&& desc);
         virtual ~DrawingPixelShaderDesc();
 
         DrawingPixelShaderDesc& operator= (const DrawingPixelShaderDesc& rhs);
@@ -100,7 +100,7 @@ namespace Engine
     public:
         DrawingVertexFormatDesc();
         DrawingVertexFormatDesc(const DrawingVertexFormatDesc& desc);
-        DrawingVertexFormatDesc(const DrawingVertexFormatDesc&& desc);
+        DrawingVertexFormatDesc(DrawingVertexFormatDesc&& desc);
         virtual ~DrawingVertexFormatDesc();
 
         DrawingVertexFormatDesc& operator= (const DrawingVertexFormatDesc& rhs);
@@ -113,7 +113,7 @@ namespace Engine
         {
             VertexInputElement();
             VertexInputElement(const VertexInputElement& elem);
-            VertexInputElement(const VertexInputElement&& elem);
+            VertexInputElement(VertexInputElement&& elem);
             ~VertexInputElement();
 
             VertexInputElement& operator= (const VertexInputElement& rhs);
@@ -135,7 +135,7 @@ namespace Engine
     public:
         DrawingBufferDesc();
         DrawingBufferDesc(const DrawingBufferDesc& desc);
-        DrawingBufferDesc(const DrawingBufferDesc&& desc);
+        DrawingBufferDesc(DrawingBufferDesc&& desc);
         virtual ~DrawingBufferDesc();
 
         DrawingBufferDesc& operator= (const DrawingBufferDesc& rhs);
@@ -153,7 +153,7 @@ namespace Engine
     public:
         DrawingVertexBufferDesc();
         DrawingVertexBufferDesc(const DrawingVertexBufferDesc& desc);
-        DrawingVertexBufferDesc(const DrawingVertexBufferDesc&& desc);
+        DrawingVertexBufferDesc(DrawingVertexBufferDesc&& desc);
         virtual ~DrawingVertexBufferDesc();
 
         DrawingVertexBufferDesc& operator= (const DrawingVertexBufferDesc& rhs);
@@ -167,7 +167,7 @@ namespace Engine
     public:
         DrawingIndexBufferDesc();
         DrawingIndexBufferDesc(const DrawingIndexBufferDesc& desc);
-        DrawingIndexBufferDesc(const DrawingIndexBufferDesc&& desc);
+        DrawingIndexBufferDesc(DrawingIndexBufferDesc&& desc);
         virtual ~DrawingIndexBufferDesc();
 
         DrawingIndexBufferDesc& operator= (const DrawingIndexBufferDesc& rhs);
@@ -176,12 +176,49 @@ namespace Engine
         DrawingResourceDesc* Clone() const override;
     };
 
+    class DrawingBlendStateDesc : public DrawingResourceDesc
+    {
+    public:
+        DrawingBlendStateDesc();
+        DrawingBlendStateDesc(const DrawingBlendStateDesc& desc);
+        DrawingBlendStateDesc(DrawingBlendStateDesc&& desc);
+        virtual ~DrawingBlendStateDesc();
+
+        DrawingBlendStateDesc& operator= (const DrawingBlendStateDesc& rhs);
+
+        EDrawingResourceType GetType() const override;
+        DrawingResourceDesc* Clone() const override;
+
+        struct BlendDef
+        {
+            BlendDef();
+            BlendDef(const BlendDef& blend);
+            BlendDef(BlendDef&& blend);
+            virtual ~BlendDef();
+
+            BlendDef& operator= (const BlendDef& rhs);
+
+            bool operator== (const BlendDef& rhs) const;
+            bool operator!= (const BlendDef& rhs) const;
+
+            
+        };
+        struct BlendTarget
+        {
+        
+        };
+
+    public:
+        bool mAlphaToCoverageEnable;
+        bool mIndependentBlendEnable;
+    };
+
     class DrawingTextureDesc : public DrawingResourceDesc
     {
     public:
         DrawingTextureDesc();
         DrawingTextureDesc(const DrawingTextureDesc& desc);
-        DrawingTextureDesc(const DrawingTextureDesc&& desc);
+        DrawingTextureDesc(DrawingTextureDesc&& desc);
         virtual ~DrawingTextureDesc();
 
         DrawingTextureDesc& operator= (const DrawingTextureDesc& rhs);
@@ -189,7 +226,7 @@ namespace Engine
         EDrawingResourceType GetType() const override;
         DrawingResourceDesc* Clone() const override;
 
-    private:
+    public:
         EDrawingTextureType mType;
         EDrawingFormatType mFormat;
         EDrawingUsageType mUsage;

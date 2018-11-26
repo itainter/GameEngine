@@ -13,6 +13,13 @@ namespace Engine
         eResource_Pixel_Shader,
 
         eResource_Texture,
+
+        eResource_Blend_State,
+        eResource_Depth_State,
+        eResource_Raster_State,
+        eResource_Samplar_State,
+
+        eResource_Target,
     };
 
     enum EDrawingProgramType
@@ -66,5 +73,35 @@ namespace Engine
         eTexture_2DArray,
         eTexture_Cube,
         eTexture_3D,
+    };
+
+    enum EBlendType
+    {
+        eBlend_Zero,
+        eBlend_One,
+        eBlend_SrcColor,
+        eBlend_InvSrcColor,
+        eBlend_SrcAlpha,
+        eBlend_InvSrcAlpha,
+        eBlend_DestAlpha,
+        eBlend_InvDestAlpha,
+        eBlend_DestColor,
+        eBlend_InvDestColor,
+        eBlend_SrcAlphaSat,
+        eBlend_BlendFactor,
+        eBlend_InvBlendFactor,
+        eBlend_Src1Color,
+        eBlend_InvSrc1Color,
+        eBlend_Src1Alpha,
+        eBlend_InvSrc1Alpha,
+    };
+
+    enum EBlendOpType
+    {
+        eBlendOp_Add,
+        eBlendOp_Subtract,
+        eBlendOp_RevSubtract,
+        eBlendOp_Min,
+        eBlendOp_Max,
     };
 }

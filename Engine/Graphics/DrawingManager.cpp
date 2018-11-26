@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DrawingDevice.h"
+#include "DrawingManager.h"
 
 using namespace Engine;
 

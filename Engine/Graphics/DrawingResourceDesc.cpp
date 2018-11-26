@@ -7,7 +7,7 @@ DrawingResourceDesc::DrawingResourceDesc(const DrawingResourceDesc& desc)
     CloneFromNames(desc.mResourceDescNames);
 }
 
-DrawingResourceDesc::DrawingResourceDesc(const DrawingResourceDesc&& desc)
+DrawingResourceDesc::DrawingResourceDesc(DrawingResourceDesc&& desc)
 {
     CloneFromNames(desc.mResourceDescNames);
     mResourceDescNames.clear();
@@ -70,7 +70,7 @@ DrawingProgramDesc::DrawingProgramDesc(const DrawingProgramDesc& desc) : Drawing
 {
 }
 
-DrawingProgramDesc::DrawingProgramDesc(const DrawingProgramDesc&& desc) : DrawingResourceDesc(std::move(desc)),
+DrawingProgramDesc::DrawingProgramDesc(DrawingProgramDesc&& desc) : DrawingResourceDesc(std::move(desc)),
     mProgramType(std::move(desc.mProgramType)), m_pName(std::move(desc.m_pName)), m_pSourceName(std::move(desc.m_pSourceName))
 {
 }
@@ -104,7 +104,7 @@ DrawingShaderDesc::DrawingShaderDesc(const DrawingShaderDesc& desc) : DrawingPro
 {
 }
 
-DrawingShaderDesc::DrawingShaderDesc(const DrawingShaderDesc&& desc) : DrawingProgramDesc(std::move(desc)),
+DrawingShaderDesc::DrawingShaderDesc(DrawingShaderDesc&& desc) : DrawingProgramDesc(std::move(desc)),
     m_pEntryName(std::move(desc.m_pEntryName)), m_pIncludePath(std::move(desc.m_pIncludePath))
 {
 }
@@ -134,7 +134,7 @@ DrawingVertexShaderDesc::DrawingVertexShaderDesc(const DrawingVertexShaderDesc& 
 {
 }
 
-DrawingVertexShaderDesc::DrawingVertexShaderDesc(const DrawingVertexShaderDesc&& desc) : DrawingShaderDesc(std::move(desc))
+DrawingVertexShaderDesc::DrawingVertexShaderDesc(DrawingVertexShaderDesc&& desc) : DrawingShaderDesc(std::move(desc))
 {
 }
 
@@ -169,7 +169,7 @@ DrawingPixelShaderDesc::DrawingPixelShaderDesc(const DrawingPixelShaderDesc& des
 {
 }
 
-DrawingPixelShaderDesc::DrawingPixelShaderDesc(const DrawingPixelShaderDesc&& desc) : DrawingShaderDesc(std::move(desc))
+DrawingPixelShaderDesc::DrawingPixelShaderDesc(DrawingPixelShaderDesc&& desc) : DrawingShaderDesc(std::move(desc))
 {
 }
 
@@ -206,7 +206,7 @@ DrawingVertexFormatDesc::VertexInputElement::VertexInputElement(const VertexInpu
 {
 }
 
-DrawingVertexFormatDesc::VertexInputElement::VertexInputElement(const VertexInputElement&& elem) : mpName(std::move(elem.mpName)),
+DrawingVertexFormatDesc::VertexInputElement::VertexInputElement(VertexInputElement&& elem) : mpName(std::move(elem.mpName)),
     mIndex(std::move(elem.mIndex)), mFormat(std::move(elem.mFormat)), mSlot(std::move(elem.mSlot)), mOffset(std::move(elem.mOffset)), mInstanceStepRate(std::move(elem.mInstanceStepRate))
 {
 }
@@ -244,7 +244,7 @@ DrawingVertexFormatDesc::DrawingVertexFormatDesc(const DrawingVertexFormatDesc& 
     m_inputElements = desc.m_inputElements;
 }
 
-DrawingVertexFormatDesc::DrawingVertexFormatDesc(const DrawingVertexFormatDesc&& desc) : DrawingResourceDesc(std::move(desc))
+DrawingVertexFormatDesc::DrawingVertexFormatDesc(DrawingVertexFormatDesc&& desc) : DrawingResourceDesc(std::move(desc))
 {
     m_inputElements = std::move(desc.m_inputElements);
 }
@@ -285,7 +285,7 @@ DrawingBufferDesc::DrawingBufferDesc(const DrawingBufferDesc& desc) : DrawingRes
 {
 }
 
-DrawingBufferDesc::DrawingBufferDesc(const DrawingBufferDesc&& desc) : DrawingResourceDesc(std::move(desc)),
+DrawingBufferDesc::DrawingBufferDesc(DrawingBufferDesc&& desc) : DrawingResourceDesc(std::move(desc)),
     mSizeInByte(std::move(desc.mSizeInByte)), mStrideInByte(std::move(desc.mStrideInByte)), mUsage(std::move(desc.mUsage)), mAccess(std::move(desc.mAccess)), mFlags(std::move(mFlags))
 {
 }
@@ -322,7 +322,7 @@ DrawingVertexBufferDesc::DrawingVertexBufferDesc(const DrawingVertexBufferDesc& 
 {
 }
 
-DrawingVertexBufferDesc::DrawingVertexBufferDesc(const DrawingVertexBufferDesc&& desc) : DrawingBufferDesc(std::move(desc))
+DrawingVertexBufferDesc::DrawingVertexBufferDesc(DrawingVertexBufferDesc&& desc) : DrawingBufferDesc(std::move(desc))
 {
 }
 
@@ -358,7 +358,7 @@ DrawingIndexBufferDesc::DrawingIndexBufferDesc(const DrawingIndexBufferDesc& des
 {
 }
 
-DrawingIndexBufferDesc::DrawingIndexBufferDesc(const DrawingIndexBufferDesc&& desc) : DrawingBufferDesc(std::move(desc))
+DrawingIndexBufferDesc::DrawingIndexBufferDesc(DrawingIndexBufferDesc&& desc) : DrawingBufferDesc(std::move(desc))
 {
 }
 
@@ -400,7 +400,7 @@ DrawingTextureDesc::DrawingTextureDesc(const DrawingTextureDesc& desc) : Drawing
 {
 }
 
-DrawingTextureDesc::DrawingTextureDesc(const DrawingTextureDesc&& desc) : DrawingResourceDesc(std::move(desc)),
+DrawingTextureDesc::DrawingTextureDesc(DrawingTextureDesc&& desc) : DrawingResourceDesc(std::move(desc)),
     mType(std::move(desc.mType)), mFormat(std::move(desc.mFormat)), mUsage(std::move(desc.mUsage)), mAccess(std::move(desc.mAccess)),
     mWidth(std::move(desc.mWidth)), mHeight(std::move(desc.mHeight)), mDepth(std::move(desc.mDepth)), mArraySize(std::move(desc.mArraySize)), mMipLevels(std::move(desc.mMipLevels)), mBytesPerRow(std::move(desc.mBytesPerRow)), mBytesPerSlice(std::move(desc.mBytesPerSlice)), mFlags(std::move(desc.mFlags)),
     mSampleCount(std::move(desc.mSampleCount)), mSampleQuality(std::move(desc.mSampleQuality))
