@@ -23,10 +23,10 @@ namespace Engine
         virtual ~DrawingRawRasterState() = default;
     };
 
-    class DrawingRawSamplarState
+    class DrawingRawSamplerState
     {
     protected:
-        virtual ~DrawingRawSamplarState() = default;
+        virtual ~DrawingRawSamplerState() = default;
     };
 
     class DrawingRawTexture
@@ -35,18 +35,18 @@ namespace Engine
         virtual ~DrawingRawTexture() = default;
 
     public:
-        const std::shared_ptr<DrawingRawSamplarState>& GetSamplarState()
+        const std::shared_ptr<DrawingRawSamplerState>& GetSamplerState()
         {
-            return m_pSamplarState;
+            return m_pSamplerState;
         }
 
-        void SetSamplarState(std::shared_ptr<DrawingRawSamplarState> pSamplarState)
+        void SetSamplerState(std::shared_ptr<DrawingRawSamplerState> pSamplerState)
         {
-            m_pSamplarState = pSamplarState;
+            m_pSamplerState = pSamplerState;
         }
 
     private:
-        std::shared_ptr<DrawingRawSamplarState> m_pSamplarState;
+        std::shared_ptr<DrawingRawSamplerState> m_pSamplerState;
     };
 
     class DrawingRawShader

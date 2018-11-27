@@ -201,16 +201,175 @@ namespace Engine
             bool operator== (const BlendDef& rhs) const;
             bool operator!= (const BlendDef& rhs) const;
 
-            
+            EDrawingBlendType mBlendSrc;
+            EDrawingBlendType mBlendDst;
+            EDrawingBlendOpType mBlendOp;
         };
         struct BlendTarget
         {
-        
+            enum WriteMask
+            {
+                WriteMast_All = 0xf,
+            };
+            BlendTarget();
+            BlendTarget(const BlendTarget& target);
+            BlendTarget(BlendTarget&& target);
+            virtual ~BlendTarget();
+
+            BlendTarget& operator= (const BlendTarget& rhs);
+
+            bool operator== (const BlendTarget& rhs) const;
+            bool operator!= (const BlendTarget& rhs) const;
+
+            bool mBlendEnable;
+            BlendDef mAlphaBlend;
+            BlendDef mColorBlend;
+            uint8_t mRenderTargetWriteMask;
         };
 
     public:
         bool mAlphaToCoverageEnable;
         bool mIndependentBlendEnable;
+        BlendTarget mTargets[MAX_TARGETS];
+    };
+
+    class DrawingDepthStateDesc : public DrawingResourceDesc
+    {
+    public:
+        DrawingDepthStateDesc();
+        DrawingDepthStateDesc(const DrawingDepthStateDesc& depth);
+        DrawingDepthStateDesc(DrawingDepthStateDesc&& depth);
+        virtual ~DrawingDepthStateDesc();
+
+        DrawingDepthStateDesc& operator= (const DrawingDepthStateDesc& rhs);
+
+        EDrawingResourceType GetType() const override;
+        DrawingResourceDesc* Clone() const override;
+
+        struct DepthState
+        {
+            DepthState();
+            DepthState(const DepthState& depth);
+            DepthState(DepthState&& depth);
+            virtual ~DepthState();
+
+            DepthState& operator= (const DepthState& rhs);
+
+            bool operator== (const DepthState& rhs) const;
+            bool operator!= (const DepthState& rhs) const;
+
+            bool mDepthEnable;
+            bool mDepthWriteEnable;
+            EDrawingComparisonFuncType mDepthFunc;
+        };
+
+        struct StencilOp
+        {
+            StencilOp();
+            StencilOp(const StencilOp& op);
+            StencilOp(StencilOp&& op);
+            virtual ~StencilOp();
+
+            StencilOp& operator= (const StencilOp& rhs);
+
+            bool operator== (const StencilOp& rhs) const;
+            bool operator!= (const StencilOp& rhs) const;
+
+            EDrawingStencilOpType mStencilFailOp;
+            EDrawingStencilOpType mStencilDepthFailOp;
+            EDrawingStencilOpType mStencilPassOp;
+            EDrawingComparisonFuncType mStencilFunc;
+        };
+
+        struct StencilState
+        {
+            enum Mask
+            {
+                Mast_All = 0xf,
+            };
+            StencilState();
+            StencilState(const StencilState& stencil);
+            StencilState(StencilState&& stencil);
+            virtual ~StencilState();
+
+            StencilState& operator= (const StencilState& rhs);
+
+            bool operator== (const StencilState& rhs) const;
+            bool operator!= (const StencilState& rhs) const;
+
+            bool mStencilEnable;
+            uint8_t mStencilReadMask;
+            uint8_t mStencilWriteMask;
+            StencilOp mFrontFace;
+            StencilOp mBackFace;
+        };
+
+    public:
+        DepthState mDepthState;
+        StencilState mStencilState;
+    };
+
+    class DrawingRasterStateDesc : public DrawingResourceDesc
+    {
+    public:
+        DrawingRasterStateDesc();
+        DrawingRasterStateDesc(const DrawingRasterStateDesc& desc);
+        DrawingRasterStateDesc(DrawingRasterStateDesc&& desc);
+        virtual ~DrawingRasterStateDesc();
+
+        DrawingRasterStateDesc& operator= (const DrawingRasterStateDesc& rhs);
+
+        EDrawingResourceType GetType() const override;
+        DrawingResourceDesc* Clone() const override;
+
+    public:
+        EDrawingFillModeType mFillMode;
+        EDrawingCullModeType mCullMode;
+
+        bool mFrontCounterClockwise;
+        int mDepthBias;
+
+        float mDepthBiasClamp;
+        float mSlopeScaledDepthBias;
+
+        bool mDepthClipEnable;
+        bool mScissorEnable;
+        bool mMultisampleEnable;
+        bool mAntialiasedLineEnable;
+    };
+
+    class DrawingSamplerStateDesc : public DrawingResourceDesc
+    {
+    public:
+        DrawingSamplerStateDesc();
+        DrawingSamplerStateDesc(const DrawingSamplerStateDesc& desc);
+        DrawingSamplerStateDesc(DrawingSamplerStateDesc&& desc);
+        virtual ~DrawingSamplerStateDesc();
+
+        DrawingSamplerStateDesc& operator= (const DrawingSamplerStateDesc& rhs);
+
+        EDrawingResourceType GetType() const override;
+        DrawingResourceDesc* Clone() const override;
+
+    public:
+        EDrawingSamplerModeType mSamplerMode;
+
+        EDrawingFilterModeType mMinFilter;
+        EDrawingFilterModeType mMagFilter;
+        EDrawingFilterModeType mMipFilter;
+
+        EDrawingAddressModeType mAddressU;
+        EDrawingAddressModeType mAddressV;
+        EDrawingAddressModeType mAddressW;
+
+        EDrawingComparisonFuncType mComparisonFunc;
+
+        float mBorderColor[4];
+        float mMinLOD;
+        float mMaxLOD;
+        float mMipLODBias;
+
+        uint32_t mMaxAnisotropy;
     };
 
     class DrawingTextureDesc : public DrawingResourceDesc

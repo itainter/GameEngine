@@ -100,11 +100,11 @@ namespace Engine
         EDrawingResourceType GetType() const override;
     };
 
-    class DrawingSamplarState : public DrawingResourceWrapper<DrawingRawSamplarState>
+    class DrawingSamplerState : public DrawingResourceWrapper<DrawingRawSamplerState>
     {
     public:
-        DrawingSamplarState(std::shared_ptr<DrawingDevice> pDevice);
-        virtual ~DrawingSamplarState();
+        DrawingSamplerState(std::shared_ptr<DrawingDevice> pDevice);
+        virtual ~DrawingSamplerState();
 
         EDrawingResourceType GetType() const override;
     };

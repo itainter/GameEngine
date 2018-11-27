@@ -102,17 +102,17 @@ EDrawingResourceType DrawingRasterState::GetType() const
     return eResource_Raster_State;
 }
 
-DrawingSamplarState::DrawingSamplarState(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawSamplarState>(pDevice)
+DrawingSamplerState::DrawingSamplerState(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawSamplerState>(pDevice)
 {
 }
 
-DrawingSamplarState::~DrawingSamplarState()
+DrawingSamplerState::~DrawingSamplerState()
 {
 }
 
-EDrawingResourceType DrawingSamplarState::GetType() const
+EDrawingResourceType DrawingSamplerState::GetType() const
 {
-    return eResource_Samplar_State;
+    return eResource_Sampler_State;
 }
 
 DrawingVertexFormat::DrawingVertexFormat(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawVertexFormat>(pDevice)

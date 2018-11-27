@@ -2,6 +2,9 @@
 
 namespace Engine
 {
+    const uint32_t MAX_TARGETS = 8;
+
+
     enum EDrawingResourceType
     {
         eResource_Vertex_Buffer = 1,
@@ -17,7 +20,7 @@ namespace Engine
         eResource_Blend_State,
         eResource_Depth_State,
         eResource_Raster_State,
-        eResource_Samplar_State,
+        eResource_Sampler_State,
 
         eResource_Target,
     };
@@ -75,7 +78,7 @@ namespace Engine
         eTexture_3D,
     };
 
-    enum EBlendType
+    enum EDrawingBlendType
     {
         eBlend_Zero,
         eBlend_One,
@@ -83,10 +86,10 @@ namespace Engine
         eBlend_InvSrcColor,
         eBlend_SrcAlpha,
         eBlend_InvSrcAlpha,
-        eBlend_DestAlpha,
-        eBlend_InvDestAlpha,
-        eBlend_DestColor,
-        eBlend_InvDestColor,
+        eBlend_DstAlpha,
+        eBlend_InvDstAlpha,
+        eBlend_DstColor,
+        eBlend_InvDstColor,
         eBlend_SrcAlphaSat,
         eBlend_BlendFactor,
         eBlend_InvBlendFactor,
@@ -96,12 +99,73 @@ namespace Engine
         eBlend_InvSrc1Alpha,
     };
 
-    enum EBlendOpType
+    enum EDrawingBlendOpType
     {
         eBlendOp_Add,
         eBlendOp_Subtract,
         eBlendOp_RevSubtract,
         eBlendOp_Min,
         eBlendOp_Max,
+    };
+
+    enum EDrawingComparisonFuncType
+    {
+        eComparison_Never,
+        eComparison_Less,
+        eComparison_Equal,
+        eComparison_LessEqual,
+        eComparison_Greater,
+        eComparison_NotEqual,
+        eComparison_GreaterEqual,
+        eComparison_Always,
+    };
+
+    enum EDrawingStencilOpType
+    {
+        eStencilOp_Keep,
+        eStencilOp_Zero,
+        eStencilOp_Replace,
+        eStencilOp_IncrSat,
+        eStencilOp_DecrSat,
+        eStencilOp_Invert,
+        eStencilOp_Incr,
+        eStencilOp_Decr,
+    };
+
+    enum EDrawingFillModeType
+    {
+        eFillMode_Solid,
+        eFillMode_WireFrame,
+    };
+
+    enum EDrawingCullModeType
+    {
+        eCullMode_None,
+        eCullMode_Front,
+        eCullMode_Back,
+    };
+
+    enum EDrawingSamplerModeType
+    {
+        eSamplerMode_Normal,
+        eSamplerMode_Compare,
+        eSamplerMode_Max,
+        eSamplerMode_Min,
+    };
+
+    enum EDrawingFilterModeType
+    {
+        eFilterMode_Point,
+        eFilterMode_Linear,
+        eFilterMode_Anisotropic,
+    };
+
+    enum EDrawingAddressModeType
+    {
+        eAddressMode_Wrap,
+        eAddressMode_Mirror,
+        eAddressMode_Clamp,
+        eAddressMode_Border,
+        eAddressMode_MirrorOnce,
     };
 }
