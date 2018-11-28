@@ -5,6 +5,10 @@
 
 namespace Engine
 {
+    class DrawingNativeContext
+    {
+    };
+
     class DrawingRawBlendState
     {
     protected:

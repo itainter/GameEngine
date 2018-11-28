@@ -145,12 +145,83 @@ namespace Engine
         EDrawingResourceType GetType() const override;
     };
 
+    class DrawingPrimitive : public DrawingResource
+    {
+    public:
+        DrawingPrimitive(std::shared_ptr<DrawingDevice> pDevice);
+        virtual ~DrawingPrimitive();
+
+        EDrawingPrimitiveType GetPrimitiveType() const;
+        void SetPrimitiveType(EDrawingPrimitiveType type);
+
+        uint32_t GetVertexCount() const;
+        void SetVertexCount(uint32_t count);
+
+        uint32_t GetIndexCount() const;
+        void SetIndexCount(uint32_t count);
+
+        uint32_t GetInstanceCount() const;
+        void SetInstanceCount(uint32_t count);
+
+        uint32_t GetVertexOffset() const;
+        void SetVertexOffset(uint32_t offset);
+
+        uint32_t GetIndexOffset() const;
+        void SetIndexoffset(uint32_t offset);
+
+        uint32_t GetInstanceOffset() const;
+        void SetInstanceOffset(uint32_t offset);
+
+        EDrawingResourceType GetType() const override;
+
+    private:
+        EDrawingPrimitiveType mPrimitiveType;
+        uint32_t mVertexCount;
+        uint32_t mIndexCount;
+        uint32_t mInstanceCount;
+
+        uint32_t mVertexOffset;
+        uint32_t mIndexOffset;
+        uint32_t mInstanceOffset;
+    };
+
+    class DrawingContext
+    {
+    public:
+        DrawingContext(std::shared_ptr<DrawingDevice> pDevice);
+        virtual ~DrawingContext();
+
+        std::shared_ptr<DrawingNativeContext> GetNativeContext();
+        void SetNativeContext(std::shared_ptr<DrawingNativeContext> context);
+
+        virtual void UpdateResourceTable() = 0;
+        virtual void Reset() = 0;
+    protected:
+        std::shared_ptr<DrawingNativeContext> m_pNativeContext;
+        std::shared_ptr<DrawingDevice> m_pDevice;
+    };
+
     class DrawingDevice
     {
     public:
         DrawingDevice() = default;
         virtual ~DrawingDevice() = default;
 
-        virtual bool CreateBlendState();
+        virtual bool CreateVertexFormat(const DrawingVertexFormatDesc& desc, std::shared_ptr<DrawingVertexFormat>& pRes) = 0;
+        virtual bool CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, const void* pData = nullptr, uint32_t size = 0) = 0;
+        virtual bool CreateIndexBuffer(const DrawingIndexBufferDesc& desc, std::shared_ptr<DrawingIndexBuffer>& pRes, const void* pData = nullptr, uint32_t size = 0) =  0;
+        virtual bool CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData = nullptr, uint32_t size = 0) = 0;
+
+        virtual bool CreateBlendState(const DrawingBlendStateDesc& desc, std::shared_ptr<DrawingBlendState>& pRes) = 0;
+        virtual bool CreateDepthState(const DrawingDepthStateDesc& desc, std::shared_ptr<DrawingDepthState>& pRes) = 0;
+        virtual bool CreateRasterState(const DrawingRasterStateDesc& desc, std::shared_ptr<DrawingRasterState>& pRes) = 0;
+        virtual bool CreateSamplerState(const DrawingSamplerStateDesc& desc, std::shared_ptr<DrawingSamplerState>& pRes) = 0;
+
+        virtual bool CreateVertexShaderFromFile(const DrawingVertexShaderDesc& desc, std::shared_ptr<DrawingVertexShader>& pRes) = 0;
+        virtual bool CreateVertexShaderFromString(const std::string& str, const DrawingVertexShaderDesc& desc, std::shared_ptr<DrawingVertexShader>& pRes) = 0;
+        virtual bool CreatePixelShaderFromFile(const DrawingPixelShaderDesc& desc, std::shared_ptr<DrawingPixelShader>& pRes) = 0;
+        virtual bool CreatePixelShaderFromString(const std::string& str, const DrawingPixelShaderDesc& desc, std::shared_ptr<DrawingPixelShader>& pRes) = 0;
+
+        virtual bool CreatePrimitiveInfo(const DrawingPrimitiveDesc& desc, std::shared_ptr<DrawingPrimitive>& pRes) = 0;
     };
 }

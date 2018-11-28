@@ -3,4 +3,5 @@ add_library(
     DrawingDevice.cpp
     DrawingManager.cpp
     DrawingResourceDesc.cpp
+    DrawingResourceTable.cpp
 )

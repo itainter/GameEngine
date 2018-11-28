@@ -402,4 +402,21 @@ namespace Engine
         uint32_t mSampleCount;
         uint32_t mSampleQuality;
     };
+
+    class DrawingPrimitiveDesc : public DrawingResourceDesc
+    {
+    public:
+        DrawingPrimitiveDesc();
+        DrawingPrimitiveDesc(const DrawingPrimitiveDesc& desc);
+        DrawingPrimitiveDesc(DrawingPrimitiveDesc&& desc);
+        virtual ~DrawingPrimitiveDesc();
+
+        DrawingPrimitiveDesc& operator= (const DrawingPrimitiveDesc& rhs);
+
+        EDrawingResourceType GetType() const override;
+        DrawingResourceDesc* Clone() const override;
+
+    public:
+        EDrawingPrimitiveType mPrimitive;
+    };
 }

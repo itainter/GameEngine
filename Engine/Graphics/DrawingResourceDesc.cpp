@@ -782,8 +782,79 @@ DrawingResourceDesc* DrawingRasterStateDesc::Clone() const
 DrawingSamplerStateDesc::DrawingSamplerStateDesc() : DrawingResourceDesc(),
     mSamplerMode(eSamplerMode_Normal), mMinFilter(eFilterMode_Point), mMagFilter(eFilterMode_Point), mMipFilter(eFilterMode_Point),
     mAddressU(eAddressMode_Clamp), mAddressV(eAddressMode_Clamp), mAddressW(eAddressMode_Clamp),
-    mComparisonFunc(eComparison_Always), mBorderColor(), mMinLOD(0.0f), mMaxLOD(0.0f), mMipLODBias(0.0f), mMaxAnisotropy(1)
+    mComparisonFunc(eComparison_Always), mBorderColor{1.0f}, mMinLOD(0.0f), mMaxLOD(0.0f), mMipLODBias(0.0f), mMaxAnisotropy(1)
 {
+}
+
+DrawingSamplerStateDesc::DrawingSamplerStateDesc(const DrawingSamplerStateDesc& desc) : DrawingResourceDesc(desc),
+    mSamplerMode(desc.mSamplerMode), mMinFilter(desc.mMinFilter), mMagFilter(desc.mMagFilter), mMipFilter(desc.mMipFilter),
+    mAddressU(desc.mAddressU), mAddressV(desc.mAddressV), mAddressW(desc.mAddressW),
+    mComparisonFunc(desc.mComparisonFunc), mMinLOD(desc.mMinLOD), mMaxLOD(desc.mMaxLOD), mMipLODBias(desc.mMipLODBias), mMaxAnisotropy(desc.mMaxAnisotropy)
+{
+    for (int i = 0; i < 4; i++)
+        mBorderColor[i] = desc.mBorderColor[i];
+}
+
+DrawingSamplerStateDesc::DrawingSamplerStateDesc(DrawingSamplerStateDesc&& desc) : DrawingResourceDesc(std::move(desc)),
+    mSamplerMode(std::move(desc.mSamplerMode)), mMinFilter(std::move(desc.mMinFilter)), mMagFilter(std::move(desc.mMagFilter)), mMipFilter(std::move(desc.mMipFilter)),
+    mAddressU(std::move(desc.mAddressU)), mAddressV(std::move(desc.mAddressV)), mAddressW(std::move(desc.mAddressW)),
+    mComparisonFunc(std::move(desc.mComparisonFunc)), mMinLOD(std::move(desc.mMinLOD)), mMaxLOD(std::move(desc.mMaxLOD)), mMipLODBias(std::move(desc.mMipLODBias)), mMaxAnisotropy(std::move(desc.mMaxAnisotropy))
+{
+    for (int i = 0; i < 4; i++)
+        mBorderColor[i] = std::move(desc.mBorderColor[i]);
+}
+
+DrawingSamplerStateDesc::~DrawingSamplerStateDesc()
+{
+    mSamplerMode = eSamplerMode_Normal;
+    mMinFilter = eFilterMode_Point;
+    mMagFilter = eFilterMode_Point;
+    mMipFilter = eFilterMode_Point;
+    mAddressU = eAddressMode_Clamp;
+    mAddressV = eAddressMode_Clamp;
+    mAddressW = eAddressMode_Clamp;
+    mComparisonFunc = eComparison_Always;
+    mMinLOD = 0.0f;
+    mMaxLOD = 0.0f;
+    mMipLODBias = 0.0f;
+    mMaxAnisotropy = 1;
+    for (int i = 0; i < 4; i++)
+        mBorderColor[i] = 1.0f;
+}
+
+EDrawingResourceType DrawingSamplerStateDesc::GetType() const
+{
+    return eResource_Sampler_State;
+}
+
+DrawingResourceDesc* DrawingSamplerStateDesc::Clone() const
+{
+    return new DrawingSamplerStateDesc(*this);
+}
+
+DrawingSamplerStateDesc& DrawingSamplerStateDesc::operator= (const DrawingSamplerStateDesc& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    DrawingResourceDesc::operator= (rhs);
+
+    mSamplerMode = rhs.mSamplerMode;
+    mMinFilter = rhs.mMinFilter;
+    mMagFilter = rhs.mMagFilter;
+    mMipFilter = rhs.mMipFilter;
+    mAddressU = rhs.mAddressU;
+    mAddressV = rhs.mAddressV;
+    mAddressW = rhs.mAddressW;
+    mComparisonFunc = rhs.mComparisonFunc;
+    mMinLOD = rhs.mMinLOD;
+    mMaxLOD = rhs.mMaxLOD;
+    mMipLODBias = rhs.mMipLODBias;
+    mMaxAnisotropy = rhs.mMaxAnisotropy;
+    for (int i = 0; i < 4; i++)
+        mBorderColor[i] = rhs.mBorderColor[i];
+
+    return *this;
 }
 
 DrawingTextureDesc::DrawingTextureDesc() : DrawingResourceDesc(),
@@ -857,4 +928,41 @@ EDrawingResourceType DrawingTextureDesc::GetType() const
 DrawingResourceDesc* DrawingTextureDesc::Clone() const
 {
     return new DrawingTextureDesc(*this);
+}
+
+DrawingPrimitiveDesc::DrawingPrimitiveDesc() : DrawingResourceDesc(), mPrimitive(ePrimitive_TriangleList)
+{
+}
+
+DrawingPrimitiveDesc::DrawingPrimitiveDesc(const DrawingPrimitiveDesc& desc) : DrawingResourceDesc(desc), mPrimitive(desc.mPrimitive)
+{
+}
+
+DrawingPrimitiveDesc::DrawingPrimitiveDesc(DrawingPrimitiveDesc&& desc) : DrawingResourceDesc(std::move(desc)), mPrimitive(std::move(desc.mPrimitive))
+{
+}
+
+DrawingPrimitiveDesc::~DrawingPrimitiveDesc()
+{
+    mPrimitive = ePrimitive_TriangleList;
+}
+
+DrawingPrimitiveDesc& DrawingPrimitiveDesc::operator= (const DrawingPrimitiveDesc& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    mPrimitive = rhs.mPrimitive;
+
+    return *this;
+}
+
+EDrawingResourceType DrawingPrimitiveDesc::GetType() const
+{
+    return eResource_Primitive;
+}
+
+DrawingResourceDesc* DrawingPrimitiveDesc::Clone() const
+{
+    return new DrawingPrimitiveDesc(*this);
 }
