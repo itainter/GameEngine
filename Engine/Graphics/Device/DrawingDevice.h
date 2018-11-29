@@ -175,14 +175,14 @@ namespace Engine
         EDrawingResourceType GetType() const override;
 
     private:
-        EDrawingPrimitiveType mPrimitiveType;
-        uint32_t mVertexCount;
-        uint32_t mIndexCount;
-        uint32_t mInstanceCount;
+        EDrawingPrimitiveType m_primitiveType;
+        uint32_t m_vertexCount;
+        uint32_t m_indexCount;
+        uint32_t m_instanceCount;
 
-        uint32_t mVertexOffset;
-        uint32_t mIndexOffset;
-        uint32_t mInstanceOffset;
+        uint32_t m_vertexOffset;
+        uint32_t m_indexOffset;
+        uint32_t m_instanceOffset;
     };
 
     class DrawingContext

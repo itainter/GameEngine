@@ -4,18 +4,18 @@ using namespace Engine;
 
 DrawingResourceDesc::DrawingResourceDesc(const DrawingResourceDesc& desc)
 {
-    CloneFromNames(desc.mResourceDescNames);
+    CloneFromNames(desc.m_resourceDescNames);
 }
 
 DrawingResourceDesc::DrawingResourceDesc(DrawingResourceDesc&& desc)
 {
-    CloneFromNames(desc.mResourceDescNames);
-    mResourceDescNames.clear();
+    CloneFromNames(desc.m_resourceDescNames);
+    m_resourceDescNames.clear();
 }
 
 DrawingResourceDesc::~DrawingResourceDesc()
 {
-    mResourceDescNames.clear();
+    m_resourceDescNames.clear();
 }
 
 DrawingResourceDesc& DrawingResourceDesc::operator= (const DrawingResourceDesc& rhs)
@@ -23,28 +23,28 @@ DrawingResourceDesc& DrawingResourceDesc::operator= (const DrawingResourceDesc& 
     if (this == &rhs)
         return *this;
 
-    CloneFromNames(rhs.mResourceDescNames);
+    CloneFromNames(rhs.m_resourceDescNames);
     return *this;
 }
 
 DrawingResourceDesc::ResourceDescNamesType DrawingResourceDesc::GetResourceDescNames() const
 {
-    return mResourceDescNames;
+    return m_resourceDescNames;
 }
 
 void DrawingResourceDesc::AddResourceDescName(uint32_t index, std::shared_ptr<std::string> name)
 {
-    auto it = mResourceDescNames.find(index);
-    if (it != mResourceDescNames.cend())
+    auto it = m_resourceDescNames.find(index);
+    if (it != m_resourceDescNames.cend())
         return;
 
-    mResourceDescNames.emplace(index, name);
+    m_resourceDescNames.emplace(index, name);
 }
 
 std::shared_ptr<std::string> DrawingResourceDesc::GetResourceDescName(uint32_t index) const
 {
-    auto it = mResourceDescNames.find(index);
-    if (it == mResourceDescNames.cend())
+    auto it = m_resourceDescNames.find(index);
+    if (it == m_resourceDescNames.cend())
         return nullptr;
     
     return it->second;
@@ -52,34 +52,34 @@ std::shared_ptr<std::string> DrawingResourceDesc::GetResourceDescName(uint32_t i
 
 void DrawingResourceDesc::CloneFromNames(const ResourceDescNamesType& from)
 {
-    mResourceDescNames.clear();
+    m_resourceDescNames.clear();
     std::for_each(from.cbegin(), from.cend(), [this](const ResourceDescNamesType::value_type& aElem)
     {
         if (auto& lpName = aElem.second)
-            mResourceDescNames.emplace(aElem.first, lpName);
+            m_resourceDescNames.emplace(aElem.first, lpName);
     });
 }
 
 DrawingProgramDesc::DrawingProgramDesc() : DrawingResourceDesc(),
-    mProgramType(eProgram_Shader), m_pName(nullptr), m_pSourceName(nullptr)
+    mProgramType(eProgram_Shader), mpName(nullptr), mpSourceName(nullptr)
 {
 }
 
 DrawingProgramDesc::DrawingProgramDesc(const DrawingProgramDesc& desc) : DrawingResourceDesc(desc),
-    mProgramType(desc.mProgramType), m_pName(desc.m_pName), m_pSourceName(desc.m_pSourceName)
+    mProgramType(desc.mProgramType), mpName(desc.mpName), mpSourceName(desc.mpSourceName)
 {
 }
 
 DrawingProgramDesc::DrawingProgramDesc(DrawingProgramDesc&& desc) : DrawingResourceDesc(std::move(desc)),
-    mProgramType(std::move(desc.mProgramType)), m_pName(std::move(desc.m_pName)), m_pSourceName(std::move(desc.m_pSourceName))
+    mProgramType(std::move(desc.mProgramType)), mpName(std::move(desc.mpName)), mpSourceName(std::move(desc.mpSourceName))
 {
 }
 
 DrawingProgramDesc::~DrawingProgramDesc()
 {
     mProgramType = eProgram_Shader;
-    m_pName = nullptr;
-    m_pSourceName = nullptr;
+    mpName = nullptr;
+    mpSourceName = nullptr;
 }
 
 DrawingProgramDesc& DrawingProgramDesc::operator= (const DrawingProgramDesc& rhs)
@@ -89,30 +89,30 @@ DrawingProgramDesc& DrawingProgramDesc::operator= (const DrawingProgramDesc& rhs
 
     DrawingResourceDesc::operator= (rhs);
     mProgramType = rhs.mProgramType;
-    m_pName = rhs.m_pName;
-    m_pSourceName = rhs.m_pSourceName;
+    mpName = rhs.mpName;
+    mpSourceName = rhs.mpSourceName;
     return *this;
 }
 
 DrawingShaderDesc::DrawingShaderDesc() : DrawingProgramDesc(),
-    m_pEntryName(nullptr), m_pIncludePath(nullptr)
+    mpEntryName(nullptr), mpIncludePath(nullptr)
 {
 }
 
 DrawingShaderDesc::DrawingShaderDesc(const DrawingShaderDesc& desc) : DrawingProgramDesc(desc),
-    m_pEntryName(desc.m_pEntryName), m_pIncludePath(desc.m_pIncludePath)
+    mpEntryName(desc.mpEntryName), mpIncludePath(desc.mpIncludePath)
 {
 }
 
 DrawingShaderDesc::DrawingShaderDesc(DrawingShaderDesc&& desc) : DrawingProgramDesc(std::move(desc)),
-    m_pEntryName(std::move(desc.m_pEntryName)), m_pIncludePath(std::move(desc.m_pIncludePath))
+    mpEntryName(std::move(desc.mpEntryName)), mpIncludePath(std::move(desc.mpIncludePath))
 {
 }
 
 DrawingShaderDesc::~DrawingShaderDesc()
 {
-    m_pEntryName = nullptr;
-    m_pIncludePath = nullptr;
+    mpEntryName = nullptr;
+    mpIncludePath = nullptr;
 }
 
 DrawingShaderDesc& DrawingShaderDesc::operator= (const DrawingShaderDesc& rhs)
@@ -121,8 +121,8 @@ DrawingShaderDesc& DrawingShaderDesc::operator= (const DrawingShaderDesc& rhs)
         return *this;
 
     DrawingProgramDesc::operator= (rhs);
-    m_pEntryName = rhs.m_pEntryName;
-    m_pIncludePath = rhs.m_pIncludePath;
+    mpEntryName = rhs.mpEntryName;
+    mpIncludePath = rhs.mpIncludePath;
     return *this;
 }
 

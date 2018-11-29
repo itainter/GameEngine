@@ -1,5 +1,15 @@
+file(GLOB_RECURSE SRC_LOG
+    "*.cpp"
+    "*.h"
+)
+
 add_library(
     Log
-    SystemLog.cpp
-    InputLog.cpp
+    ${SRC_LOG}
+)
+
+set_target_properties(
+    Log
+    PROPERTIES
+    FOLDER ${FOLDER_ENGINE}
 )

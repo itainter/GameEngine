@@ -12,6 +12,7 @@
                 "${workspaceFolder}/Engine/Interface",
                 "${workspaceFolder}/Engine/Common",
                 "${workspaceFolder}/Engine/Graphics",
+                "${workspaceFolder}/Engine/Graphics/Device",
                 "${workspaceFolder}/Engine/Log",
                 "${workspaceFolder}/Engine/Util"
             ],

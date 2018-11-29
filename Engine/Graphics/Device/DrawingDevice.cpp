@@ -177,72 +177,72 @@ DrawingPrimitive::~DrawingPrimitive()
 
 EDrawingPrimitiveType DrawingPrimitive::GetPrimitiveType() const
 {
-    return mPrimitiveType;
+    return m_primitiveType;
 }
 
 void DrawingPrimitive::SetPrimitiveType(EDrawingPrimitiveType type)
 {
-    mPrimitiveType = type;
+    m_primitiveType = type;
 }
 
 uint32_t DrawingPrimitive::GetVertexCount() const
 {
-    return mVertexCount;
+    return m_vertexCount;
 }
 
 void DrawingPrimitive::SetVertexCount(uint32_t count)
 {
-    mVertexCount = count;
+    m_vertexCount = count;
 }
 
 uint32_t DrawingPrimitive::GetIndexCount() const
 {
-    return mIndexCount;
+    return m_indexCount;
 }
 
 void DrawingPrimitive::SetIndexCount(uint32_t count)
 {
-    mIndexCount = count;
+    m_indexCount = count;
 }
 
 uint32_t DrawingPrimitive::GetInstanceCount() const
 {
-    return mInstanceCount;
+    return m_instanceCount;
 }
 
 void DrawingPrimitive::SetInstanceCount(uint32_t count)
 {
-    mInstanceCount = count;
+    m_instanceCount = count;
 }
 
 uint32_t DrawingPrimitive::GetVertexOffset() const
 {
-    return mVertexOffset;
+    return m_vertexOffset;
 }
 
 void DrawingPrimitive::SetVertexOffset(uint32_t offset)
 {
-    mVertexOffset = offset;
+    m_vertexOffset = offset;
 }
 
 uint32_t DrawingPrimitive::GetIndexOffset() const
 {
-    return mIndexOffset;
+    return m_indexOffset;
 }
 
 void DrawingPrimitive::SetIndexoffset(uint32_t offset)
 {
-    mIndexOffset = offset;
+    m_indexOffset = offset;
 }
 
 uint32_t DrawingPrimitive::GetInstanceOffset() const
 {
-    return mInstanceOffset;
+    return m_instanceOffset;
 }
 
 void DrawingPrimitive::SetInstanceOffset(uint32_t offset)
 {
-    mInstanceOffset = offset;
+    m_instanceOffset = offset;
 }
 
 EDrawingResourceType DrawingPrimitive::GetType() const

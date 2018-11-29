@@ -3,10 +3,17 @@ set (CMAKE_C_STANDARD 11)
 set (CMAKE_CXX_STANDARD 11)
 project (GameEngine)
 
-include_directories("${PROJECT_SOURCE_DIR}/Engine/Util")
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "")
+set(FOLDER_ENGINE "Engine")
+set(FOLDER_APP "App")
+set(FOLDER_TEST "TestCase")
+
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Interface")
+include_directories("${PROJECT_SOURCE_DIR}/Engine/Util")
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Common")
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Graphics")
+include_directories("${PROJECT_SOURCE_DIR}/Engine/Graphics/Device")
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Log")
 
 add_subdirectory(Engine)

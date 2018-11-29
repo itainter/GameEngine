@@ -33,7 +33,7 @@ namespace Engine
     private:
         void CloneFromNames(const ResourceDescNamesType& from);
 
-        ResourceDescNamesType mResourceDescNames;
+        ResourceDescNamesType m_resourceDescNames;
     };
 
     class DrawingProgramDesc : public DrawingResourceDesc
@@ -48,8 +48,8 @@ namespace Engine
 
     public:
         EDrawingProgramType mProgramType;
-        std::shared_ptr<std::string> m_pName;
-        std::shared_ptr<std::string> m_pSourceName;
+        std::shared_ptr<std::string> mpName;
+        std::shared_ptr<std::string> mpSourceName;
     };
 
     class DrawingShaderDesc : public DrawingProgramDesc
@@ -63,8 +63,8 @@ namespace Engine
         DrawingShaderDesc& operator= (const DrawingShaderDesc& rhs);
 
     public:
-        std::shared_ptr<std::string> m_pEntryName;
-        std::shared_ptr<std::string> m_pIncludePath;
+        std::shared_ptr<std::string> mpEntryName;
+        std::shared_ptr<std::string> mpIncludePath;
     };
 
     class DrawingVertexShaderDesc : public DrawingShaderDesc
