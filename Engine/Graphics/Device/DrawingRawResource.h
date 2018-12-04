@@ -72,6 +72,22 @@ namespace Engine
         std::shared_ptr<const std::string> m_pShaderName;
     };
 
+    class DrawingRawEffect
+    {
+    protected:
+        std::shared_ptr<const std::string> m_pEffectName;
+
+    public:
+        DrawingRawEffect(std::shared_ptr<const std::string> pEffectName) : m_pEffectName(pEffectName) {}
+        virtual ~DrawingRawEffect()
+        {
+            m_pEffectName = nullptr;
+        }
+
+        virtual void Apply() = 0;
+        virtual void Terminate() = 0;
+    };
+
     class DrawingRawVertexShader : public DrawingRawShader
     {
     public:

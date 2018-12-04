@@ -1,4 +1,4 @@
-file(GLOB_RECURSE SRC_EVENT_TEST
+file(GLOB SRC_EVENT_TEST
     "*.cpp"
 )
 

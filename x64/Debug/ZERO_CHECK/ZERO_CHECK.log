@@ -1,0 +1,11 @@
+﻿  Checking Build System
+  CMake does not need to re-run because D:/workspace/GameEngine/build/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because D:/workspace/GameEngine/build/Engine/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because D:/workspace/GameEngine/build/Engine/Common/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because D:/workspace/GameEngine/build/Engine/Graphics/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because D:/workspace/GameEngine/build/Engine/Log/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because D:/workspace/GameEngine/build/Platform/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because D:/workspace/GameEngine/build/Platform/Default/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because D:/workspace/GameEngine/build/Platform/Windows/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because D:/workspace/GameEngine/build/Test/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because D:/workspace/GameEngine/build/Test/Event/CMakeFiles/generate.stamp is up-to-date.

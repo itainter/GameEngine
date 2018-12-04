@@ -196,6 +196,141 @@ DrawingResourceDesc* DrawingPixelShaderDesc::Clone() const
     return new DrawingPixelShaderDesc(*this);
 }
 
+DrawingEffectDesc::DrawingEffectDesc() : DrawingProgramDesc()
+{
+}
+
+DrawingEffectDesc::DrawingEffectDesc(const DrawingEffectDesc& desc) : DrawingProgramDesc(desc)
+{
+}
+
+DrawingEffectDesc::DrawingEffectDesc(DrawingEffectDesc&& desc) : DrawingProgramDesc(std::move(desc))
+{
+}
+
+DrawingEffectDesc::~DrawingEffectDesc()
+{
+}
+
+DrawingEffectDesc& DrawingEffectDesc::operator= (const DrawingEffectDesc& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    DrawingProgramDesc::operator= (rhs);
+    return *this;
+}
+
+EDrawingResourceType DrawingEffectDesc::GetType() const
+{
+    return eResource_Effect;
+}
+
+DrawingGeneralEffectDesc::DrawingGeneralEffectDesc() : DrawingEffectDesc()
+{
+}
+
+DrawingGeneralEffectDesc::DrawingGeneralEffectDesc(const DrawingGeneralEffectDesc& desc) : DrawingEffectDesc(desc)
+{
+}
+
+DrawingGeneralEffectDesc::DrawingGeneralEffectDesc(DrawingGeneralEffectDesc&& desc) : DrawingEffectDesc(std::move(desc))
+{
+}
+
+DrawingGeneralEffectDesc::~DrawingGeneralEffectDesc()
+{
+}
+
+DrawingGeneralEffectDesc& DrawingGeneralEffectDesc::operator= (const DrawingGeneralEffectDesc& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    DrawingEffectDesc::operator= (rhs);
+    return *this;
+}
+
+DrawingEffectDesc::EffectType DrawingGeneralEffectDesc::GetEffectType() const
+{
+    return EffectType_General;
+}
+
+DrawingResourceDesc* DrawingGeneralEffectDesc::Clone() const
+{
+    return new DrawingGeneralEffectDesc(*this);
+}
+
+DrawingComputeEffectDesc::DrawingComputeEffectDesc() : DrawingEffectDesc()
+{
+}
+
+DrawingComputeEffectDesc::DrawingComputeEffectDesc(const DrawingComputeEffectDesc& desc) : DrawingEffectDesc(desc)
+{
+}
+
+DrawingComputeEffectDesc::DrawingComputeEffectDesc(DrawingComputeEffectDesc&& desc) : DrawingEffectDesc(std::move(desc))
+{
+}
+
+DrawingComputeEffectDesc::~DrawingComputeEffectDesc()
+{
+}
+
+DrawingComputeEffectDesc& DrawingComputeEffectDesc::operator= (const DrawingComputeEffectDesc& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    DrawingEffectDesc::operator= (rhs);
+    return *this;
+}
+
+DrawingEffectDesc::EffectType DrawingComputeEffectDesc::GetEffectType() const
+{
+    return EffectType_Compute;
+}
+
+DrawingResourceDesc* DrawingComputeEffectDesc::Clone() const
+{
+    return new DrawingComputeEffectDesc(*this);
+}
+
+DrawingLinkedEffectDesc::DrawingLinkedEffectDesc() : DrawingEffectDesc()
+{
+}
+
+DrawingLinkedEffectDesc::DrawingLinkedEffectDesc(const DrawingLinkedEffectDesc& desc) : DrawingEffectDesc(desc)
+{
+}
+
+DrawingLinkedEffectDesc::DrawingLinkedEffectDesc(DrawingLinkedEffectDesc&& desc) : DrawingEffectDesc(std::move(desc))
+{
+}
+
+DrawingLinkedEffectDesc::~DrawingLinkedEffectDesc()
+{
+}
+
+DrawingLinkedEffectDesc& DrawingLinkedEffectDesc::operator= (const DrawingLinkedEffectDesc& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    DrawingEffectDesc::operator= (rhs);
+    return *this;
+}
+
+DrawingEffectDesc::EffectType DrawingLinkedEffectDesc::GetEffectType() const
+{
+    return EffectType_Linked;
+}
+
+DrawingResourceDesc* DrawingLinkedEffectDesc::Clone() const
+{
+    return new DrawingLinkedEffectDesc(*this);
+}
+
 DrawingVertexFormatDesc::VertexInputElement::VertexInputElement() : mpName(nullptr),
     mIndex(0), mFormat(eFormat_R32G32B32_FLOAT), mSlot(0), mOffset(0), mInstanceStepRate(0)
 {

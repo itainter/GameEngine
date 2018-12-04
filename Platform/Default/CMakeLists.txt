@@ -1,4 +1,4 @@
-file(GLOB_RECURSE SRC_DEFAULT_APP
+file(GLOB SRC_DEFAULT_APP
     "*.cpp"
     "*.h"
 )

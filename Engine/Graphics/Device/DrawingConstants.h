@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 namespace Engine
 {
     const uint32_t MAX_TARGETS = 8;
@@ -14,6 +16,8 @@ namespace Engine
 
         eResource_Vertex_Shader,
         eResource_Pixel_Shader,
+
+        eResource_Effect,
 
         eResource_Texture,
 

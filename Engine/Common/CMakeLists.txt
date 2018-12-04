@@ -1,19 +1,19 @@
-file(GLOB_RECURSE SRC_COMMON
+file(GLOB SRC_COMMON
     "*.cpp"
     "*.h"
 )
 
-file(GLOB_RECURSE SRC_INTERFACE
+file(GLOB SRC_INTERFACE
     "../Interface/*.h"
 )
 
-file(GLOB_RECURSE SRC_UTIL
+file(GLOB SRC_UTIL
     "../Util/*.cpp"
     "../Util/*.h"
 )
 
-source_group("Interface" FILES ${SRC_INTERFACE})
-source_group("Uitl" FILES ${SRC_UTIL})
+source_group(Interface FILES ${SRC_INTERFACE})
+source_group(Uitl FILES ${SRC_UTIL})
 
 add_library(
     Common

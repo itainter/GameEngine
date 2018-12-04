@@ -1,4 +1,4 @@
-file(GLOB_RECURSE SRC_LOG
+file(GLOB SRC_LOG
     "*.cpp"
     "*.h"
 )

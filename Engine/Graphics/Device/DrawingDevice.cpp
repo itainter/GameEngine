@@ -63,6 +63,19 @@ EDrawingResourceType DrawingPixelShader::GetType() const
     return eResource_Pixel_Shader;
 }
 
+DrawingEffect::DrawingEffect(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawEffect>(pDevice)
+{
+}
+
+DrawingEffect::~DrawingEffect()
+{
+}
+
+EDrawingResourceType DrawingEffect::GetType() const
+{
+    return eResource_Effect;
+}
+
 DrawingBlendState::DrawingBlendState(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawBlendState>(pDevice)
 {
 }

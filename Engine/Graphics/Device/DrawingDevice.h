@@ -73,6 +73,15 @@ namespace Engine
         EDrawingResourceType GetType() const override;
     };
 
+    class DrawingEffect : public DrawingResourceWrapper<DrawingRawEffect>
+    {
+    public:
+        DrawingEffect(std::shared_ptr<DrawingDevice> pDevice);
+        virtual ~DrawingEffect();
+
+        EDrawingResourceType GetType() const override;
+    };
+
     class DrawingBlendState : public DrawingResourceWrapper<DrawingRawBlendState>
     {
     public:

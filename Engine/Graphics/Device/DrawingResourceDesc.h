@@ -1,4 +1,5 @@
-#pragma once
+
+ #pragma once
 
 #include <stdint.h>
 #include <memory>
@@ -92,6 +93,69 @@ namespace Engine
         DrawingPixelShaderDesc& operator= (const DrawingPixelShaderDesc& rhs);
 
         EDrawingResourceType GetType() const override;
+        DrawingResourceDesc* Clone() const override;
+    };
+
+    class DrawingEffectDesc : public DrawingProgramDesc
+    {
+    public:
+        enum EffectType
+        {
+            EffectType_General,
+            EffectType_Compute,
+            EffectType_Linked,
+        };
+
+        DrawingEffectDesc();
+        DrawingEffectDesc(const DrawingEffectDesc& desc);
+        DrawingEffectDesc(DrawingEffectDesc&& desc);
+        virtual ~DrawingEffectDesc();
+
+        DrawingEffectDesc& operator= (const DrawingEffectDesc& rhs);
+
+        virtual EffectType GetEffectType() const = 0;
+        EDrawingResourceType GetType() const override;
+    };
+
+    class DrawingGeneralEffectDesc : public DrawingEffectDesc
+    {
+    public:
+        DrawingGeneralEffectDesc();
+        DrawingGeneralEffectDesc(const DrawingGeneralEffectDesc& desc);
+        DrawingGeneralEffectDesc(DrawingGeneralEffectDesc&& desc);
+        virtual ~DrawingGeneralEffectDesc();
+
+        DrawingGeneralEffectDesc& operator= (const DrawingGeneralEffectDesc& rhs);
+
+        EffectType GetEffectType() const override;
+        DrawingResourceDesc* Clone() const override;
+    };
+
+    class DrawingComputeEffectDesc : public DrawingEffectDesc
+    {
+    public:
+        DrawingComputeEffectDesc();
+        DrawingComputeEffectDesc(const DrawingComputeEffectDesc& desc);
+        DrawingComputeEffectDesc(DrawingComputeEffectDesc&& desc);
+        virtual ~DrawingComputeEffectDesc();
+
+        DrawingComputeEffectDesc& operator= (const DrawingComputeEffectDesc& rhs);
+
+        EffectType GetEffectType() const override;
+        DrawingResourceDesc* Clone() const override;
+    };
+
+    class DrawingLinkedEffectDesc : public DrawingEffectDesc
+    {
+    public:
+        DrawingLinkedEffectDesc();
+        DrawingLinkedEffectDesc(const DrawingLinkedEffectDesc& desc);
+        DrawingLinkedEffectDesc(DrawingLinkedEffectDesc&& desc);
+        virtual ~DrawingLinkedEffectDesc();
+
+        DrawingLinkedEffectDesc& operator= (const DrawingLinkedEffectDesc& rhs);
+
+        EffectType GetEffectType() const override;
         DrawingResourceDesc* Clone() const override;
     };
 

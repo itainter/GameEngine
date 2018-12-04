@@ -1,4 +1,4 @@
-file(GLOB_RECURSE SRC_WINDOWS_APP
+file(GLOB SRC_WINDOWS_APP
     "*.cpp"
     "*.h"
 )
