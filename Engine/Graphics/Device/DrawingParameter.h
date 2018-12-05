@@ -129,11 +129,41 @@ namespace Engine
     {
     public:
         DrawingParameter();
-        DrawingParameter()
+        virtual ~DrawingParameter();
+
+        static const uint32_t GetBitsValue(uint32_t val, uint32_t bits, uint32_t offset);
+        static const uint32_t GetObjectType(uint32_t type);
+        static const uint32_t GetDataSetType(uint32_t type);
+        static const uint32_t GetBasicType(uint32_t type);
+        static const uint32_t GetArraySize(uint32_t type);
+        static const uint32_t GetRowSize(uint32_t type);
+        static const uint32_t GetColSize(uint32_t type);
+        static const uint32_t GetStructSize(uint32_t type);
+
+        std::shared_ptr<const std::string> GetName() const;
+        void SetName(std::shared_ptr<const std::string> name);
+
+        std::shared_ptr<const std::string> GetSemantic() const;
+        void SetSemantic(std::shared_ptr<const std::string> semantic);
+
+        uint32_t GetSize() const;
+        void SetSize(uint32_t size);
+
+        uint32_t GetType() const;
+        void SetType(uint32_t type);
+
+        const void* const GetValuePtr() const;
+
+        const bool& AsBool() const;
+        void AsBool(const bool& val);
+
+        
 
     private:
         std::shared_ptr<const std::string> m_pName;
         std::shared_ptr<const std::string> m_pSemantic;
         void* m_pValue;
-    }
+        uint32_t m_size;
+        uint32_t m_type;
+    };
 }
