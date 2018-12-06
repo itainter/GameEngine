@@ -3,6 +3,8 @@
 #include <string>
 #include <memory>
 
+#include "DrawingType.h"
+
 namespace Engine
 {
     enum
@@ -125,6 +127,9 @@ namespace Engine
         EParam_Sampler = COMPOSE_OBJECT(eObject_Sampler),
     };
 
+    class DrawingRawTexture;
+    class DrawingRawSamplerState;
+
     class DrawingParameter
     {
     public:
@@ -154,10 +159,120 @@ namespace Engine
 
         const void* const GetValuePtr() const;
 
+        uint32_t GetObjectType() const;
+        uint32_t GetDataSetType() const;
+        uint32_t GetBasicType() const;
+        uint32_t GetArraySize() const;
+        uint32_t GetRowSize() const;
+        uint32_t GetColSize() const;
+        uint32_t GetStructSize() const;
+        uint32_t GetVectorSize() const;
+
         const bool& AsBool() const;
         void AsBool(const bool& val);
+        const bool2& AsBool2() const;
+        void AsBool2(const bool2& val);
+        const bool3& AsBool3() const;
+        void AsBool3(const bool3& val);
+        const bool4& AsBool4() const;
+        void AsBool4(const bool4& val);
 
-        
+        const uint32_t& AsUInt() const;
+        void AsUInt(const uint32_t& val);
+        const uint2& AsUInt2() const;
+        void AsUInt2(const uint2& val);
+        const uint3& AsUInt3() const;
+        void AsUInt3(const uint3& val);
+        const uint4& AsUInt4() const;
+        void AsUInt4(const uint4& val);
+
+        const int32_t& AsInt() const;
+        void AsInt(const int32_t& val);
+        const int2& AsInt2() const;
+        void AsInt2(const int2& val);
+        const int3& AsInt3() const;
+        void AsInt3(const int3& val);
+        const int4& AsInt4() const;
+        void AsInt4(const int4& val);
+
+        const float& AsFloat() const;
+        void AsFloat(const float& val);
+        const float2& AsFloat2() const;
+        void AsFloat2(const float2& val);
+        const float3& AsFloat3() const;
+        void AsFloat3(const float3& val);
+        const float4& AsFloat4() const;
+        void AsFloat4(const float4& val);
+    
+        const float2x2& AsFloat2x2() const;
+        void AsFloat2x2(const float2x2& val);
+        const float3x3& AsFloat3x3() const;
+        void AsFloat3x3(const float3x3& val);
+        const float4x4& AsFloat4x4() const;
+        void AsFloat4x4(const float4x4& val);
+
+        const double& AsDouble() const;
+        void AsDouble(const double& val);
+        const double2& AsDouble2() const;
+        void AsDouble2(const double2& val);
+        const double3& AsDouble3() const;
+        void AsDouble3(const double3& val);
+        const double4& AsDouble4() const;
+        void AsDouble4(const double4& val);
+    
+        const double2x2& AsDouble2x2() const;
+        void AsDouble2x2(const double2x2& val);
+        const double3x3& AsDouble3x3() const;
+        void AsDouble3x3(const double3x3& val);
+        const double4x4& AsDouble4x4() const;
+        void AsDouble4x4(const double4x4& val);
+
+        const DrawingRawTexture* AsTexture() const;
+        void AsTexture(const DrawingRawTexture* pTexture);
+
+        const DrawingRawSamplerState* AsSampler() const;
+        void AsSampler(const DrawingRawSamplerState* pState);
+
+    private:
+        template <typename T>
+        const T& AsValue() const;
+        template <typename T>
+        void AsValue(const T& val);
+
+        template <typename T, EBasicType type>
+        const T& AsScalar() const;
+        template <typename T, EBasicType type>
+        void AsScalar(const T& val);
+
+        template <typename T, EBasicType type, uint32_t size>
+        const T& AsVector() const;
+        template <typename T, EBasicType type, uint32_t size>
+        void AsVector(const T& val);
+
+        template <typename T, EBasicType type, uint32_t row_size, uint32_t col_size>
+        const T& AsMatrix() const;
+        template <typename T, EBasicType type, uint32_t row_size, uint32_t col_size>
+        void AsMatrix(const T& val);
+
+        template <typename T>
+        const T* AsValueArray(uint32_t& array_size) const;
+        template <typename T>
+        void AsValueArray(const T* val, uint32_t array_size);
+
+        template <typename T, EBasicType type>
+        const T* AsScalarArray(uint32_t& array_size) const;
+        template <typename T, EBasicType type>
+        void AsScalarArray(const T* val, uint32_t array_size);
+
+        template <typename T, EBasicType type, uint32_t size>
+        const T* AsVectorArray(uint32_t& array_size) const;
+        template <typename T, EBasicType type, uint32_t size>
+        void AsVectorArray(const T* val, uint32_t array_size);
+
+        template <typename T, EBasicType type, uint32_t row_size, uint32_t col_size>
+        const T* AsMatrixArray(uint32_t& array_size) const;
+        template <typename T, EBasicType type, uint32_t row_size, uint32_t col_size>
+        void AsMatrixArray(const T* val, uint32_t array_size);
 
     private:
         std::shared_ptr<const std::string> m_pName;

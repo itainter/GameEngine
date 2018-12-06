@@ -17,7 +17,7 @@ namespace Engine
     }
 
     template<typename T>
-    Mat4x4<T>::Mat4x4(Mat4x4&& vec) : mArray(std::move(vec.mArray))
+    Mat4x4<T>::Mat4x4(Mat4x4&& mat) : mArray(std::move(mat.mArray))
     {
     }
 

@@ -101,5 +101,3 @@ namespace Engine
     template<typename T>
     Vec2<T> operator- (const Vec2<T>& vec);
 }
-
-#include "Vec2_imp.h"

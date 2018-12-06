@@ -11,12 +11,6 @@ using namespace Engine;
 
 int main(int argc, char** argv)
 {
-
-    Mat4x4<int> a(2);
-    Mat4x4<int> b(3);
-
-    auto c = a + b;
-
     auto g_pApp = gpGlobal->GetApplication();
     if (!g_pApp)
         return 0;

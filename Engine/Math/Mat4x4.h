@@ -47,76 +47,74 @@ namespace Engine
         const col_type& operator[] (size_type index) const;
         col_type& operator[](size_type index);
 
-        Mat4x4& operator= (const Mat4x4& vec);
+        Mat4x4& operator= (const Mat4x4& mat);
         template<typename U>
-        Mat4x4& operator= (const Mat4x4<U>& vec);
+        Mat4x4& operator= (const Mat4x4<U>& mat);
 
         template<typename U>
         Mat4x4& operator+= (const U& scalar);
         template<typename U>
-        Mat4x4& operator+= (const Mat4x4<U>& vec);
+        Mat4x4& operator+= (const Mat4x4<U>& mat);
 
         template<typename U>
         Mat4x4& operator-= (const U& scalar);
         template<typename U>
-        Mat4x4& operator-= (const Mat4x4<U>& vec);
+        Mat4x4& operator-= (const Mat4x4<U>& mat);
 
         template<typename U>
         Mat4x4& operator*= (const U& scalar);
         template<typename U>
-        Mat4x4& operator*= (const Mat4x4<U>& vec);
+        Mat4x4& operator*= (const Mat4x4<U>& mat);
 
         template<typename U>
         Mat4x4& operator/= (const U& scalar);
         template<typename U>
-        Mat4x4& operator/= (const Mat4x4<U>& vec);
+        Mat4x4& operator/= (const Mat4x4<U>& mat);
     };
 
     template<typename T>
-    Mat4x4<T> operator+ (const Mat4x4<T>& vec, const T& scalar);
+    Mat4x4<T> operator+ (const Mat4x4<T>& mat, const T& scalar);
     template<typename T>
-    Mat4x4<T> operator+ (const T& scalar, const Mat4x4<T>& vec);
+    Mat4x4<T> operator+ (const T& scalar, const Mat4x4<T>& mat);
     template<typename T>
-    Mat4x4<T> operator+ (const Mat4x4<T>& vec1, const Mat4x4<T>& vec2);
+    Mat4x4<T> operator+ (const Mat4x4<T>& mat1, const Mat4x4<T>& mat2);
 
     template<typename T>
-    Mat4x4<T> operator- (const Mat4x4<T>& vec, const T& scalar);
+    Mat4x4<T> operator- (const Mat4x4<T>& mat, const T& scalar);
     template<typename T>
-    Mat4x4<T> operator- (const T& scalar, const Mat4x4<T>& vec);
+    Mat4x4<T> operator- (const T& scalar, const Mat4x4<T>& mat);
     template<typename T>
-    Mat4x4<T> operator- (const Mat4x4<T>& vec1, const Mat4x4<T>& vec2);
+    Mat4x4<T> operator- (const Mat4x4<T>& mat1, const Mat4x4<T>& mat2);
 
     template<typename T>
-    Mat4x4<T> operator* (const Mat4x4<T>& vec, const T& scalar);
+    Mat4x4<T> operator* (const Mat4x4<T>& mat, const T& scalar);
     template<typename T>
-    Mat4x4<T> operator* (const T& scalar, const Mat4x4<T>& vec);
+    Mat4x4<T> operator* (const T& scalar, const Mat4x4<T>& mat);
     template<typename T>
-    Mat4x4<T> operator* (const Mat4x4<T>& vec1, const Mat4x4<T>& vec2);
+    Mat4x4<T> operator* (const Mat4x4<T>& mat1, const Mat4x4<T>& mat2);
 
     template<typename T>
-    Mat4x4<T> operator/ (const Mat4x4<T>& vec, const T& scalar);
+    Mat4x4<T> operator/ (const Mat4x4<T>& mat, const T& scalar);
     template<typename T>
-    Mat4x4<T> operator/ (const T& scalar, const Mat4x4<T>& vec);
+    Mat4x4<T> operator/ (const T& scalar, const Mat4x4<T>& mat);
     template<typename T>
-    Mat4x4<T> operator/ (const Mat4x4<T>& vec1, const Mat4x4<T>& vec2);
+    Mat4x4<T> operator/ (const Mat4x4<T>& mat1, const Mat4x4<T>& mat2);
 
     template<typename T>
-    bool operator== (const Mat4x4<T>& vec1, const Mat4x4<T>& vec2);
+    bool operator== (const Mat4x4<T>& mat1, const Mat4x4<T>& mat2);
     template<typename T>
-    bool operator!= (const Mat4x4<T>& vec1, const Mat4x4<T>& vec2);
+    bool operator!= (const Mat4x4<T>& mat1, const Mat4x4<T>& mat2);
 
     template<typename T>
-    bool operator< (const Mat4x4<T>& vec1, const Mat4x4<T>& vec2);
+    bool operator< (const Mat4x4<T>& mat1, const Mat4x4<T>& mat2);
     template<typename T>
-    bool operator<= (const Mat4x4<T>& vec1, const Mat4x4<T>& vec2);
+    bool operator<= (const Mat4x4<T>& mat1, const Mat4x4<T>& mat2);
 
     template<typename T>
-    bool operator> (const Mat4x4<T>& vec1, const Mat4x4<T>& vec2);
+    bool operator> (const Mat4x4<T>& mat1, const Mat4x4<T>& mat2);
     template<typename T>
-    bool operator>= (const Mat4x4<T>& vec1, const Mat4x4<T>& vec2);
+    bool operator>= (const Mat4x4<T>& mat1, const Mat4x4<T>& mat2);
 
     template<typename T>
-    Mat4x4<T> operator- (const Mat4x4<T>& vec);
+    Mat4x4<T> operator- (const Mat4x4<T>& mat);
 }
-
-#include "Mat4x4_imp.h"
