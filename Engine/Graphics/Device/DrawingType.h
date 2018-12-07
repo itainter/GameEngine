@@ -9,39 +9,39 @@
 
 namespace Engine
 {
-    using bool2 = Vec2<bool>;
-    using bool3 = Vec3<bool>;
-    using bool4 = Vec4<bool>;
+    typedef Vec2<bool> bool2;
+    typedef Vec3<bool> bool3;
+    typedef Vec4<bool> bool4;
 
-    using uint2 = Vec2<uint32_t>;
-    using uint3 = Vec3<uint32_t>;
-    using uint4 = Vec4<uint32_t>;
+    typedef Vec2<uint32_t> uint2;
+    typedef Vec3<uint32_t> uint3;
+    typedef Vec4<uint32_t> uint4;
 
-    using int2 = Vec2<int32_t>;
-    using int3 = Vec3<int32_t>;
-    using int4 = Vec4<int32_t>;
+    typedef Vec2<int32_t> int2;
+    typedef Vec3<int32_t> int3;
+    typedef Vec4<int32_t> int4;
 
-    using float2 = Vec2<float>;
-    using float3 = Vec3<float>;
-    using float4 = Vec4<float>;
+    typedef Vec2<float> float2;
+    typedef Vec3<float> float3;
+    typedef Vec4<float> float4;
 
-    using double2 = Vec2<double>;
-    using double3 = Vec3<double>;
-    using double4 = Vec4<double>;
+    typedef Vec2<double> double2;
+    typedef Vec3<double> double3;
+    typedef Vec4<double> double4;
 
-    using uint2x2 = Mat2x2<uint32_t>;
-    using uint3x3 = Mat3x3<uint32_t>;
-    using uint4x4 = Mat4x4<uint32_t>;
+    typedef Mat2x2<uint32_t> uint2x2;
+    typedef Mat3x3<uint32_t> uint3x3;
+    typedef Mat4x4<uint32_t> uint4x4;
 
-    using int2x2 = Mat2x2<int32_t>;
-    using int3x3 = Mat3x3<int32_t>;
-    using int4x4 = Mat4x4<int32_t>;
+    typedef Mat2x2<int32_t> int2x2;
+    typedef Mat3x3<int32_t> int3x3;
+    typedef Mat4x4<int32_t> int4x4;
 
-    using float2x2 = Mat2x2<float>;
-    using float3x3 = Mat3x3<float>;
-    using float4x4 = Mat4x4<float>;
+    typedef Mat2x2<float> float2x2;
+    typedef Mat3x3<float> float3x3;
+    typedef Mat4x4<float> float4x4;
 
-    using double2x2 = Mat2x2<double>;
-    using double3x3 = Mat3x3<double>;
-    using double4x4 = Mat4x4<double>;
+    typedef Mat2x2<double> double2x2;
+    typedef Mat3x3<double> double3x3;
+    typedef Mat4x4<double> double4x4;
 }

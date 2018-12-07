@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "DrawingType.h"
 
@@ -233,6 +234,71 @@ namespace Engine
         const DrawingRawSamplerState* AsSampler() const;
         void AsSampler(const DrawingRawSamplerState* pState);
 
+        const bool* AsBoolArray(uint32_t& array_size) const;
+        void AsBoolArray(const bool* val, uint32_t array_size);
+        const bool2* AsBool2Array(uint32_t& array_size) const;
+        void AsBool2Array(const bool2* val, uint32_t array_size);
+        const bool3* AsBool3Array(uint32_t& array_size) const;
+        void AsBool3Array(const bool3* val, uint32_t array_size);
+        const bool4* AsBool4Array(uint32_t& array_size) const;
+        void AsBool4Array(const bool4* val, uint32_t array_size);
+
+        const uint32_t* AsUIntArray(uint32_t& array_size) const;
+        void AsUIntArray(const uint32_t* val, uint32_t array_size);
+        const uint2* AsUInt2Array(uint32_t& array_size) const;
+        void AsUInt2Array(const uint2* val, uint32_t array_size);
+        const uint3* AsUInt3Array(uint32_t& array_size) const;
+        void AsUInt3Array(const uint3* val, uint32_t array_size);
+        const uint4* AsUInt4Array(uint32_t& array_size) const;
+        void AsUInt4Array(const uint4* val, uint32_t array_size);
+
+        const int32_t* AsIntArray(uint32_t& array_size) const;
+        void AsIntArray(const int32_t* val, uint32_t array_size);
+        const int2* AsInt2Array(uint32_t& array_size) const;
+        void AsInt2Array(const int2* val, uint32_t array_size);
+        const int3* AsInt3Array(uint32_t& array_size) const;
+        void AsInt3Array(const int3* val, uint32_t array_size);
+        const int4* AsInt4Array(uint32_t& array_size) const;
+        void AsInt4Array(const int4* val, uint32_t array_size);
+
+        const float* AsFloatArray(uint32_t& array_size) const;
+        void AsFloatArray(const float* val, uint32_t array_size);
+        const float2* AsFloat2Array(uint32_t& array_size) const;
+        void AsFloat2Array(const float2* val, uint32_t array_size);
+        const float3* AsFloat3Array(uint32_t& array_size) const;
+        void AsFloat3Array(const float3* val, uint32_t array_size);
+        const float4* AsFloat4Array(uint32_t& array_size) const;
+        void AsFloat4Array(const float4* val, uint32_t array_size);
+    
+        const float2x2* AsFloat2x2Array(uint32_t& array_size) const;
+        void AsFloat2x2Array(const float2x2* val, uint32_t array_size);
+        const float3x3* AsFloat3x3Array(uint32_t& array_size) const;
+        void AsFloat3x3Array(const float3x3* val, uint32_t array_size);
+        const float4x4* AsFloat4x4Array(uint32_t& array_size) const;
+        void AsFloat4x4Array(const float4x4* val, uint32_t array_size);
+
+        const double* AsDoubleArray(uint32_t& array_size) const;
+        void AsDoubleArray(const double* val, uint32_t array_size);
+        const double2* AsDouble2Array(uint32_t& array_size) const;
+        void AsDouble2Array(const double2* val, uint32_t array_size);
+        const double3* AsDouble3Array(uint32_t& array_size) const;
+        void AsDouble3Array(const double3* val, uint32_t array_size);
+        const double4* AsDouble4Array(uint32_t& array_size) const;
+        void AsDouble4Array(const double4* val, uint32_t array_size);
+    
+        const double2x2* AsDouble2x2Array(uint32_t& array_size) const;
+        void AsDouble2x2Array(const double2x2* val, uint32_t array_size);
+        const double3x3* AsDouble3x3Array(uint32_t& array_size) const;
+        void AsDouble3x3Array(const double3x3* val, uint32_t array_size);
+        const double4x4* AsDouble4x4Array(uint32_t& array_size) const;
+        void AsDouble4x4Array(const double4x4* val, uint32_t array_size);
+
+        const DrawingRawTexture* const* AsTextureArray(uint32_t& array_size) const;
+        void AsTextureArray(const DrawingRawTexture** pTexture, uint32_t array_size);
+
+        const DrawingRawSamplerState* const* AsSamplerArray(uint32_t& array_size) const;
+        void AsSamplerArray(const DrawingRawSamplerState** pState, uint32_t array_size);
+
     private:
         template <typename T>
         const T& AsValue() const;
@@ -265,12 +331,12 @@ namespace Engine
         void AsScalarArray(const T* val, uint32_t array_size);
 
         template <typename T, EBasicType type, uint32_t size>
-        const T* AsVectorArray(uint32_t& array_size) const;
+        const T* const AsVectorArray(uint32_t& array_size) const;
         template <typename T, EBasicType type, uint32_t size>
         void AsVectorArray(const T* val, uint32_t array_size);
 
         template <typename T, EBasicType type, uint32_t row_size, uint32_t col_size>
-        const T* AsMatrixArray(uint32_t& array_size) const;
+        const T* const AsMatrixArray(uint32_t& array_size) const;
         template <typename T, EBasicType type, uint32_t row_size, uint32_t col_size>
         void AsMatrixArray(const T* val, uint32_t array_size);
 
@@ -280,5 +346,30 @@ namespace Engine
         void* m_pValue;
         uint32_t m_size;
         uint32_t m_type;
+    };
+
+    class DrawingParameterSet
+    {
+    public:
+        DrawingParameterSet();
+        virtual ~DrawingParameterSet();
+
+        virtual void Add(std::shared_ptr<DrawingParameter> pParam);
+        virtual void AddSet(const DrawingParameterSet& paramSet);
+
+        virtual void AddUnique(std::shared_ptr<DrawingParameter> pParam);
+        virtual void AddSetUnique(const DrawingParameterSet& paramSet);
+
+        virtual void Remove(std::shared_ptr<DrawingParameter> pParam);
+        virtual void RemoveAt(uint32_t index);
+
+        virtual bool Contains(const std::shared_ptr<DrawingParameter> pParam) const;
+
+        virtual void Clear();
+        virtual uint32_t Count() const;
+
+    private:
+        typedef std::vector<std::shared_ptr<DrawingParameter>> ParameterList;
+        ParameterList m_pParamList;
     };
 }

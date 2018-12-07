@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "DrawingParameter.h"
 #include "DrawingRawResource.h"
 
@@ -136,6 +138,582 @@ uint32_t DrawingParameter::GetVectorSize() const
     return GetRowSize(m_type);
 }
 
+const bool& DrawingParameter::AsBool() const
+{
+    return AsScalar<bool, eBasic_Bool>();
+}
+
+void DrawingParameter::AsBool(const bool& val)
+{
+    return AsScalar<bool, eBasic_Bool>(val);
+}
+
+const bool2& DrawingParameter::AsBool2() const
+{
+    return AsVector<bool2, eBasic_Bool, 2>();
+}
+
+void DrawingParameter::AsBool2(const bool2& val)
+{
+    AsVector<bool2, eBasic_Bool, 2>(val);
+}
+
+const bool3& DrawingParameter::AsBool3() const
+{
+    return AsVector<bool3, eBasic_Bool, 3>();
+}
+
+void DrawingParameter::AsBool3(const bool3& val)
+{
+    AsVector<bool3, eBasic_Bool, 3>(val);
+}
+
+const bool4& DrawingParameter::AsBool4() const
+{
+    return AsVector<bool4, eBasic_Bool, 4>();
+}
+
+void DrawingParameter::AsBool4(const bool4& val)
+{
+    AsVector<bool4, eBasic_Bool, 4>(val);
+}
+
+const uint32_t& DrawingParameter::AsUInt() const
+{
+    return AsScalar<uint32_t, eBasic_UInt32>();
+}
+
+void DrawingParameter::AsUInt(const uint32_t& val)
+{
+    AsScalar<uint32_t, eBasic_UInt32>(val);
+}
+
+const uint2& DrawingParameter::AsUInt2() const
+{
+    return AsVector<uint2, eBasic_UInt32, 2>();
+}
+
+void DrawingParameter::AsUInt2(const uint2& val)
+{
+    AsVector<uint2, eBasic_UInt32, 2>(val);
+}
+
+const uint3& DrawingParameter::AsUInt3() const
+{
+    return AsVector<uint3, eBasic_UInt32, 3>();
+}
+
+void DrawingParameter::AsUInt3(const uint3& val)
+{
+    AsVector<uint3, eBasic_UInt32, 3>(val);
+}
+
+const uint4& DrawingParameter::AsUInt4() const
+{
+    return AsVector<uint4, eBasic_UInt32, 4>();
+}
+
+void DrawingParameter::AsUInt4(const uint4& val)
+{
+    AsVector<uint4, eBasic_UInt32, 4>(val);
+}
+
+const int32_t& DrawingParameter::AsInt() const
+{
+    return AsScalar<int32_t, eBasic_Int32>();
+}
+
+void DrawingParameter::AsInt(const int32_t& val)
+{
+    AsScalar<int32_t, eBasic_Int32>(val);
+}
+
+const int2& DrawingParameter::AsInt2() const
+{
+    return AsVector<int2, eBasic_Int32, 2>();
+}
+
+void DrawingParameter::AsInt2(const int2& val)
+{
+    AsVector<int2, eBasic_Int32, 2>(val);
+}
+
+const int3& DrawingParameter::AsInt3() const
+{
+    return AsVector<int3, eBasic_Int32, 3>();
+}
+
+void DrawingParameter::AsInt3(const int3& val)
+{
+    AsVector<int3, eBasic_Int32, 3>(val);
+}
+
+const int4& DrawingParameter::AsInt4() const
+{
+    return AsVector<int4, eBasic_Int32, 4>();
+}
+
+void DrawingParameter::AsInt4(const int4& val)
+{
+    AsVector<int4, eBasic_Int32, 4>(val);
+}
+
+const float& DrawingParameter::AsFloat() const
+{
+    return AsScalar<float, eBasic_FP32>();
+}
+
+void DrawingParameter::AsFloat(const float& val)
+{
+    AsScalar<float, eBasic_FP32>(val);
+}
+
+const float2& DrawingParameter::AsFloat2() const
+{
+    return AsVector<float2, eBasic_FP32, 2>();
+}
+
+void DrawingParameter::AsFloat2(const float2& val)
+{
+    AsVector<float2, eBasic_FP32, 2>(val);
+}
+
+const float3& DrawingParameter::AsFloat3() const
+{
+    return AsVector<float3, eBasic_FP32, 3>();
+}
+
+void DrawingParameter::AsFloat3(const float3& val)
+{
+    AsVector<float3, eBasic_FP32, 3>(val);
+}
+
+const float4& DrawingParameter::AsFloat4() const
+{
+    return AsVector<float4, eBasic_FP32, 4>();
+}
+
+void DrawingParameter::AsFloat4(const float4& val)
+{
+    AsVector<float4, eBasic_FP32, 4>(val);
+}
+    
+const float2x2& DrawingParameter::AsFloat2x2() const
+{
+    return AsMatrix<float2x2, eBasic_FP32, 2, 2>();
+}
+
+void DrawingParameter::AsFloat2x2(const float2x2& val)
+{
+    AsMatrix<float2x2, eBasic_FP32, 2, 2>(val);
+}
+
+const float3x3& DrawingParameter::AsFloat3x3() const
+{
+    return AsMatrix<float3x3, eBasic_FP32, 3, 3>();
+}
+
+void DrawingParameter::AsFloat3x3(const float3x3& val)
+{
+    AsMatrix<float3x3, eBasic_FP32, 3, 3>(val);
+}
+
+const float4x4& DrawingParameter::AsFloat4x4() const
+{
+    return AsMatrix<float4x4, eBasic_FP32, 4, 4>();
+}
+
+void DrawingParameter::AsFloat4x4(const float4x4& val)
+{
+    AsMatrix<float4x4, eBasic_FP32, 4, 4>(val);
+}
+
+const double& DrawingParameter::AsDouble() const
+{
+    return AsScalar<double, eBasic_FP64>();
+}
+
+void DrawingParameter::AsDouble(const double& val)
+{
+    AsScalar<double, eBasic_FP64>(val);
+}
+
+const double2& DrawingParameter::AsDouble2() const
+{
+    return AsVector<double2, eBasic_FP64, 2>();
+}
+
+void DrawingParameter::AsDouble2(const double2& val)
+{
+    AsVector<double2, eBasic_FP64, 2>(val);
+}
+
+const double3& DrawingParameter::AsDouble3() const
+{
+    return AsVector<double3, eBasic_FP64, 3>();
+}
+
+void DrawingParameter::AsDouble3(const double3& val)
+{
+    AsVector<double3, eBasic_FP64, 3>(val);
+}
+
+const double4& DrawingParameter::AsDouble4() const
+{
+    return AsVector<double4, eBasic_FP64, 4>(); 
+}
+
+void DrawingParameter::AsDouble4(const double4& val)
+{
+    AsVector<double4, eBasic_FP64, 4>(val);
+}
+
+const double2x2& DrawingParameter::AsDouble2x2() const
+{
+    return AsMatrix<double2x2, eBasic_FP64, 2, 2>();
+}
+
+void DrawingParameter::AsDouble2x2(const double2x2& val)
+{
+    AsMatrix<double2x2, eBasic_FP64, 2, 2>(val);
+}
+
+const double3x3& DrawingParameter::AsDouble3x3() const
+{
+    return AsMatrix<double3x3, eBasic_FP64, 3, 3>();
+}
+
+void DrawingParameter::AsDouble3x3(const double3x3& val)
+{
+    AsMatrix<double3x3, eBasic_FP64, 3, 3>(val);
+}
+
+const double4x4& DrawingParameter::AsDouble4x4() const
+{
+    return AsMatrix<double4x4, eBasic_FP64, 4, 4>();
+}
+
+void DrawingParameter::AsDouble4x4(const double4x4& val)
+{
+    AsMatrix<double4x4, eBasic_FP64, 4, 4>(val);
+}
+
+const DrawingRawTexture* DrawingParameter::AsTexture() const
+{
+    assert(GetObjectType() == eObject_Texture);
+
+    return AsValue<const DrawingRawTexture*>();
+}
+
+void DrawingParameter::AsTexture(const DrawingRawTexture* pTexture)
+{
+    assert(GetObjectType() == eObject_Texture);
+
+    AsValue<const DrawingRawTexture*>(pTexture);
+}
+
+const DrawingRawSamplerState* DrawingParameter::AsSampler() const
+{
+    assert(GetObjectType() == eObject_Sampler);
+
+    return AsValue<const DrawingRawSamplerState*>();
+}
+
+void DrawingParameter::AsSampler(const DrawingRawSamplerState* pState)
+{
+    assert(GetObjectType() == eObject_Sampler);
+
+    AsValue<const DrawingRawSamplerState*>(pState);
+}
+
+const bool* DrawingParameter::AsBoolArray(uint32_t& array_size) const
+{
+    return AsScalarArray<bool, eBasic_Bool>(array_size);
+}
+
+void DrawingParameter::AsBoolArray(const bool* val, uint32_t array_size)
+{
+    AsScalarArray<bool, eBasic_Bool>(val, array_size);
+}
+
+const bool2* DrawingParameter::AsBool2Array(uint32_t& array_size) const
+{
+    return AsVectorArray<bool2, eBasic_Bool, 2>(array_size);
+}
+
+void DrawingParameter::AsBool2Array(const bool2* val, uint32_t array_size)
+{
+    AsVectorArray<bool2, eBasic_Bool, 2>(val, array_size);
+}
+
+const bool3* DrawingParameter::AsBool3Array(uint32_t& array_size) const
+{
+    return AsVectorArray<bool3, eBasic_Bool, 3>(array_size);
+}
+
+void DrawingParameter::AsBool3Array(const bool3* val, uint32_t array_size)
+{
+    AsVectorArray<bool3, eBasic_Bool, 3>(val, array_size);
+}
+
+const bool4* DrawingParameter::AsBool4Array(uint32_t& array_size) const
+{
+    return AsVectorArray<bool4, eBasic_Bool, 4>(array_size);
+}
+
+void DrawingParameter::AsBool4Array(const bool4* val, uint32_t array_size)
+{
+    AsVectorArray<bool4, eBasic_Bool, 4>(val, array_size);
+}
+
+const uint32_t* DrawingParameter::AsUIntArray(uint32_t& array_size) const
+{
+    return AsScalarArray<uint32_t, eBasic_UInt32>(array_size);
+}
+
+void DrawingParameter::AsUIntArray(const uint32_t* val, uint32_t array_size)
+{
+    AsScalarArray<uint32_t, eBasic_UInt32>(val, array_size);
+}
+
+const uint2* DrawingParameter::AsUInt2Array(uint32_t& array_size) const
+{
+    return AsVectorArray<uint2, eBasic_UInt32, 2>(array_size);
+}
+
+void DrawingParameter::AsUInt2Array(const uint2* val, uint32_t array_size)
+{
+    AsVectorArray<uint2, eBasic_UInt32, 2>(val, array_size);
+}
+
+const uint3* DrawingParameter::AsUInt3Array(uint32_t& array_size) const
+{
+    return AsVectorArray<uint3, eBasic_UInt32, 3>(array_size);
+}
+
+void DrawingParameter::AsUInt3Array(const uint3* val, uint32_t array_size)
+{
+    AsVectorArray<uint3, eBasic_UInt32, 3>(val, array_size);
+}
+
+const uint4* DrawingParameter::AsUInt4Array(uint32_t& array_size) const
+{
+    return AsVectorArray<uint4, eBasic_UInt32, 4>(array_size);
+}
+
+void DrawingParameter::AsUInt4Array(const uint4* val, uint32_t array_size)
+{
+    AsVectorArray<uint4, eBasic_UInt32, 4>(val, array_size);
+}
+
+const int32_t* DrawingParameter::AsIntArray(uint32_t& array_size) const
+{
+    return AsScalarArray<int32_t, eBasic_Int32>(array_size);
+}
+
+void DrawingParameter::AsIntArray(const int32_t* val, uint32_t array_size)
+{
+    AsScalarArray<int32_t, eBasic_Int32>(val, array_size);
+}
+
+const int2* DrawingParameter::AsInt2Array(uint32_t& array_size) const
+{
+    return AsVectorArray<int2, eBasic_Int32, 2>(array_size);
+}
+
+void DrawingParameter::AsInt2Array(const int2* val, uint32_t array_size)
+{
+    AsVectorArray<int2, eBasic_Int32, 2>(val, array_size);
+}
+
+const int3* DrawingParameter::AsInt3Array(uint32_t& array_size) const
+{
+    return AsVectorArray<int3, eBasic_Int32, 3>(array_size);
+}
+
+void DrawingParameter::AsInt3Array(const int3* val, uint32_t array_size)
+{
+    AsVectorArray<int3, eBasic_Int32, 3>(val, array_size);
+}
+
+const int4* DrawingParameter::AsInt4Array(uint32_t& array_size) const
+{
+    return AsVectorArray<int4, eBasic_Int32, 4>(array_size);
+}
+
+void DrawingParameter::AsInt4Array(const int4* val, uint32_t array_size)
+{
+    AsVectorArray<int4, eBasic_Int32, 4>(val, array_size);
+}
+
+const float* DrawingParameter::AsFloatArray(uint32_t& array_size) const
+{
+    return AsScalarArray<float, eBasic_FP32>(array_size);
+}
+
+void DrawingParameter::AsFloatArray(const float* val, uint32_t array_size)
+{
+    AsScalarArray<float, eBasic_FP32>(val, array_size);
+}
+
+const float2* DrawingParameter::AsFloat2Array(uint32_t& array_size) const
+{
+    return AsVectorArray<float2, eBasic_FP32, 2>(array_size);
+}
+
+void DrawingParameter::AsFloat2Array(const float2* val, uint32_t array_size)
+{
+    AsVectorArray<float2, eBasic_FP32, 2>(val, array_size);
+}
+
+const float3* DrawingParameter::AsFloat3Array(uint32_t& array_size) const
+{
+    return AsVectorArray<float3, eBasic_FP32, 3>(array_size);
+}
+
+void DrawingParameter::AsFloat3Array(const float3* val, uint32_t array_size)
+{
+    AsVectorArray<float3, eBasic_FP32, 3>(val, array_size);
+}
+
+const float4* DrawingParameter::AsFloat4Array(uint32_t& array_size) const
+{
+    return AsVectorArray<float4, eBasic_FP32, 4>(array_size);
+}
+
+void DrawingParameter::AsFloat4Array(const float4* val, uint32_t array_size)
+{
+    AsVectorArray<float4, eBasic_FP32, 4>(val, array_size);
+}
+
+const float2x2* DrawingParameter::AsFloat2x2Array(uint32_t& array_size) const
+{
+    return AsMatrixArray<float2x2, eBasic_FP32, 2, 2>(array_size);
+}
+
+void DrawingParameter::AsFloat2x2Array(const float2x2* val, uint32_t array_size)
+{
+    AsMatrixArray<float2x2, eBasic_FP32, 2, 2>(val, array_size);
+}
+
+const float3x3* DrawingParameter::AsFloat3x3Array(uint32_t& array_size) const
+{
+    return AsMatrixArray<float3x3, eBasic_FP32, 3, 3>(array_size);
+}
+
+void DrawingParameter::AsFloat3x3Array(const float3x3* val, uint32_t array_size)
+{
+    AsMatrixArray<float3x3, eBasic_FP32, 3, 3>(val, array_size);
+}
+
+const float4x4* DrawingParameter::AsFloat4x4Array(uint32_t& array_size) const
+{
+    return AsMatrixArray<float4x4, eBasic_FP32, 4, 4>(array_size);
+}
+
+void DrawingParameter::AsFloat4x4Array(const float4x4* val, uint32_t array_size)
+{
+    AsMatrixArray<float4x4, eBasic_FP32, 4, 4>(val, array_size);
+}
+
+const double* DrawingParameter::AsDoubleArray(uint32_t& array_size) const
+{
+    return AsScalarArray<double, eBasic_FP64>(array_size);
+}
+
+void DrawingParameter::AsDoubleArray(const double* val, uint32_t array_size)
+{
+    AsScalarArray<double, eBasic_FP64>(val, array_size);
+}
+
+const double2* DrawingParameter::AsDouble2Array(uint32_t& array_size) const
+{
+    return AsVectorArray<double2, eBasic_FP64, 2>(array_size);
+}
+
+void DrawingParameter::AsDouble2Array(const double2* val, uint32_t array_size)
+{
+    AsVectorArray<double2, eBasic_FP64, 2>(val, array_size);
+}
+
+const double3* DrawingParameter::AsDouble3Array(uint32_t& array_size) const
+{
+    return AsVectorArray<double3, eBasic_FP64, 3>(array_size);
+}
+
+void DrawingParameter::AsDouble3Array(const double3* val, uint32_t array_size)
+{
+    AsVectorArray<double3, eBasic_FP64, 3>(val, array_size);
+}
+
+const double4* DrawingParameter::AsDouble4Array(uint32_t& array_size) const
+{
+    return AsVectorArray<double4, eBasic_FP64, 4>(array_size);
+}
+
+void DrawingParameter::AsDouble4Array(const double4* val, uint32_t array_size)
+{
+    AsVectorArray<double4, eBasic_FP64, 4>(val, array_size);
+}
+
+const double2x2* DrawingParameter::AsDouble2x2Array(uint32_t& array_size) const
+{
+    return AsMatrixArray<double2x2, eBasic_FP64, 2, 2>(array_size);
+}
+
+void DrawingParameter::AsDouble2x2Array(const double2x2* val, uint32_t array_size)
+{
+    AsMatrixArray<double2x2, eBasic_FP64, 2, 2>(val, array_size);
+}
+
+const double3x3* DrawingParameter::AsDouble3x3Array(uint32_t& array_size) const
+{
+    return AsMatrixArray<double3x3, eBasic_FP64, 3, 3>(array_size);
+}
+
+void DrawingParameter::AsDouble3x3Array(const double3x3* val, uint32_t array_size)
+{
+    AsMatrixArray<double3x3, eBasic_FP64, 3, 3>(val, array_size);
+}
+
+const double4x4* DrawingParameter::AsDouble4x4Array(uint32_t& array_size) const
+{
+    return AsMatrixArray<double4x4, eBasic_FP64, 4, 4>(array_size);
+}
+
+void DrawingParameter::AsDouble4x4Array(const double4x4* val, uint32_t array_size)
+{
+    AsMatrixArray<double4x4, eBasic_FP64, 4, 4>(val, array_size);
+}
+
+const DrawingRawTexture* const* DrawingParameter::AsTextureArray(uint32_t& array_size) const
+{
+    assert(GetObjectType() == eObject_Texture);
+
+    return AsValueArray<const DrawingRawTexture*>(array_size);
+}
+
+void DrawingParameter::AsTextureArray(const DrawingRawTexture** pTexture, uint32_t array_size)
+{
+    assert(GetObjectType() == eObject_Texture);
+
+    AsValueArray<const DrawingRawTexture*>(pTexture, array_size);
+}
+
+const DrawingRawSamplerState* const* DrawingParameter::AsSamplerArray(uint32_t& array_size) const
+{
+    assert(GetObjectType() == eObject_Sampler);
+
+    return AsValueArray<const DrawingRawSamplerState*>(array_size);
+}
+
+void DrawingParameter::AsSamplerArray(const DrawingRawSamplerState** pState, uint32_t array_size)
+{
+    assert(GetObjectType() == eObject_Sampler);
+
+    AsValueArray<const DrawingRawSamplerState*>(pState, array_size);
+}
+
 template <typename T>
 const T& DrawingParameter::AsValue() const
 {
@@ -152,9 +730,9 @@ void DrawingParameter::AsValue(const T& val)
 template <typename T, EBasicType type>
 const T& DrawingParameter::AsScalar() const
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Scalar);
-    static_assert(GetBasicType() == type);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Scalar);
+    assert(GetBasicType() == type);
 
     return AsValue<T>();
 }
@@ -162,9 +740,9 @@ const T& DrawingParameter::AsScalar() const
 template <typename T, EBasicType type>
 void DrawingParameter::AsScalar(const T& val)
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Scalar);
-    static_assert(GetBasicType() == type);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Scalar);
+    assert(GetBasicType() == type);
 
     AsValue<T>(val);
 }
@@ -172,47 +750,47 @@ void DrawingParameter::AsScalar(const T& val)
 template <typename T, EBasicType type, uint32_t size>
 const T& DrawingParameter::AsVector() const
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Vector);
-    static_assert(GetBasicType() == type);
-    static_assert(GetVectorSize() == size);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Vector);
+    assert(GetBasicType() == type);
+    assert(GetVectorSize() == size);
 
-    return AsVector<T>();
+    return AsValue<T>();
 }
 
 template <typename T, EBasicType type, uint32_t size>
 void DrawingParameter::AsVector(const T& val)
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Vector);
-    static_assert(GetBasicType() == type);
-    static_assert(GetVectorSize() == size);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Vector);
+    assert(GetBasicType() == type);
+    assert(GetVectorSize() == size);
 
-    AsVector<T>(val);
+    AsValue<T>(val);
 }
 
 template <typename T, EBasicType type, uint32_t row_size, uint32_t col_size>
 const T& DrawingParameter::AsMatrix() const
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Matrix);
-    static_assert(GetBasicType() == type);
-    static_assert(GetRowSize() == row_size);
-    static_assert(GetColSize() == col_size);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Matrix);
+    assert(GetBasicType() == type);
+    assert(GetRowSize() == row_size);
+    assert(GetColSize() == col_size);
 
-    return AsMatrix<T>();
+    return AsValue<T>();
 }
 
 template <typename T, EBasicType type, uint32_t row_size, uint32_t col_size>
 void DrawingParameter::AsMatrix(const T& val)
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Matrix);
-    static_assert(GetBasicType() == type);
-    static_assert(GetRowSize() == row_size);
-    static_assert(GetColSize() == col_size);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Matrix);
+    assert(GetBasicType() == type);
+    assert(GetRowSize() == row_size);
+    assert(GetColSize() == col_size);
 
-    AsMatrix<T>(val);
+    AsValue<T>(val);
 }
 
 template <typename T>
@@ -225,7 +803,7 @@ const T* DrawingParameter::AsValueArray(uint32_t& array_size) const
 template <typename T>
 void DrawingParameter::AsValueArray(const T* val, uint32_t array_size)
 {
-    static_assert(GetArraySize() == array_size);
+    assert(GetArraySize() == array_size);
 
     if (memcmp(m_pValue, val, sizeof(T) * array_size) != 0)
         memcpy(m_pValue, val, m_size);
@@ -234,9 +812,9 @@ void DrawingParameter::AsValueArray(const T* val, uint32_t array_size)
 template <typename T, EBasicType type>
 const T* DrawingParameter::AsScalarArray(uint32_t& array_size) const
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Scalar);
-    static_assert(GetBasicType() == type);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Scalar);
+    assert(GetBasicType() == type);
 
     return AsValueArray<T>(array_size);
 }
@@ -244,20 +822,20 @@ const T* DrawingParameter::AsScalarArray(uint32_t& array_size) const
 template <typename T, EBasicType type>
 void DrawingParameter::AsScalarArray(const T* val, uint32_t array_size)
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Scalar);
-    static_assert(GetBasicType() == type);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Scalar);
+    assert(GetBasicType() == type);
 
     AsValueArray<T>(val, array_size);
 }
 
 template <typename T, EBasicType type, uint32_t size>
-const T* DrawingParameter::AsVectorArray(uint32_t& array_size) const
+const T* const DrawingParameter::AsVectorArray(uint32_t& array_size) const
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Vector);
-    static_assert(GetBasicType() == type);
-    static_assert(GetVectorSize() == size);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Vector);
+    assert(GetBasicType() == type);
+    assert(GetVectorSize() == size);
 
     return AsValueArray<T>(array_size);
 }
@@ -265,35 +843,101 @@ const T* DrawingParameter::AsVectorArray(uint32_t& array_size) const
 template <typename T, EBasicType type, uint32_t size>
 void DrawingParameter::AsVectorArray(const T* val, uint32_t array_size)
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Vector);
-    static_assert(GetBasicType() == type);
-    static_assert(GetVectorSize() == size);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Vector);
+    assert(GetBasicType() == type);
+    assert(GetVectorSize() == size);
 
     AsValueArray<T>(val, array_size);
 }
 
 template <typename T, EBasicType type, uint32_t row_size, uint32_t col_size>
-const T* DrawingParameter::AsMatrixArray(uint32_t& array_size) const
+const T* const DrawingParameter::AsMatrixArray(uint32_t& array_size) const
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Matrix);
-    static_assert(GetBasicType() == type);
-    static_assert(GetRowSize() == row_size);
-    static_assert(GetColSize() == col_size);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Matrix);
+    assert(GetBasicType() == type);
+    assert(GetRowSize() == row_size);
+    assert(GetColSize() == col_size);
 
-    return AsMatrixArray<T>(array_size);
+    return AsValueArray<T>(array_size);
 }
 
 template <typename T, EBasicType type, uint32_t row_size, uint32_t col_size>
 void DrawingParameter::AsMatrixArray(const T* val, uint32_t array_size)
 {
-    static_assert(GetObjectType() == eObject_Value);
-    static_assert(GetDataSetType() == eDataSet_Matrix);
-    static_assert(GetBasicType() == type);
-    static_assert(GetRowSize() == row_size);
-    static_assert(GetColSize() == col_size);
+    assert(GetObjectType() == eObject_Value);
+    assert(GetDataSetType() == eDataSet_Matrix);
+    assert(GetBasicType() == type);
+    assert(GetRowSize() == row_size);
+    assert(GetColSize() == col_size);
 
-    AsMatrixArray<T>(val, array_size);
+    AsValueArray<T>(val, array_size);
 }
 
+DrawingParameterSet::DrawingParameterSet()
+{
+}
+
+DrawingParameterSet::~DrawingParameterSet()
+{
+    Clear();
+}
+
+void DrawingParameterSet::Add(std::shared_ptr<DrawingParameter> pParam)
+{
+    assert(pParam != nullptr);
+    m_pParamList.emplace_back(pParam);
+}
+
+void DrawingParameterSet::AddSet(const DrawingParameterSet& paramSet)
+{
+    std::for_each(paramSet.m_pParamList.cbegin(), paramSet.m_pParamList.cend(), [this](std::shared_ptr<DrawingParameter> pParam)
+    {
+        Add(pParam);
+    });
+}
+
+void DrawingParameterSet::AddUnique(std::shared_ptr<DrawingParameter> pParam)
+{
+    if (!Contains(pParam))
+        Add(pParam);
+}
+
+void DrawingParameterSet::AddSetUnique(const DrawingParameterSet& paramSet)
+{
+    std::for_each(paramSet.m_pParamList.cbegin(), paramSet.m_pParamList.cend(), [this](std::shared_ptr<DrawingParameter> pParam)
+    {
+        if (!Contains(pParam))
+            Add(pParam);
+    });
+}
+
+void DrawingParameterSet::Remove(std::shared_ptr<DrawingParameter> pParam)
+{
+    auto result = std::find(m_pParamList.cbegin(), m_pParamList.cend(), pParam);
+    if (result != m_pParamList.cend())
+        m_pParamList.erase(result);
+}
+
+void DrawingParameterSet::RemoveAt(uint32_t index)
+{
+    assert(index >= 0 && index < Count());
+    m_pParamList.erase(m_pParamList.cbegin() + index);
+}
+
+bool DrawingParameterSet::Contains(const std::shared_ptr<DrawingParameter> pParam) const
+{
+    auto result = std::find(m_pParamList.cbegin(), m_pParamList.cend(), pParam);
+    return (result != m_pParamList.cend());
+}
+
+void DrawingParameterSet::Clear()
+{
+    m_pParamList.clear();
+}
+
+uint32_t DrawingParameterSet::Count() const
+{
+    return static_cast<uint32_t>(m_pParamList.size());
+}

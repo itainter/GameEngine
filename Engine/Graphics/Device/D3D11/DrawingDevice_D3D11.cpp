@@ -1,6 +1,5 @@
-#include <d3d11.h>
-
 #include "DrawingUtil_D3D11.h"
+#include "DrawingRawResource_D3D11.h"
 #include "DrawingDevice_D3D11.h"
 
 using namespace Engine;
@@ -30,6 +29,10 @@ bool DrawingDevice_D3D11::CreateVertexFormat(const DrawingVertexFormatDesc& desc
 
         inputElementDesc.push_back(input);
     }
+
+    auto pVertexFormat = std::make_shared<DrawingVertexFormat>(std::shared_ptr<DrawingDevice>(this));
+
+    pVertexFormat->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
 
     return true;
 }
@@ -92,4 +95,9 @@ bool DrawingDevice_D3D11::CreatePixelShaderFromString(const std::string& str, co
 bool DrawingDevice_D3D11::CreatePrimitiveInfo(const DrawingPrimitiveDesc& desc, std::shared_ptr<DrawingPrimitive>& pRes)
 {
     return true;
+}
+
+std::shared_ptr<ID3D11Device> DrawingDevice_D3D11::GetDevice() const
+{
+    return m_pDevice;
 }

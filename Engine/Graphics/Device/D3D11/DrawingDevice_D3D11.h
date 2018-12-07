@@ -1,5 +1,8 @@
 #pragma once
 
+#include <d3d11.h>
+#include <memory>
+
 #include "DrawingDevice.h"
 
 namespace Engine
@@ -26,5 +29,11 @@ namespace Engine
         bool CreatePixelShaderFromString(const std::string& str, const DrawingPixelShaderDesc& desc, std::shared_ptr<DrawingPixelShader>& pRes) override;
 
         bool CreatePrimitiveInfo(const DrawingPrimitiveDesc& desc, std::shared_ptr<DrawingPrimitive>& pRes) override;
+
+        std::shared_ptr<ID3D11Device> GetDevice() const;
+
+
+    private:
+        std::shared_ptr<ID3D11Device> m_pDevice;
     };
 }
