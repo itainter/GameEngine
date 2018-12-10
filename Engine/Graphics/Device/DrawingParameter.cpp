@@ -13,6 +13,15 @@ DrawingParameter::~DrawingParameter()
 {
 }
 
+const uint32_t BasicTypeSize[eBasic_Count] = 
+{
+    sizeof(bool),
+    sizeof(uint32_t),
+    sizeof(int32_t),
+    sizeof(float),
+    sizeof(double),
+};
+
 const uint32_t DrawingParameter::GetBitsValue(uint32_t val, uint32_t bits, uint32_t offset)
 {
     return ((val >> offset) & ((0x1 << bits) - 1));

@@ -32,6 +32,8 @@ namespace Engine
 
         std::shared_ptr<ID3D11Device> GetDevice() const;
 
+        template<typename DescType>
+        static uint32_t GetParamType(const DescType& type, uint32_t& size);
 
     private:
         std::shared_ptr<ID3D11Device> m_pDevice;

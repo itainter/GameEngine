@@ -58,7 +58,11 @@ namespace Engine
         eBasic_Int32,
         eBasic_FP32,
         eBasic_FP64,
+
+        eBasic_Count,
     };
+
+    static const uint32_t BasicTypeSize[eBasic_Count];
 
     #define SET_BITS(val, bits, offset) ((val & ((0x1 << bits) - 1)) << offset)
 
@@ -126,6 +130,8 @@ namespace Engine
         EParam_RWBuffer = COMPOSE_OBJECT(eObject_RWBuffer),
         EParam_TexBuffer = COMPOSE_OBJECT(eObject_TexBuffer),
         EParam_Sampler = COMPOSE_OBJECT(eObject_Sampler),
+
+        EParam_Invalid = 0xffffffff
     };
 
     class DrawingRawTexture;

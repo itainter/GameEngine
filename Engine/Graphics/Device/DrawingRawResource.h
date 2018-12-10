@@ -55,7 +55,7 @@ namespace Engine
 
     class DrawingRawShader
     {
-    protected:
+    public:
         DrawingRawShader(std::shared_ptr<const std::string> pShaderName) : m_pShaderName(pShaderName) {}
         virtual ~DrawingRawShader() { m_pShaderName = nullptr; };
 
@@ -91,18 +91,21 @@ namespace Engine
     class DrawingRawVertexShader : public DrawingRawShader
     {
     public:
+        DrawingRawVertexShader(std::shared_ptr<const std::string> pShaderName) : DrawingRawShader(pShaderName) {}
         DrawingRawShaderType GetShaderType() const override { return RawShader_VS; }
     };
 
     class DrawingRawPixelShader : public DrawingRawShader
     {
     public:
+        DrawingRawPixelShader(std::shared_ptr<const std::string> pShaderName) : DrawingRawShader(pShaderName) {}
         DrawingRawShaderType GetShaderType() const override { return RawShader_PS; }
     };
 
     class DrawingRawComputeShader : public DrawingRawShader
     {
     public:
+        DrawingRawComputeShader(std::shared_ptr<const std::string> pShaderName) : DrawingRawShader(pShaderName) {}
         DrawingRawShaderType GetShaderType() const override { return RawShader_CS; }
     };
 
