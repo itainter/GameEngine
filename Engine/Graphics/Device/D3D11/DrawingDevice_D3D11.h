@@ -1,6 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
+#include <dxgi.h>
 #include <memory>
 
 #include "DrawingDevice.h"
@@ -14,7 +15,7 @@ namespace Engine
         virtual ~DrawingDevice_D3D11();
 
         bool CreateVertexFormat(const DrawingVertexFormatDesc& desc, std::shared_ptr<DrawingVertexFormat>& pRes) override;
-        bool CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, const void* pData = nullptr, uint32_t size = 0) override;
+        bool CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData = nullptr, uint32_t size = 0) override;
         bool CreateIndexBuffer(const DrawingIndexBufferDesc& desc, std::shared_ptr<DrawingIndexBuffer>& pRes, const void* pData = nullptr, uint32_t size = 0) override;
         bool CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData = nullptr, uint32_t size = 0) override;
 
@@ -31,11 +32,13 @@ namespace Engine
         bool CreatePrimitiveInfo(const DrawingPrimitiveDesc& desc, std::shared_ptr<DrawingPrimitive>& pRes) override;
 
         std::shared_ptr<ID3D11Device> GetDevice() const;
+        std::shared_ptr<IDXGIFactory> GetDXGIFactory() const;
 
         template<typename DescType>
         static uint32_t GetParamType(const DescType& type, uint32_t& size);
 
     private:
         std::shared_ptr<ID3D11Device> m_pDevice;
+        std::shared_ptr<IDXGIFactory> m_pDXGIFactory;
     };
 }

@@ -11,34 +11,33 @@ namespace Engine
 
     class DrawingRawBlendState
     {
-    protected:
+    public:
         virtual ~DrawingRawBlendState() = default;
     };
 
     class DrawingRawDepthState
     {
-    protected:
+    public:
         virtual ~DrawingRawDepthState() = default;
     };
 
     class DrawingRawRasterState
     {
-    protected:
+    public:
         virtual ~DrawingRawRasterState() = default;
     };
 
     class DrawingRawSamplerState
     {
-    protected:
+    public:
         virtual ~DrawingRawSamplerState() = default;
     };
 
     class DrawingRawTexture
     {
-    protected:
+    public:
         virtual ~DrawingRawTexture() = default;
 
-    public:
         const std::shared_ptr<DrawingRawSamplerState>& GetSamplerState()
         {
             return m_pSamplerState;
@@ -64,6 +63,7 @@ namespace Engine
             RawShader_VS,
             RawShader_PS,
             RawShader_CS,
+            RawShader_Count,
         };
 
         virtual DrawingRawShaderType GetShaderType() const = 0;
@@ -111,25 +111,32 @@ namespace Engine
 
     class DrawingRawVertexFormat
     {
-    protected:
+    public:
         virtual ~DrawingRawVertexFormat() = default;
     };
 
     class DrawingRawVertexBuffer
     {
-    protected:
+    public:
         virtual ~DrawingRawVertexBuffer() = default;
     };
 
     class DrawingRawIndexBuffer
     {
-    protected:
+    public:
         virtual ~DrawingRawIndexBuffer() = default;
     };
 
     class DrawingRawTarget
     {
-    protected:
+    public:
+        enum ETargetType
+        {
+            eTarget_OffScreen,
+            eTarget_SwapChain,
+            eTarget_Depth,
+        };
+
         virtual ~DrawingRawTarget() = default;
     };
 }

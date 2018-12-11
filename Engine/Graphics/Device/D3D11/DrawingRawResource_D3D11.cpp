@@ -100,3 +100,66 @@ void DrawingRawShader_D3D11::BuildResourceBindingTable(DrawingRawShader::Drawing
         }
     }
 }
+
+DrawingRawShaderEffect_D3D11::DrawingRawShaderEffect_D3D11(const DrawingDevice_D3D11& device, std::shared_ptr<const std::string> pEffectName, const std::vector<std::shared_ptr<DrawingRawShader>>& shaders) :
+    DrawingRawEffect_D3D11(device, pEffectName)
+{
+    for (auto& shader : shaders)
+    {
+        const auto type = shader->GetShaderType();
+        m_shaderBlocks[type] = std::shared_ptr<ShaderBlock>(new ShaderBlock);
+
+        DrawingRawShader_D3D11* shaderImpl = nullptr;
+        switch(type)
+        {
+            case DrawingRawShader::RawShader_VS:
+            {
+                auto vsShader = std::static_pointer_cast<DrawingRawVertexShader_D3D11>(shader);
+                assert(vsShader != nullptr);
+
+                shaderImpl = vsShader->GetShaderImpl();
+                m_shaderBlocks[type]->mpShader = shader;
+                break;
+            }
+            case DrawingRawShader::RawShader_PS:
+            {
+                auto psShader = std::static_pointer_cast<DrawingRawPixelShader_D3D11>(shader);
+                assert(psShader != nullptr);
+
+                shaderImpl = psShader->GetShaderImpl();
+                m_shaderBlocks[type]->mpShader = shader;
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
+DrawingRawShaderEffect_D3D11::DrawingRawShaderEffect_D3D11(const DrawingDevice_D3D11& device, std::shared_ptr<const std::string> pEffectName, std::shared_ptr<DrawingRawVertexShader_D3D11> pVertexShader, std::shared_ptr<DrawingRawPixelShader_D3D11> pPixelShader) :
+    DrawingRawEffect_D3D11(device, pEffectName)
+{
+    assert(pVertexShader != nullptr && pPixelShader != nullptr);
+
+    auto vsShaderImpl = pVertexShader->GetShaderImpl();
+    auto psShaderImpl = pPixelShader->GetShaderImpl();
+
+    if (vsShaderImpl != nullptr)
+    {
+        m_shaderBlocks[DrawingRawShader::RawShader_VS] = std::shared_ptr<ShaderBlock>(new ShaderBlock);
+        m_shaderBlocks[DrawingRawShader::RawShader_VS]->mpShader = pVertexShader;
+    }
+    if (psShaderImpl != nullptr)
+    {
+        m_shaderBlocks[DrawingRawShader::RawShader_PS] = std::shared_ptr<ShaderBlock>(new ShaderBlock);
+        m_shaderBlocks[DrawingRawShader::RawShader_PS]->mpShader = pPixelShader;
+    }
+}
+
+void DrawingRawShaderEffect_D3D11::Apply()
+{
+}
+
+void DrawingRawShaderEffect_D3D11::Terminate()
+{
+}

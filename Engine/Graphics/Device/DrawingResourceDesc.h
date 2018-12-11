@@ -205,7 +205,7 @@ namespace Engine
         DrawingBufferDesc& operator= (const DrawingBufferDesc& rhs);
 
     public:
-        uint32_t mSizeInByte;
+        uint32_t mSizeInBytes;
         uint32_t mStrideInByte;
         EDrawingUsageType mUsage;
         EDrawingAccessType mAccess;

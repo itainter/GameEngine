@@ -35,13 +35,27 @@ bool DrawingDevice_D3D11::CreateVertexFormat(const DrawingVertexFormatDesc& desc
 
     auto pVertexFormat = std::make_shared<DrawingVertexFormat>(std::shared_ptr<DrawingDevice>(this));
 
+    auto pVertexFormatRaw = std::shared_ptr<DrawingRawVertexFormat>(new DrawingRawVertexFormat_D3D11(*this, inputElementDesc, nullptr, 0));
     pVertexFormat->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
+    pVertexFormat->SetResource(pVertexFormatRaw);
 
     return true;
 }
 
-bool DrawingDevice_D3D11::CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, const void* pData, uint32_t size)
+bool DrawingDevice_D3D11::CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData, uint32_t size)
 {
+    std::shared_ptr<DrawingRawVertexBuffer> pVertexBufferRaw = nullptr;
+
+    if ((pData != nullptr) && (size < desc.mSizeInBytes))
+        return false;
+
+    D3D11_BUFFER_DESC bufferDesc;
+    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bufferDesc.ByteWidth = desc.mSizeInBytes;
+    bufferDesc.Usage = D3D11Enum(desc.mUsage);
+    bufferDesc.CPUAccessFlags = D3D11Enum(desc.mAccess);
+    bufferDesc.MiscFlags = desc.mFlags;
+    
     return true;
 }
 
@@ -103,6 +117,11 @@ bool DrawingDevice_D3D11::CreatePrimitiveInfo(const DrawingPrimitiveDesc& desc, 
 std::shared_ptr<ID3D11Device> DrawingDevice_D3D11::GetDevice() const
 {
     return m_pDevice;
+}
+
+std::shared_ptr<IDXGIFactory> DrawingDevice_D3D11::GetDXGIFactory() const
+{
+    return m_pDXGIFactory;
 }
 
 template <typename DescType>
@@ -275,5 +294,16 @@ static uint32_t GenerateParamType(const DescType& descType, uint32_t dataSetType
 template<typename DescType>
 uint32_t DrawingDevice_D3D11::GetParamType(const DescType& type, uint32_t& size)
 {
+    uint32_t dataSetType = eDataSet_Scalar;
+    uint32_t rowSize = 0;
+    uint32_t colSize = 0;
+    uint32_t arraySize = 0;
+    uint32_t structSize = 0;
 
+    bool isValidType = GetBasicTypeInfo(descType, ataSetType, rowSize, colSize, arraySize, structSize);
+
+    if (!isValidType)
+        return (uint32_t)EParam_Invalid;
+
+    return GenerateParamType(descType, dataSetType, rowSize, colSize, arraySize, structSize, dataSize);
 }

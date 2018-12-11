@@ -6,7 +6,6 @@ namespace Engine
 {
     const uint32_t MAX_TARGETS = 8;
 
-
     enum EDrawingResourceType
     {
         eResource_Vertex_Buffer = 1,
@@ -29,6 +28,15 @@ namespace Engine
         eResource_Sampler_State,
 
         eResource_Target,
+    };
+
+    enum EDrawingResourceFlag
+    {
+        eResource_Gen_Mips = 0x1,
+        eResource_Cube_Map = 0x2,
+        eResource_Raw_Buf = 0x4,
+        eResource_Struct_Buf= 0x8,
+        eResource_Draw_Indirect = 0x10,
     };
 
     enum EDrawingProgramType

@@ -9,6 +9,27 @@ namespace Engine
     class DrawingToD3DEnum
     {
     public:
+        UINT operator[](uint32_t flags) const
+        {
+            UINT miscFlags = 0;
+            if ((flags & eResource_Gen_Mips) != 0)
+                miscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+            if ((flags & eResource_Cube_Map) != 0)
+                miscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+            if ((flags & eResource_Raw_Buf) != 0)
+                miscFlags |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+
+            if ((flags & eResource_Struct_Buf) != 0)
+                miscFlags |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+
+            if ((flags & eResource_Draw_Indirect) != 0)
+                miscFlags |= D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
+            
+            return miscFlags;
+        }
+
         DXGI_FORMAT operator[](EDrawingFormatType format) const
         {
             switch(format)
@@ -39,7 +60,7 @@ namespace Engine
             return DXGI_FORMAT_UNKNOWN;
         }
 
-        DXGI_USAGE operator[](EDrawingUsageType usage) const
+        D3D11_USAGE operator[](EDrawingUsageType usage) const
         {
             switch(usage)
             {

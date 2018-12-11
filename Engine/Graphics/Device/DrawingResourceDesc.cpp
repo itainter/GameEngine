@@ -411,23 +411,23 @@ DrawingResourceDesc* DrawingVertexFormatDesc::Clone() const
 }
 
 DrawingBufferDesc::DrawingBufferDesc() : DrawingResourceDesc(),
-    mSizeInByte(0), mStrideInByte(0), mUsage(eUsage_Default), mAccess(eAccess_No_Access), mFlags(0)
+    mSizeInBytes(0), mStrideInByte(0), mUsage(eUsage_Default), mAccess(eAccess_No_Access), mFlags(0)
 {
 }
 
 DrawingBufferDesc::DrawingBufferDesc(const DrawingBufferDesc& desc) : DrawingResourceDesc(desc),
-    mSizeInByte(desc.mSizeInByte), mStrideInByte(desc.mStrideInByte), mUsage(desc.mUsage), mAccess(desc.mAccess), mFlags(desc.mFlags)
+    mSizeInBytes(desc.mSizeInBytes), mStrideInByte(desc.mStrideInByte), mUsage(desc.mUsage), mAccess(desc.mAccess), mFlags(desc.mFlags)
 {
 }
 
 DrawingBufferDesc::DrawingBufferDesc(DrawingBufferDesc&& desc) : DrawingResourceDesc(std::move(desc)),
-    mSizeInByte(std::move(desc.mSizeInByte)), mStrideInByte(std::move(desc.mStrideInByte)), mUsage(std::move(desc.mUsage)), mAccess(std::move(desc.mAccess)), mFlags(std::move(mFlags))
+    mSizeInBytes(std::move(desc.mSizeInBytes)), mStrideInByte(std::move(desc.mStrideInByte)), mUsage(std::move(desc.mUsage)), mAccess(std::move(desc.mAccess)), mFlags(std::move(mFlags))
 {
 }
 
 DrawingBufferDesc::~DrawingBufferDesc()
 {
-    mSizeInByte = 0;
+    mSizeInBytes = 0;
     mStrideInByte = 0;
     mUsage = eUsage_Default;
     mAccess = eAccess_No_Access;
@@ -440,7 +440,7 @@ DrawingBufferDesc& DrawingBufferDesc::operator= (const DrawingBufferDesc& rhs)
         return *this;
 
     DrawingResourceDesc::operator= (rhs);
-    mSizeInByte = rhs.mSizeInByte;
+    mSizeInBytes = rhs.mSizeInBytes;
     mStrideInByte = rhs.mStrideInByte;
     mUsage = rhs.mUsage;
     mAccess = rhs.mAccess;

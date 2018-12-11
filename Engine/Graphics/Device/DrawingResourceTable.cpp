@@ -59,7 +59,7 @@ bool DrawingResourceFactory::CreateVertexBuffer(const std::shared_ptr<DrawingRes
         return false;
 
     std::shared_ptr<DrawingVertexBuffer> pVertexBuffer;
-    bool result = m_pDevice->CreateVertexBuffer(*pVertexBufferDesc, pVertexBuffer, pData, size);
+    bool result = m_pDevice->CreateVertexBuffer(*pVertexBufferDesc, pVertexBuffer, nullptr, pData, size);
     pRes = pVertexBuffer;
 
     return result;
