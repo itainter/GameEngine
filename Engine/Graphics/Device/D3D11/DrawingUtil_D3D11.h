@@ -133,6 +133,151 @@ namespace Engine
             }
             return D3D11_BLEND_ZERO;
         }
+
+        D3D11_BLEND_OP operator[](EDrawingBlendOpType op) const
+        {
+            switch(op)
+            {
+            case eBlendOp_Add:
+                return D3D11_BLEND_OP_ADD;
+            case eBlendOp_Subtract:
+                return D3D11_BLEND_OP_SUBTRACT;
+            case eBlendOp_RevSubtract:
+                return D3D11_BLEND_OP_REV_SUBTRACT;
+            case eBlendOp_Min:
+                return D3D11_BLEND_OP_MIN;
+            case eBlendOp_Max:
+                return D3D11_BLEND_OP_MAX;
+            }
+            return D3D11_BLEND_OP_ADD;
+        }
+
+        D3D11_COMPARISON_FUNC operator[](EDrawingComparisonFuncType func) const
+        {
+            switch(func)
+            {
+            case eComparison_Never:
+                return D3D11_COMPARISON_NEVER;
+            case eComparison_Less:
+                return D3D11_COMPARISON_LESS;
+            case eComparison_Equal:
+                return D3D11_COMPARISON_EQUAL;
+            case eComparison_LessEqual:
+                return D3D11_COMPARISON_LESS_EQUAL;
+            case eComparison_Greater:
+                return D3D11_COMPARISON_GREATER;
+            case eComparison_NotEqual:
+                return D3D11_COMPARISON_NOT_EQUAL;
+            case eComparison_GreaterEqual:
+                return D3D11_COMPARISON_GREATER_EQUAL;
+            case eComparison_Always:
+                return D3D11_COMPARISON_ALWAYS;
+            }
+            return D3D11_COMPARISON_LESS_EQUAL;
+        }
+
+        D3D11_STENCIL_OP operator[](EDrawingStencilOpType op) const
+        {
+            switch(op)
+            {
+            case eStencilOp_Keep:
+                return D3D11_STENCIL_OP_KEEP;
+            case eStencilOp_Zero:
+                return D3D11_STENCIL_OP_ZERO;
+            case eStencilOp_Replace:
+                return D3D11_STENCIL_OP_REPLACE;
+            case eStencilOp_IncrSat:
+                return D3D11_STENCIL_OP_INCR_SAT;
+            case eStencilOp_DecrSat:
+                return D3D11_STENCIL_OP_DECR_SAT;
+            case eStencilOp_Invert:
+                return D3D11_STENCIL_OP_INVERT;
+            case eStencilOp_Incr:
+                return D3D11_STENCIL_OP_INCR;
+            case eStencilOp_Decr:
+                return D3D11_STENCIL_OP_DECR;
+            }
+            return D3D11_STENCIL_OP_KEEP;
+        }
+
+        D3D11_FILL_MODE operator[](EDrawingFillModeType mode) const
+        {
+            switch(mode)
+            {
+            case eFillMode_Solid:
+                return D3D11_FILL_SOLID;
+            case eFillMode_WireFrame:
+                return D3D11_FILL_WIREFRAME;
+
+                
+            }
+            return D3D11_FILL_SOLID;
+        }
+
+        D3D11_CULL_MODE operator[](EDrawingCullModeType mode) const
+        {
+            switch(mode)
+            {
+            case eCullMode_None:
+                return D3D11_CULL_NONE;
+            case eCullMode_Front:
+                return D3D11_CULL_FRONT;
+            case eCullMode_Back:
+                return D3D11_CULL_BACK;
+            }
+            return D3D11_CULL_NONE;
+        }
+
+        D3D11_TEXTURE_ADDRESS_MODE operator[](EDrawingAddressModeType mode) const
+        {
+            switch(mode)
+            {
+            case eAddressMode_Wrap:
+                return D3D11_TEXTURE_ADDRESS_WRAP;
+            case eAddressMode_Mirror:
+                return D3D11_TEXTURE_ADDRESS_MIRROR;
+            case eAddressMode_Clamp:
+                return D3D11_TEXTURE_ADDRESS_CLAMP;
+            case eAddressMode_Border:
+                return D3D11_TEXTURE_ADDRESS_BORDER;
+            case eAddressMode_MirrorOnce:
+                return D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
+            }
+            return D3D11_TEXTURE_ADDRESS_CLAMP;
+        }
+
+        D3D11_PRIMITIVE_TOPOLOGY operator[](EDrawingPrimitiveType prim) const
+        {
+            switch(prim)
+            {
+            case ePrimitive_Undefined:
+                return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+            case ePrimitive_PointList:
+                return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+            case ePrimitive_LineList:
+                return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+            case ePrimitive_LineStrip:
+                return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+            case ePrimitive_TriangleList:
+                return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+            case ePrimitive_TriangleStrip:
+                return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+            case ePrimitive_LineListAdj:
+                return D3D11_PRIMITIVE_TOPOLOGY_LINELIST_ADJ;
+            case ePrimitive_LineStripAdj:
+                return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ;
+            case ePrimitive_TriangleListAdj:
+                return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ;
+            case ePrimitive_TriangleStripAdj:
+                return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ;
+            }
+            return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+        }
+
+        D3D11_FILTER operator()(EDrawingSamplerModeType mode, EDrawingFilterModeType min, EDrawingFilterModeType mag, EDrawingFilterModeType mip) const
+        {
+            return D3D11_FILTER_MIN_MAG_MIP_POINT;
+        }
     };
 
     inline const DrawingToD3DEnum& D3D11Enum(void)
@@ -145,5 +290,11 @@ namespace Engine
     inline auto D3D11Enum(const T& t) -> decltype(D3D11Enum()[t])
     {
         return D3D11Enum()[t];
+    }
+
+    template<typename T, typename U>
+    inline auto D3D11Enum(const T& t, const U& u1, const U& u2, const U& u3) -> decltype(D3D11Enum()(t, u1, u2, u3))
+    {
+        return D3D11Enum()(t, u1, u2, u3);
     }
 }

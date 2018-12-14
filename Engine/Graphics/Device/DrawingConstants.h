@@ -45,7 +45,7 @@ namespace Engine
         eProgram_Shader = 1,
         // This is used for effect
         eProgram_Binary,
-        eProgram_Src,
+        eProgram_String,
         eProgram_File,
     };
 

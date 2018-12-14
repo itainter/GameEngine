@@ -288,7 +288,7 @@ namespace Engine
             DrawingRawVertexShader(pShaderName), m_pShader(pShader), m_pShaderImpl(new DrawingRawShader_D3D11(device, pReflection))
         {
             assert(m_pShaderImpl != nullptr);
-            m_pShaderImpl-> BuildResourceBindingTable(GetShaderType());
+            m_pShaderImpl->BuildResourceBindingTable(GetShaderType());
         }
 
         virtual ~DrawingRawVertexShader_D3D11()

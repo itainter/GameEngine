@@ -72,7 +72,7 @@ bool DrawingResourceFactory::CreateIndexBuffer(const std::shared_ptr<DrawingReso
         return false;
 
     std::shared_ptr<DrawingIndexBuffer> pIndexBuffer;
-    bool result = m_pDevice->CreateIndexBuffer(*pIndexBufferDesc, pIndexBuffer, pData, size);
+    bool result = m_pDevice->CreateIndexBuffer(*pIndexBufferDesc, pIndexBuffer, nullptr, pData, size);
     pRes = pIndexBuffer;
 
     return result;

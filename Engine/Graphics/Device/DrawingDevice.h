@@ -64,12 +64,14 @@ namespace Engine
     class DrawingVertexShader : public DrawingShader
     {
     public:
+        using DrawingShader::DrawingShader;
         EDrawingResourceType GetType() const override;
     };
 
     class DrawingPixelShader : public DrawingShader
     {
     public:
+        using DrawingShader::DrawingShader;
         EDrawingResourceType GetType() const override;
     };
 
@@ -218,7 +220,7 @@ namespace Engine
 
         virtual bool CreateVertexFormat(const DrawingVertexFormatDesc& desc, std::shared_ptr<DrawingVertexFormat>& pRes) = 0;
         virtual bool CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData = nullptr, uint32_t size = 0) = 0;
-        virtual bool CreateIndexBuffer(const DrawingIndexBufferDesc& desc, std::shared_ptr<DrawingIndexBuffer>& pRes, const void* pData = nullptr, uint32_t size = 0) =  0;
+        virtual bool CreateIndexBuffer(const DrawingIndexBufferDesc& desc, std::shared_ptr<DrawingIndexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData = nullptr, uint32_t size = 0) =  0;
         virtual bool CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData = nullptr, uint32_t size = 0) = 0;
 
         virtual bool CreateBlendState(const DrawingBlendStateDesc& desc, std::shared_ptr<DrawingBlendState>& pRes) = 0;
@@ -231,6 +233,9 @@ namespace Engine
         virtual bool CreatePixelShaderFromFile(const DrawingPixelShaderDesc& desc, std::shared_ptr<DrawingPixelShader>& pRes) = 0;
         virtual bool CreatePixelShaderFromString(const std::string& str, const DrawingPixelShaderDesc& desc, std::shared_ptr<DrawingPixelShader>& pRes) = 0;
 
-        virtual bool CreatePrimitiveInfo(const DrawingPrimitiveDesc& desc, std::shared_ptr<DrawingPrimitive>& pRes) = 0;
+        virtual bool CreatePrimitiveInfo(const DrawingPrimitiveDesc& desc, std::shared_ptr<DrawingPrimitive>& pRes);
+
+        virtual bool DrawPrimitive(std::shared_ptr<DrawingPrimitive> pRes) = 0;
+        virtual bool Present(const std::shared_ptr<DrawingTarget> pTarget, uint32_t syncInterval) = 0;
     };
 }

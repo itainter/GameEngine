@@ -282,3 +282,12 @@ void DrawingContext::SetNativeContext(std::shared_ptr<DrawingNativeContext> cont
 {
     m_pNativeContext = context;
 }
+
+bool DrawingDevice::CreatePrimitiveInfo(const DrawingPrimitiveDesc& desc, std::shared_ptr<DrawingPrimitive>& pRes)
+{
+    auto pPrimitiveInfo = std::make_shared<DrawingPrimitive>(std::shared_ptr<DrawingDevice>(this));
+    pPrimitiveInfo->SetPrimitiveType(desc.mPrimitive);
+    pPrimitiveInfo->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
+
+    return true;
+}

@@ -206,7 +206,7 @@ namespace Engine
 
     public:
         uint32_t mSizeInBytes;
-        uint32_t mStrideInByte;
+        uint32_t mStrideInBytes;
         EDrawingUsageType mUsage;
         EDrawingAccessType mAccess;
         uint32_t mFlags;
@@ -391,6 +391,8 @@ namespace Engine
         EDrawingCullModeType mCullMode;
 
         bool mFrontCounterClockwise;
+
+        
         int mDepthBias;
 
         float mDepthBiasClamp;
