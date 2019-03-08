@@ -4,6 +4,10 @@
 
 #include "IDrawingManager.h"
 #include "DrawingDevice.h"
+#include "DrawingEffectPool.h"
+#include "DrawingResourceTable.h"
+#include "DrawingType.h"
+#include "BasicPrimitiveRenderer.h"
 
 namespace Engine
 {
@@ -18,8 +22,6 @@ namespace Engine
 
         void Tick() override;
 
-
-
         void Flush() override;
         void BeginFrame() override;
         void EndFrame() override;
@@ -28,8 +30,28 @@ namespace Engine
         void SetDeviceType(EDeviceType type) override;
 
     private:
+        bool EstablishConfiguration();
+        bool PreConfiguration();
+        bool CreateDevice();
+        bool CreatePreResource();
+        bool CreateRenderer();
+        bool PostConfiguration();
+
+        std::shared_ptr<DrawingTarget> CreateSwapChain();
+        std::shared_ptr<DrawingDepthBuffer> CreateDepthBuffer();
+
+    private:
+        void* m_window;
+        uint2 m_deviceSize;
         EDeviceType m_deviceType;
+
         std::shared_ptr<DrawingDevice> m_pDevice;
         std::shared_ptr<DrawingContext> m_pContext;
+
+        std::shared_ptr<DrawingEffectPool> m_pEffectPool;
+        std::shared_ptr<DrawingResourceFactory> m_pResourceFactory;
+        std::shared_ptr<DrawingResourceTable> m_pResourceTable;
+
+        std::shared_ptr<BasicPrimitiveRenderer> m_pBasicPrimitiveRenderer;
     };
 }

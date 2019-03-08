@@ -5,6 +5,9 @@
 namespace Engine
 {
     const uint32_t MAX_TARGETS = 8;
+    const uint32_t MAX_DEPTHBUFFER = 1;
+    const uint32_t MAX_RW_BUFFER = 8;
+    const uint32_t MAX_VERTEX_STREAM = 32;
 
     enum EDrawingResourceType
     {
@@ -19,8 +22,10 @@ namespace Engine
         eResource_Effect,
 
         eResource_Texture,
+        eResource_TexBuffer,
 
         eResource_Primitive,
+        eResource_Varing_States,
 
         eResource_Blend_State,
         eResource_Depth_State,
@@ -28,6 +33,16 @@ namespace Engine
         eResource_Sampler_State,
 
         eResource_Target,
+        eResource_DepthBuffer,
+        eResource_RWBuffer,
+
+        eResource_CommandList,
+    };
+
+    enum EDrawingClearFlag
+    {
+        eClear_Depth = 0x1,
+        eClear_Stencil = 0x2,
     };
 
     enum EDrawingResourceFlag
@@ -41,9 +56,8 @@ namespace Engine
 
     enum EDrawingProgramType
     {
-        // This is used for shader
-        eProgram_Shader = 1,
-        // This is used for effect
+        eProgram_Shader = 1, // This is only used for effect
+
         eProgram_Binary,
         eProgram_String,
         eProgram_File,
@@ -52,6 +66,24 @@ namespace Engine
     enum EDrawingFormatType
     {
         eFormat_Unknown = 0,
+
+        eFormat_D24S8,
+        eFormat_D24X8,
+        eFormat_D32_FLOAT,
+
+        eFormat_R8_UNORM,
+        eFormat_R8_SNORM,
+        eFormat_R8_UINT,
+        eFormat_R8_SINT,
+
+        eFormat_R32_FLOAT,
+        eFormat_R32_UINT,
+        eFormat_R32_SINT,
+
+        eFormat_R32G32_FLOAT,
+        eFormat_R32G32_UINT,
+        eFormat_R32G32_SINT,
+
         eFormat_R8G8B8A8_UNORM,
         eFormat_R8G8B8A8_SNORM,
         eFormat_R8G8B8A8_UINT,
@@ -227,5 +259,20 @@ namespace Engine
         ePrimitive_ControlPointPatchList30,
         ePrimitive_ControlPointPatchList31,
         ePrimitive_ControlPointPatchList32,
+    };
+
+    enum EDrawingSwapChainType
+    {
+        eSwapChain_Discard,
+        eSwapChain_Seq,
+    };
+
+    enum EDrawingCommandListType
+    {
+        eCommandList_Direct,
+        eCommandList_Bundle,
+        eCommandList_Compute,
+        eCommandList_Copy,
+        eCommandList_Count,
     };
 }

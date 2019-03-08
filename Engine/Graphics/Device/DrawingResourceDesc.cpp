@@ -32,13 +32,13 @@ DrawingResourceDesc::ResourceDescNamesType DrawingResourceDesc::GetResourceDescN
     return m_resourceDescNames;
 }
 
-void DrawingResourceDesc::AddResourceDescName(uint32_t index, std::shared_ptr<std::string> name)
+void DrawingResourceDesc::AddResourceDescName(uint32_t index, std::shared_ptr<std::string> pName)
 {
     auto it = m_resourceDescNames.find(index);
     if (it != m_resourceDescNames.cend())
         return;
 
-    m_resourceDescNames.emplace(index, name);
+    m_resourceDescNames.emplace(index, pName);
 }
 
 std::shared_ptr<std::string> DrawingResourceDesc::GetResourceDescName(uint32_t index) const
@@ -48,6 +48,16 @@ std::shared_ptr<std::string> DrawingResourceDesc::GetResourceDescName(uint32_t i
         return nullptr;
     
     return it->second;
+}
+
+bool DrawingResourceDesc::IsExternalResource() const
+{
+    return m_externalRes;
+}
+
+void DrawingResourceDesc::SetIsExternalResource(bool flag)
+{
+    m_externalRes = flag;
 }
 
 void DrawingResourceDesc::CloneFromNames(const ResourceDescNamesType& from)
@@ -226,20 +236,21 @@ EDrawingResourceType DrawingEffectDesc::GetType() const
     return eResource_Effect;
 }
 
-DrawingGeneralEffectDesc::DrawingGeneralEffectDesc() : DrawingEffectDesc()
+DrawingGeneralEffectDesc::DrawingGeneralEffectDesc() : DrawingEffectDesc(), mpTechName(nullptr)
 {
 }
 
-DrawingGeneralEffectDesc::DrawingGeneralEffectDesc(const DrawingGeneralEffectDesc& desc) : DrawingEffectDesc(desc)
+DrawingGeneralEffectDesc::DrawingGeneralEffectDesc(const DrawingGeneralEffectDesc& desc) : DrawingEffectDesc(desc), mpTechName(desc.mpTechName)
 {
 }
 
-DrawingGeneralEffectDesc::DrawingGeneralEffectDesc(DrawingGeneralEffectDesc&& desc) : DrawingEffectDesc(std::move(desc))
+DrawingGeneralEffectDesc::DrawingGeneralEffectDesc(DrawingGeneralEffectDesc&& desc) : DrawingEffectDesc(std::move(desc)), mpTechName(std::move(desc.mpTechName))
 {
 }
 
 DrawingGeneralEffectDesc::~DrawingGeneralEffectDesc()
 {
+    mpTechName = nullptr;
 }
 
 DrawingGeneralEffectDesc& DrawingGeneralEffectDesc::operator= (const DrawingGeneralEffectDesc& rhs)
@@ -248,6 +259,7 @@ DrawingGeneralEffectDesc& DrawingGeneralEffectDesc::operator= (const DrawingGene
         return *this;
 
     DrawingEffectDesc::operator= (rhs);
+    mpTechName = rhs.mpTechName;
     return *this;
 }
 
@@ -957,16 +969,6 @@ DrawingSamplerStateDesc::~DrawingSamplerStateDesc()
         mBorderColor[i] = 1.0f;
 }
 
-EDrawingResourceType DrawingSamplerStateDesc::GetType() const
-{
-    return eResource_Sampler_State;
-}
-
-DrawingResourceDesc* DrawingSamplerStateDesc::Clone() const
-{
-    return new DrawingSamplerStateDesc(*this);
-}
-
 DrawingSamplerStateDesc& DrawingSamplerStateDesc::operator= (const DrawingSamplerStateDesc& rhs)
 {
     if (this == &rhs)
@@ -990,6 +992,119 @@ DrawingSamplerStateDesc& DrawingSamplerStateDesc::operator= (const DrawingSample
         mBorderColor[i] = rhs.mBorderColor[i];
 
     return *this;
+}
+
+EDrawingResourceType DrawingSamplerStateDesc::GetType() const
+{
+    return eResource_Sampler_State;
+}
+
+DrawingResourceDesc* DrawingSamplerStateDesc::Clone() const
+{
+    return new DrawingSamplerStateDesc(*this);
+}
+
+DrawingTargetDesc::DrawingTargetDesc() : DrawingResourceDesc(),
+    mHwnd(nullptr), mWidth(0), mHeight(0), mSlices(1), mFormat(eFormat_R8G8B8A8_UNORM),
+    mMultiSampleCount(1), mMultiSampleQuality(0), mFlags(0), mRefreshRate(60), mSwapChain(eSwapChain_Discard), mSwapBufferCount(1)
+{
+}
+
+DrawingTargetDesc::DrawingTargetDesc(const DrawingTargetDesc& desc) : DrawingResourceDesc(desc),
+    mHwnd(desc.mHwnd), mWidth(desc.mWidth), mHeight(desc.mHeight), mSlices(desc.mSlices), mFormat(desc.mFormat),
+    mMultiSampleCount(desc.mMultiSampleCount), mMultiSampleQuality(desc.mMultiSampleQuality), mFlags(desc.mFlags), mRefreshRate(desc.mRefreshRate), mSwapChain(desc.mSwapChain), mSwapBufferCount(desc.mSwapBufferCount)
+{
+}
+
+DrawingTargetDesc::DrawingTargetDesc(DrawingTargetDesc&& desc) : DrawingResourceDesc(std::move(desc)),
+    mHwnd(std::move(desc.mHwnd)), mWidth(std::move(desc.mWidth)), mHeight(std::move(desc.mHeight)), mSlices(std::move(desc.mSlices)), mFormat(std::move(desc.mFormat)),
+    mMultiSampleCount(std::move(desc.mMultiSampleCount)), mMultiSampleQuality(std::move(desc.mMultiSampleQuality)), mFlags(std::move(desc.mFlags)), mRefreshRate(std::move(desc.mRefreshRate)), mSwapChain(std::move(desc.mSwapChain)), mSwapBufferCount(std::move(desc.mSwapBufferCount))
+{
+}
+
+DrawingTargetDesc::~DrawingTargetDesc()
+{
+    mHwnd = nullptr;
+    mWidth = 0;
+    mHeight = 0;
+    mSlices = 1;
+    mFormat = eFormat_R8G8B8A8_UNORM;
+    mMultiSampleCount = 1;
+    mMultiSampleQuality = 0;
+    mFlags = 0;
+    mRefreshRate = 60;
+    mSwapChain = eSwapChain_Discard;
+    mSwapBufferCount = 1;
+}
+
+DrawingTargetDesc& DrawingTargetDesc::operator= (const DrawingTargetDesc& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    DrawingResourceDesc::operator= (rhs);
+
+    mHwnd = rhs.mHwnd;
+    mWidth = rhs.mWidth;
+    mHeight = rhs.mHeight;
+    mSlices = rhs.mSlices;
+    mFormat = rhs.mFormat;
+    mMultiSampleCount = rhs.mMultiSampleCount;
+    mMultiSampleQuality = rhs.mMultiSampleQuality;
+    mFlags = rhs.mFlags;
+    mRefreshRate = rhs.mRefreshRate;
+    mSwapChain = rhs.mSwapChain;
+    mSwapBufferCount = rhs.mSwapBufferCount;
+
+    return *this;
+}
+
+EDrawingResourceType DrawingTargetDesc::GetType() const
+{
+    return eResource_Target;
+}
+
+DrawingResourceDesc* DrawingTargetDesc::Clone() const
+{
+    return new DrawingTargetDesc(*this);
+}
+
+DrawingDepthBufferDesc::DrawingDepthBufferDesc() : DrawingTargetDesc()
+{
+    mFormat = eFormat_D24S8;
+}
+
+DrawingDepthBufferDesc::DrawingDepthBufferDesc(const DrawingDepthBufferDesc& desc) : DrawingTargetDesc(desc)
+{
+}
+
+DrawingDepthBufferDesc::DrawingDepthBufferDesc(DrawingDepthBufferDesc&& desc) : DrawingTargetDesc(std::move(desc))
+{
+}
+
+DrawingDepthBufferDesc::~DrawingDepthBufferDesc()
+{
+    mFormat = eFormat_D24S8;
+}
+
+DrawingDepthBufferDesc& DrawingDepthBufferDesc::operator= (const DrawingDepthBufferDesc& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    DrawingResourceDesc::operator= (rhs);
+
+    return *this;
+}
+
+EDrawingResourceType DrawingDepthBufferDesc::GetType() const
+{
+    return eResource_DepthBuffer;
+}
+
+DrawingResourceDesc* DrawingDepthBufferDesc::Clone() const
+{
+    return new DrawingDepthBufferDesc(*this);
 }
 
 DrawingTextureDesc::DrawingTextureDesc() : DrawingResourceDesc(),
@@ -1100,4 +1215,75 @@ EDrawingResourceType DrawingPrimitiveDesc::GetType() const
 DrawingResourceDesc* DrawingPrimitiveDesc::Clone() const
 {
     return new DrawingPrimitiveDesc(*this);
+}
+
+DrawingVaringStatesDesc::DrawingVaringStatesDesc() : DrawingResourceDesc()
+{
+}
+
+DrawingVaringStatesDesc::DrawingVaringStatesDesc(const DrawingVaringStatesDesc& desc) : DrawingResourceDesc(desc)
+{
+}
+
+DrawingVaringStatesDesc::DrawingVaringStatesDesc(DrawingVaringStatesDesc&& desc) : DrawingResourceDesc(std::move(desc))
+{
+}
+
+DrawingVaringStatesDesc::~DrawingVaringStatesDesc()
+{
+}
+
+DrawingVaringStatesDesc& DrawingVaringStatesDesc::operator= (const DrawingVaringStatesDesc& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    return *this;
+}
+
+EDrawingResourceType DrawingVaringStatesDesc::GetType() const
+{
+    return eResource_Varing_States;
+}
+
+DrawingResourceDesc* DrawingVaringStatesDesc::Clone() const
+{
+    return new DrawingVaringStatesDesc(*this);
+}
+
+DrawingCommandListDesc::DrawingCommandListDesc() : DrawingResourceDesc(), mType(eCommandList_Direct)
+{
+}
+
+DrawingCommandListDesc::DrawingCommandListDesc(const DrawingCommandListDesc& desc) : DrawingResourceDesc(desc), mType(desc.mType)
+{
+}
+
+DrawingCommandListDesc::DrawingCommandListDesc(DrawingCommandListDesc&& desc) : DrawingResourceDesc(std::move(desc)), mType(std::move(desc.mType))
+{
+}
+
+DrawingCommandListDesc::~DrawingCommandListDesc()
+{
+    mType = eCommandList_Direct;
+}
+
+DrawingCommandListDesc& DrawingCommandListDesc::operator= (const DrawingCommandListDesc& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    mType = rhs.mType;
+
+    return *this;
+}
+
+EDrawingResourceType DrawingCommandListDesc::GetType() const
+{
+    return eResource_CommandList;
+}
+
+DrawingResourceDesc* DrawingCommandListDesc::Clone() const
+{
+    return new DrawingCommandListDesc(*this);
 }

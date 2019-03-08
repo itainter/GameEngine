@@ -101,3 +101,5 @@ namespace Engine
     template<typename T>
     Vec3<T> operator- (const Vec3<T>& vec);
 }
+
+#include "Vec3_imp.h"

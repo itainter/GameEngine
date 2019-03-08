@@ -28,6 +28,11 @@ std::shared_ptr<IEventManager> Global::GetEventManager()
     return GetRuntimeModule<IEventManager, eRTModule_EventManager>();
 }
 
+std::shared_ptr<IDrawingManager> Global::GetDrawingManager()
+{
+    return GetRuntimeModule<IDrawingManager, eRTModule_DrawingManager>();
+}
+
 std::shared_ptr<IInputManager> Global::GetInputManager()
 {
     return GetRuntimeModule<IInputManager, eRTModule_InputManager>();
@@ -46,6 +51,11 @@ std::shared_ptr<ILog> Global::GetLogInput()
 Configuration& Global::GetConfiguration()
 {
     return m_config;
+}
+
+FPSCounter& Global::GetFPSCounter()
+{
+    return m_fps;
 }
 
 Setup::Setup()

@@ -118,3 +118,5 @@ namespace Engine
     template<typename T>
     Mat4x4<T> operator- (const Mat4x4<T>& mat);
 }
+
+#include "Mat4x4_imp.h"

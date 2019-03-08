@@ -46,19 +46,25 @@ namespace Engine
     template<>
     inline void InputLog::OutputLogStream<eEv_Input_KeyChar>(LogInputKeyCharPtr data) const
     {
-        auto msg = data->GetMsg();
-        std::cout << "Key Char: "<< msg << " Character: " << static_cast<char>(msg.Param1()) << std::endl;
+        auto c = static_cast<char>(data->GetMsg().Param1());
+        switch (c)
+        {
+            case 'f':
+                std::cout << "Avg FPS: " <<
+                            gpGlobal->GetFPSCounter().GetFPSAvgSec() << ", " <<
+                            "Cur FPS: " <<
+                            gpGlobal->GetFPSCounter().GetFPSCurrent() << std::endl;
+            break;
+        }
     };
 
     template<>
     inline void InputLog::OutputLogStream<eEv_Input_KeyDown>(LogInputKeyDownPtr data) const
     {
-        std::cout << "Key Down: " << data->GetMsg() << std::endl;
     };
 
     template<>
     inline void InputLog::OutputLogStream<eEv_Input_KeyUp>(LogInputKeyUpPtr data) const
     {
-        std::cout << "Key Up: " << data->GetMsg() << std::endl;
     };
 }

@@ -36,7 +36,7 @@ void WindowsInput::PeekWindowsInputMessage(UINT message, WPARAM wParam, LPARAM l
         case WM_KEYDOWN:
         {
             bool bCatched = true;
-            switch(wParam)
+            switch (wParam)
             {
                 case VK_ESCAPE:
                     msg.setCtrID(eEm_InputControl_Escape);

@@ -135,12 +135,15 @@ namespace Engine
     };
 
     class DrawingRawTexture;
+    class DrawingRawTexBuffer;
+    class DrawingRawRWBuffer;
     class DrawingRawSamplerState;
 
     class DrawingParameter
     {
     public:
         DrawingParameter();
+        DrawingParameter(const std::shared_ptr<std::string> pName, uint32_t type, void* pInitVal, const std::shared_ptr<std::string> pSemantic);
         virtual ~DrawingParameter();
 
         static const uint32_t GetBitsValue(uint32_t val, uint32_t bits, uint32_t offset);
@@ -152,11 +155,11 @@ namespace Engine
         static const uint32_t GetColSize(uint32_t type);
         static const uint32_t GetStructSize(uint32_t type);
 
-        std::shared_ptr<const std::string> GetName() const;
-        void SetName(std::shared_ptr<const std::string> name);
+        std::shared_ptr<std::string> GetName() const;
+        void SetName(std::shared_ptr<std::string> pName);
 
-        std::shared_ptr<const std::string> GetSemantic() const;
-        void SetSemantic(std::shared_ptr<const std::string> semantic);
+        std::shared_ptr<std::string> GetSemantic() const;
+        void SetSemantic(std::shared_ptr<std::string> pSemantic);
 
         uint32_t GetSize() const;
         void SetSize(uint32_t size);
@@ -165,6 +168,9 @@ namespace Engine
         void SetType(uint32_t type);
 
         const void* const GetValuePtr() const;
+        uint32_t GetValueSize() const;
+
+        void SetValue(const void* pInitVal, uint32_t size);
 
         uint32_t GetObjectType() const;
         uint32_t GetDataSetType() const;
@@ -237,6 +243,15 @@ namespace Engine
         const DrawingRawTexture* AsTexture() const;
         void AsTexture(const DrawingRawTexture* pTexture);
 
+        const DrawingRawTexBuffer* AsBuffer() const;
+        void AsBuffer(const DrawingRawTexBuffer* pBuffer);
+
+        const DrawingRawRWBuffer* AsRWBuffer() const;
+        void AsRWBuffer(const DrawingRawRWBuffer* pRWBuffer);
+
+        const DrawingRawTexBuffer* AsTexBuffer() const;
+        void AsTexBuffer(const DrawingRawTexBuffer* pTexBuffer);
+
         const DrawingRawSamplerState* AsSampler() const;
         void AsSampler(const DrawingRawSamplerState* pState);
 
@@ -306,6 +321,16 @@ namespace Engine
         void AsSamplerArray(const DrawingRawSamplerState** pState, uint32_t array_size);
 
     private:
+        void CreateParameter(uint32_t type, void* pInitVal);
+        void CreateObjectParameter(uint32_t type, void* pInitVal);
+        void CreateValueParameter(uint32_t type,  void* pInitVal);
+        void CreateScalarParameter(uint32_t type, void* pInitVal);
+        void CreateVectorParameter(uint32_t type, void* pInitVal);
+        void CreateMatrixParameter(uint32_t type, void* pInitVal);
+        void CreateStructParameter(uint32_t type, void* pInitVal);
+
+        void UpdateValue(void* pInitVal, uint32_t size);
+
         template <typename T>
         const T& AsValue() const;
         template <typename T>
@@ -347,8 +372,8 @@ namespace Engine
         void AsMatrixArray(const T* val, uint32_t array_size);
 
     private:
-        std::shared_ptr<const std::string> m_pName;
-        std::shared_ptr<const std::string> m_pSemantic;
+        std::shared_ptr<std::string> m_pName;
+        std::shared_ptr<std::string> m_pSemantic;
         void* m_pValue;
         uint32_t m_size;
         uint32_t m_type;
@@ -367,12 +392,28 @@ namespace Engine
         virtual void AddSetUnique(const DrawingParameterSet& paramSet);
 
         virtual void Remove(std::shared_ptr<DrawingParameter> pParam);
-        virtual void RemoveAt(uint32_t index);
+        virtual void RemoveAt(int32_t index);
 
         virtual bool Contains(const std::shared_ptr<DrawingParameter> pParam) const;
+        virtual bool Contains(const std::shared_ptr<std::string> pName) const;
+
+        virtual int32_t IndexOf(const std::shared_ptr<DrawingParameter> pParam) const;
+        virtual int32_t IndexOfName(const std::shared_ptr<std::string> pName) const;
+        virtual int32_t IndexOfSemantic(const std::shared_ptr<std::string> pSemantic) const;
 
         virtual void Clear();
-        virtual uint32_t Count() const;
+        virtual int32_t Count() const;
+
+        std::shared_ptr<DrawingParameter> operator[] (const int32_t index) const
+        {
+            assert(index >= 0 && index < static_cast<int32_t>(m_pParamList.size()));
+            return m_pParamList[index];
+        }
+
+        std::shared_ptr<DrawingParameter> operator[] (const std::shared_ptr<std::string> pName) const
+        {
+            return operator[](IndexOfName(pName));
+        }
 
     private:
         typedef std::vector<std::shared_ptr<DrawingParameter>> ParameterList;

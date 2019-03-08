@@ -50,7 +50,12 @@
         "hash_map": "cpp",
         "array": "cpp",
         "iterator": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "stack": "cpp",
+        "unordered_set": "cpp",
+        "sstream": "cpp",
+        "chrono": "cpp",
+        "ratio": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

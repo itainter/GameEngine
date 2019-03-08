@@ -44,7 +44,7 @@ namespace Engine
     };
 
     typedef std::shared_ptr<IEventData> IEventDataPtr;
-    typedef std::function<void(IEventDataPtr&)> EventDelegate;
+    typedef std::function<void(const IEventDataPtr&)> EventDelegate;
     typedef std::list<EventDelegate> EventDelegateList;
     typedef uintptr_t EventListenerAddr;
 

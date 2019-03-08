@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-    class DrawingToD3DEnum
+    class DrawingToD3DEnum_D3D11
     {
     public:
         UINT operator[](uint32_t flags) const
@@ -30,12 +30,49 @@ namespace Engine
             return miscFlags;
         }
 
+        DXGI_SWAP_EFFECT operator[](EDrawingSwapChainType type) const
+        {
+            switch (type)
+            {
+            case eSwapChain_Discard:
+                return DXGI_SWAP_EFFECT_DISCARD;
+            case eSwapChain_Seq:
+                return DXGI_SWAP_EFFECT_SEQUENTIAL;
+            }
+            return DXGI_SWAP_EFFECT_DISCARD;
+        }
+
         DXGI_FORMAT operator[](EDrawingFormatType format) const
         {
-            switch(format)
+            switch (format)
             {
             case eFormat_Unknown:
                 return DXGI_FORMAT_UNKNOWN;
+            case eFormat_D24S8:
+            case eFormat_D24X8:
+                return DXGI_FORMAT_D24_UNORM_S8_UINT;
+            case eFormat_D32_FLOAT:
+                return DXGI_FORMAT_D32_FLOAT;
+            case eFormat_R8_UNORM:
+                return DXGI_FORMAT_R8_UNORM;
+            case eFormat_R8_SNORM:
+                return DXGI_FORMAT_R8_SNORM;
+            case eFormat_R8_UINT:
+                return DXGI_FORMAT_R8_UINT;
+            case eFormat_R8_SINT:
+                return DXGI_FORMAT_R8_SINT;
+            case eFormat_R32_FLOAT:
+                return DXGI_FORMAT_R32_FLOAT;
+            case eFormat_R32_UINT:
+                return DXGI_FORMAT_R32_UINT;
+            case eFormat_R32_SINT:
+                return DXGI_FORMAT_R32_SINT;
+            case eFormat_R32G32_FLOAT:
+                return DXGI_FORMAT_R32G32_FLOAT;
+            case eFormat_R32G32_UINT:
+                return DXGI_FORMAT_R32G32_UINT;
+            case eFormat_R32G32_SINT:
+                return DXGI_FORMAT_R32G32_SINT;
             case eFormat_R8G8B8A8_UNORM:
                 return DXGI_FORMAT_R8G8B8A8_UNORM;
             case eFormat_R8G8B8A8_SNORM:
@@ -62,7 +99,7 @@ namespace Engine
 
         D3D11_USAGE operator[](EDrawingUsageType usage) const
         {
-            switch(usage)
+            switch (usage)
             {
             case eUsage_Default:
                 return D3D11_USAGE_DEFAULT;
@@ -78,7 +115,7 @@ namespace Engine
 
         UINT operator[](EDrawingAccessType access) const
         {
-            switch(access)
+            switch (access)
             {
             case eAccess_No_Access:
                 return 0;
@@ -94,7 +131,7 @@ namespace Engine
 
         D3D11_BLEND operator[](EDrawingBlendType blend) const
         {
-            switch(blend)
+            switch (blend)
             {
             case eBlend_Zero:
                 return D3D11_BLEND_ZERO;
@@ -136,7 +173,7 @@ namespace Engine
 
         D3D11_BLEND_OP operator[](EDrawingBlendOpType op) const
         {
-            switch(op)
+            switch (op)
             {
             case eBlendOp_Add:
                 return D3D11_BLEND_OP_ADD;
@@ -154,7 +191,7 @@ namespace Engine
 
         D3D11_COMPARISON_FUNC operator[](EDrawingComparisonFuncType func) const
         {
-            switch(func)
+            switch (func)
             {
             case eComparison_Never:
                 return D3D11_COMPARISON_NEVER;
@@ -178,7 +215,7 @@ namespace Engine
 
         D3D11_STENCIL_OP operator[](EDrawingStencilOpType op) const
         {
-            switch(op)
+            switch (op)
             {
             case eStencilOp_Keep:
                 return D3D11_STENCIL_OP_KEEP;
@@ -202,7 +239,7 @@ namespace Engine
 
         D3D11_FILL_MODE operator[](EDrawingFillModeType mode) const
         {
-            switch(mode)
+            switch (mode)
             {
             case eFillMode_Solid:
                 return D3D11_FILL_SOLID;
@@ -216,7 +253,7 @@ namespace Engine
 
         D3D11_CULL_MODE operator[](EDrawingCullModeType mode) const
         {
-            switch(mode)
+            switch (mode)
             {
             case eCullMode_None:
                 return D3D11_CULL_NONE;
@@ -230,7 +267,7 @@ namespace Engine
 
         D3D11_TEXTURE_ADDRESS_MODE operator[](EDrawingAddressModeType mode) const
         {
-            switch(mode)
+            switch (mode)
             {
             case eAddressMode_Wrap:
                 return D3D11_TEXTURE_ADDRESS_WRAP;
@@ -248,7 +285,7 @@ namespace Engine
 
         D3D11_PRIMITIVE_TOPOLOGY operator[](EDrawingPrimitiveType prim) const
         {
-            switch(prim)
+            switch (prim)
             {
             case ePrimitive_Undefined:
                 return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
@@ -280,9 +317,41 @@ namespace Engine
         }
     };
 
-    inline const DrawingToD3DEnum& D3D11Enum(void)
+    inline const char* HLSLFormatToString(EDrawingFormatType format)
     {
-        const static DrawingToD3DEnum d3dEnum;
+        switch (format)
+        {
+        case eFormat_R32_UINT:
+            return "uint";
+        case eFormat_R32_SINT:
+            return "int";
+        case eFormat_R32_FLOAT:
+            return "float";
+        case eFormat_R32G32_UINT:
+            return "uint2";
+        case eFormat_R32G32_SINT:
+            return "int2";
+        case eFormat_R32G32_FLOAT:
+            return "float2";
+        case eFormat_R32G32B32_UINT:
+            return "uint3";
+        case eFormat_R32G32B32_SINT:
+            return "int3";
+        case eFormat_R32G32B32_FLOAT:
+            return "float3";
+        case eFormat_R32G32B32A32_UINT:
+            return "uint4";
+        case eFormat_R32G32B32A32_SINT:
+            return "int4";
+        case eFormat_R32G32B32A32_FLOAT:
+            return "float4";
+        }
+        return "float4";
+    }
+
+    inline const DrawingToD3DEnum_D3D11& D3D11Enum(void)
+    {
+        const static DrawingToD3DEnum_D3D11 d3dEnum;
         return d3dEnum;
     }
 
@@ -296,5 +365,11 @@ namespace Engine
     inline auto D3D11Enum(const T& t, const U& u1, const U& u2, const U& u3) -> decltype(D3D11Enum()(t, u1, u2, u3))
     {
         return D3D11Enum()(t, u1, u2, u3);
+    }
+
+    template<typename T>
+    inline void D3D11Releaser(T* p)
+    {
+        p->Release();
     }
 }

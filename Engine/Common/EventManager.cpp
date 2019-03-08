@@ -47,9 +47,9 @@ bool EventManager::RemoveListener(IEventData::id_t id, EventDelegate proc)
         return false;
 
     auto &list = it->second;
-    for (auto it = list.begin(); it != list.end(); ++it)
+    for (auto it = list.cbegin(); it != list.cend(); ++it)
     {
-        EventDelegate &p = *it; 
+        const EventDelegate &p = *it; 
         if (p.target<EventDelegate>() == proc.target<EventDelegate>())
         {
             list.erase(it);
@@ -66,11 +66,11 @@ void EventManager::QueueEvent(IEventDataPtr e)
 
 void EventManager::ProcessEvents()
 {
-    for (auto it = m_eventQueue.begin(); it != m_eventQueue.end();)
+    for (auto it = m_eventQueue.cbegin(); it != m_eventQueue.cend();)
     {
         auto &e = *it;
         auto listeners = m_eventListeners.find(e->GetID());
-        if (listeners != m_eventListeners.end())
+        if (listeners != m_eventListeners.cend())
         {
             for (auto p : listeners->second)
                 p(e);

@@ -30,8 +30,8 @@ namespace Engine
     }
 
     template<typename T>
-    Mat3x3<T>::Mat3x3(const T& val00, const T& val01, const T& val02
-                      const T& val10, const T& val11, const T& val12
+    Mat3x3<T>::Mat3x3(const T& val00, const T& val01, const T& val02,
+                      const T& val10, const T& val11, const T& val12,
                       const T& val20, const T& val21, const T& val22) : mArray{
         col_type(val00, val01, val02),
         col_type(val10, val11, val12),

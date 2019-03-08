@@ -116,3 +116,5 @@ namespace Engine
     template<typename T>
     Mat3x3<T> operator- (const Mat3x3<T>& mat);
 }
+
+#include "Mat3x3_imp.h"

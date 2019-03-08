@@ -4,6 +4,7 @@
 #include "IEvent.h"
 #include "WindowsApplication.h"
 #include "EventManager.h"
+#include "DrawingManager.h"
 #include "Input.h"
 #include "SystemLog.h"
 #include "InputLog.h"
@@ -20,6 +21,7 @@ namespace Engine
         {
             gpGlobal->RegisterRuntimeModule<WindowsApplication>(eRTModule_App);
             gpGlobal->RegisterRuntimeModule<EventManager>(eRTModule_EventManager);
+            gpGlobal->RegisterRuntimeModule<DrawingManager>(eRTModule_DrawingManager);
             gpGlobal->RegisterRuntimeModule<InputManager>(eRTModule_InputManager);
             gpGlobal->RegisterRuntimeModule<SystemLog>(eRTModule_Log_System);
             gpGlobal->RegisterRuntimeModule<InputLog>(eRTModule_Log_Input);
@@ -33,6 +35,7 @@ void WindowsApplication::Initialize()
 {
     CreateMainWindow();
     m_hDc = GetDC(m_hWnd);
+    gpGlobal->GetConfiguration().hWnd = (void*)m_hWnd;
 
     BaseApplication::Initialize();
 

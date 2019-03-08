@@ -28,13 +28,17 @@ namespace Engine
         typedef std::unordered_map<uint32_t, std::shared_ptr<std::string>> ResourceDescNamesType;
 
         ResourceDescNamesType GetResourceDescNames() const;
-        void AddResourceDescName(uint32_t index, std::shared_ptr<std::string> name);
+        void AddResourceDescName(uint32_t index, std::shared_ptr<std::string> pName);
         std::shared_ptr<std::string> GetResourceDescName(uint32_t index) const;
+
+        bool IsExternalResource() const;  
+        void SetIsExternalResource(bool flag);
 
     private:
         void CloneFromNames(const ResourceDescNamesType& from);
 
         ResourceDescNamesType m_resourceDescNames;
+        bool m_externalRes;
     };
 
     class DrawingProgramDesc : public DrawingResourceDesc
@@ -129,6 +133,9 @@ namespace Engine
 
         EffectType GetEffectType() const override;
         DrawingResourceDesc* Clone() const override;
+
+    public:
+        std::shared_ptr<std::string> mpTechName;
     };
 
     class DrawingComputeEffectDesc : public DrawingEffectDesc
@@ -157,6 +164,9 @@ namespace Engine
 
         EffectType GetEffectType() const override;
         DrawingResourceDesc* Clone() const override;
+
+        static const uint32_t VERTEX_SHADER_ID = 0;
+        static const uint32_t PIXEL_SHADER_ID = 1;
     };
 
     class DrawingVertexFormatDesc : public DrawingResourceDesc
@@ -438,6 +448,47 @@ namespace Engine
         uint32_t mMaxAnisotropy;
     };
 
+    class DrawingTargetDesc : public DrawingResourceDesc
+    {
+    public:
+        DrawingTargetDesc();
+        DrawingTargetDesc(const DrawingTargetDesc& desc);
+        DrawingTargetDesc(DrawingTargetDesc&& desc);
+        virtual ~DrawingTargetDesc();
+
+        DrawingTargetDesc& operator= (const DrawingTargetDesc& rhs);
+
+        EDrawingResourceType GetType() const override;
+        DrawingResourceDesc* Clone() const override;
+
+    public:
+        void* mHwnd;
+        uint32_t mWidth;
+        uint32_t mHeight;
+        uint32_t mSlices;
+        EDrawingFormatType mFormat;
+        uint32_t mMultiSampleCount;
+        uint32_t mMultiSampleQuality;
+        uint32_t mFlags;
+        uint32_t mRefreshRate;
+        EDrawingSwapChainType mSwapChain;
+        uint32_t mSwapBufferCount;
+    };
+
+    class DrawingDepthBufferDesc : public DrawingTargetDesc
+    {
+    public:
+        DrawingDepthBufferDesc();
+        DrawingDepthBufferDesc(const DrawingDepthBufferDesc& desc);
+        DrawingDepthBufferDesc(DrawingDepthBufferDesc&& desc);
+        virtual ~DrawingDepthBufferDesc();
+
+        DrawingDepthBufferDesc& operator= (const DrawingDepthBufferDesc& rhs);
+
+        EDrawingResourceType GetType() const override;
+        DrawingResourceDesc* Clone() const override;
+    };
+
     class DrawingTextureDesc : public DrawingResourceDesc
     {
     public:
@@ -484,5 +535,36 @@ namespace Engine
 
     public:
         EDrawingPrimitiveType mPrimitive;
+    };
+
+    class DrawingVaringStatesDesc : public DrawingResourceDesc
+    {
+    public:
+        DrawingVaringStatesDesc();
+        DrawingVaringStatesDesc(const DrawingVaringStatesDesc& desc);
+        DrawingVaringStatesDesc(DrawingVaringStatesDesc&& desc);
+        virtual ~DrawingVaringStatesDesc();
+
+        DrawingVaringStatesDesc& operator= (const DrawingVaringStatesDesc& rhs);
+
+        EDrawingResourceType GetType() const override;
+        DrawingResourceDesc* Clone() const override;
+    };
+
+    class DrawingCommandListDesc : public DrawingResourceDesc
+    {
+    public:
+        DrawingCommandListDesc();
+        DrawingCommandListDesc(const DrawingCommandListDesc& desc);
+        DrawingCommandListDesc(DrawingCommandListDesc&& desc);
+        virtual ~DrawingCommandListDesc();
+
+        DrawingCommandListDesc& operator= (const DrawingCommandListDesc& rhs);
+
+        EDrawingResourceType GetType() const override;
+        DrawingResourceDesc* Clone() const override;
+
+    public:
+        EDrawingCommandListType mType;
     };
 }

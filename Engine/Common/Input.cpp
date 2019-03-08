@@ -24,7 +24,7 @@ void InputManager::Tick()
     while (!m_inputQueue.empty())
     {
         auto info = m_inputQueue.front();
-        switch(info.event)
+        switch (info.event)
         {
             case eEv_Input_KeyChar:
             {

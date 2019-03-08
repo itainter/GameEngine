@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Vec3.h"
-
 namespace Engine
 {
     template<typename T>

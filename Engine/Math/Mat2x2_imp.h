@@ -24,7 +24,7 @@ namespace Engine
     template<typename T>
     Mat2x2<T>::Mat2x2(const T& val) : mArray{
         col_type(val, 0),
-        col_type(0, val)
+        col_type(0, val)}
     {
     }
 

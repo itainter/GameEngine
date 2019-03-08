@@ -2,6 +2,9 @@
 
 #include <memory>
 #include <string>
+#include <assert.h>
+
+#include "DrawingParameter.h"
 
 namespace Engine
 {
@@ -55,7 +58,7 @@ namespace Engine
     class DrawingRawShader
     {
     public:
-        DrawingRawShader(std::shared_ptr<const std::string> pShaderName) : m_pShaderName(pShaderName) {}
+        DrawingRawShader(std::shared_ptr<std::string> pShaderName) : m_pShaderName(pShaderName) {}
         virtual ~DrawingRawShader() { m_pShaderName = nullptr; };
 
         enum DrawingRawShaderType
@@ -69,19 +72,47 @@ namespace Engine
         virtual DrawingRawShaderType GetShaderType() const = 0;
 
     private:
-        std::shared_ptr<const std::string> m_pShaderName;
+        std::shared_ptr<std::string> m_pShaderName;
     };
 
     class DrawingRawEffect
     {
     protected:
-        std::shared_ptr<const std::string> m_pEffectName;
+        std::shared_ptr<std::string> m_pEffectName;
+        std::shared_ptr<DrawingParameterSet> m_pParamSet;
 
     public:
-        DrawingRawEffect(std::shared_ptr<const std::string> pEffectName) : m_pEffectName(pEffectName) {}
+        DrawingRawEffect(std::shared_ptr<std::string> pEffectName) : m_pEffectName(pEffectName),
+            m_pParamSet(new DrawingParameterSet())
+        {
+        }
         virtual ~DrawingRawEffect()
         {
             m_pEffectName = nullptr;
+        }
+
+        DrawingParameterSet& GetParameterSet()
+        {
+            return *m_pParamSet;
+        }
+
+        bool UpdateParameter(std::shared_ptr<DrawingParameter> pParam)
+        {
+            assert(pParam != nullptr);
+            int32_t index = m_pParamSet->IndexOfName(pParam->GetName());
+            if (index < 0)
+                return false;
+
+            auto pDstParam = (*m_pParamSet)[index];
+            if (pDstParam == nullptr)
+                return false;
+
+            if (pDstParam->GetType() != pParam->GetType())
+                return false;
+
+            pDstParam->SetValue(pParam->GetValuePtr(), pParam->GetValueSize());
+
+            return true;
         }
 
         virtual void Apply() = 0;
@@ -91,22 +122,34 @@ namespace Engine
     class DrawingRawVertexShader : public DrawingRawShader
     {
     public:
-        DrawingRawVertexShader(std::shared_ptr<const std::string> pShaderName) : DrawingRawShader(pShaderName) {}
+        DrawingRawVertexShader(std::shared_ptr<std::string> pShaderName) : DrawingRawShader(pShaderName) {}
         DrawingRawShaderType GetShaderType() const override { return RawShader_VS; }
     };
 
     class DrawingRawPixelShader : public DrawingRawShader
     {
     public:
-        DrawingRawPixelShader(std::shared_ptr<const std::string> pShaderName) : DrawingRawShader(pShaderName) {}
+        DrawingRawPixelShader(std::shared_ptr<std::string> pShaderName) : DrawingRawShader(pShaderName) {}
         DrawingRawShaderType GetShaderType() const override { return RawShader_PS; }
     };
 
     class DrawingRawComputeShader : public DrawingRawShader
     {
     public:
-        DrawingRawComputeShader(std::shared_ptr<const std::string> pShaderName) : DrawingRawShader(pShaderName) {}
+        DrawingRawComputeShader(std::shared_ptr<std::string> pShaderName) : DrawingRawShader(pShaderName) {}
         DrawingRawShaderType GetShaderType() const override { return RawShader_CS; }
+    };
+
+    class DrawingRawTexBuffer
+    {
+    public:
+        virtual ~DrawingRawTexBuffer() = default;
+    };
+
+    class DrawingRawRWBuffer
+    {
+    public:
+        virtual ~DrawingRawRWBuffer() = default;
     };
 
     class DrawingRawVertexFormat
@@ -138,5 +181,11 @@ namespace Engine
         };
 
         virtual ~DrawingRawTarget() = default;
+    };
+
+    class DrawingRawCommandList
+    {
+    public:
+        virtual ~DrawingRawCommandList() = default;
     };
 }

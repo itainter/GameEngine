@@ -1,8 +1,9 @@
+#include "BaseRenderer.h"
 #include "DrawingDevice.h"
 
 using namespace Engine;
 
-DrawingResource::DrawingResource(std::shared_ptr<DrawingDevice> pDevice) : m_pDevice(pDevice),
+DrawingResource::DrawingResource(const std::shared_ptr<DrawingDevice>& pDevice) : m_pDevice(pDevice),
     m_pName(nullptr), m_pDesc(nullptr)
 {
 }
@@ -17,9 +18,9 @@ const std::shared_ptr<std::string>& DrawingResource::GetName() const
     return m_pName;
 }
 
-void DrawingResource::SetName(std::shared_ptr<std::string> name)
+void DrawingResource::SetName(std::shared_ptr<std::string> pName)
 {
-    m_pName = name;
+    m_pName = pName;
 }
 
 const std::shared_ptr<DrawingResourceDesc>& DrawingResource::GetDesc() const
@@ -27,12 +28,12 @@ const std::shared_ptr<DrawingResourceDesc>& DrawingResource::GetDesc() const
     return m_pDesc;
 }
 
-void DrawingResource::SetDesc(std::shared_ptr<DrawingResourceDesc> desc)
+void DrawingResource::SetDesc(std::shared_ptr<DrawingResourceDesc> pDesc)
 {
-    m_pDesc = desc;
+    m_pDesc = pDesc;
 }
 
-DrawingTexture::DrawingTexture(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawTexture>(pDevice)
+DrawingTexture::DrawingTexture(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawTexture>(pDevice)
 {
 }
 
@@ -45,7 +46,7 @@ EDrawingResourceType DrawingTexture::GetType() const
     return eResource_Texture;
 }
 
-DrawingShader::DrawingShader(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawShader>(pDevice)
+DrawingShader::DrawingShader(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawShader>(pDevice)
 {
 }
 
@@ -63,7 +64,33 @@ EDrawingResourceType DrawingPixelShader::GetType() const
     return eResource_Pixel_Shader;
 }
 
-DrawingEffect::DrawingEffect(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawEffect>(pDevice)
+DrawingTexBuffer::DrawingTexBuffer(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawTexBuffer>(pDevice)
+{
+}
+
+DrawingTexBuffer::~DrawingTexBuffer()
+{
+}
+
+EDrawingResourceType DrawingTexBuffer::GetType() const
+{
+    return eResource_TexBuffer;
+}
+
+DrawingRWBuffer::DrawingRWBuffer(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawRWBuffer>(pDevice)
+{
+}
+
+DrawingRWBuffer::~DrawingRWBuffer()
+{
+}
+
+EDrawingResourceType DrawingRWBuffer::GetType() const
+{
+    return eResource_RWBuffer;
+}
+
+DrawingEffect::DrawingEffect(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawEffect>(pDevice)
 {
 }
 
@@ -76,7 +103,7 @@ EDrawingResourceType DrawingEffect::GetType() const
     return eResource_Effect;
 }
 
-DrawingBlendState::DrawingBlendState(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawBlendState>(pDevice)
+DrawingBlendState::DrawingBlendState(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawBlendState>(pDevice)
 {
 }
 
@@ -89,7 +116,7 @@ EDrawingResourceType DrawingBlendState::GetType() const
     return eResource_Blend_State;
 }
 
-DrawingDepthState::DrawingDepthState(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawDepthState>(pDevice)
+DrawingDepthState::DrawingDepthState(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawDepthState>(pDevice)
 {
 }
 
@@ -102,7 +129,7 @@ EDrawingResourceType DrawingDepthState::GetType() const
     return eResource_Depth_State;
 }
 
-DrawingRasterState::DrawingRasterState(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawRasterState>(pDevice)
+DrawingRasterState::DrawingRasterState(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawRasterState>(pDevice)
 {
 }
 
@@ -115,7 +142,7 @@ EDrawingResourceType DrawingRasterState::GetType() const
     return eResource_Raster_State;
 }
 
-DrawingSamplerState::DrawingSamplerState(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawSamplerState>(pDevice)
+DrawingSamplerState::DrawingSamplerState(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawSamplerState>(pDevice)
 {
 }
 
@@ -128,7 +155,7 @@ EDrawingResourceType DrawingSamplerState::GetType() const
     return eResource_Sampler_State;
 }
 
-DrawingVertexFormat::DrawingVertexFormat(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawVertexFormat>(pDevice)
+DrawingVertexFormat::DrawingVertexFormat(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawVertexFormat>(pDevice)
 {
 }
 
@@ -141,7 +168,7 @@ EDrawingResourceType DrawingVertexFormat::GetType() const
     return eResource_Vertex_Format;
 }
 
-DrawingVertexBuffer::DrawingVertexBuffer(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawVertexBuffer>(pDevice)
+DrawingVertexBuffer::DrawingVertexBuffer(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawVertexBuffer>(pDevice)
 {
 }
 
@@ -154,7 +181,7 @@ EDrawingResourceType DrawingVertexBuffer::GetType() const
     return eResource_Vertex_Buffer;
 }
 
-DrawingIndexBuffer::DrawingIndexBuffer(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawIndexBuffer>(pDevice)
+DrawingIndexBuffer::DrawingIndexBuffer(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawIndexBuffer>(pDevice)
 {
 }
 
@@ -167,7 +194,7 @@ EDrawingResourceType DrawingIndexBuffer::GetType() const
     return eResource_Index_Buffer;
 }
 
-DrawingTarget::DrawingTarget(std::shared_ptr<DrawingDevice> pDevice) : DrawingResourceWrapper<DrawingRawTarget>(pDevice)
+DrawingTarget::DrawingTarget(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawTarget>(pDevice)
 {
 }
 
@@ -180,7 +207,20 @@ EDrawingResourceType DrawingTarget::GetType() const
     return eResource_Target;
 }
 
-DrawingPrimitive::DrawingPrimitive(std::shared_ptr<DrawingDevice> pDevice) : DrawingResource(pDevice)
+DrawingDepthBuffer::DrawingDepthBuffer(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawTarget>(pDevice)
+{
+}
+
+DrawingDepthBuffer::~DrawingDepthBuffer()
+{
+}
+
+EDrawingResourceType DrawingDepthBuffer::GetType() const
+{
+    return eResource_DepthBuffer;
+}
+
+DrawingPrimitive::DrawingPrimitive(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResource(pDevice)
 {
 }
 
@@ -243,7 +283,7 @@ uint32_t DrawingPrimitive::GetIndexOffset() const
     return m_indexOffset;
 }
 
-void DrawingPrimitive::SetIndexoffset(uint32_t offset)
+void DrawingPrimitive::SetIndexOffset(uint32_t offset)
 {
     m_indexOffset = offset;
 }
@@ -263,7 +303,43 @@ EDrawingResourceType DrawingPrimitive::GetType() const
     return eResource_Primitive;;
 }
 
-DrawingContext::DrawingContext(std::shared_ptr<DrawingDevice> pDevice) : m_pNativeContext(nullptr), m_pDevice(pDevice)
+DrawingVaringStates::DrawingVaringStates(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResource(pDevice)
+{
+}
+
+DrawingVaringStates::~DrawingVaringStates()
+{
+}
+
+void DrawingVaringStates::SetViewport(const Box2& vp)
+{
+    mViewport = vp;
+}
+
+Box2 DrawingVaringStates::GetViewport() const
+{
+    return mViewport;
+}
+
+EDrawingResourceType DrawingVaringStates::GetType() const
+{
+    return eResource_Varing_States;
+}
+
+DrawingCommandList::DrawingCommandList(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawCommandList>(pDevice)
+{
+}
+
+DrawingCommandList::~DrawingCommandList()
+{
+}
+
+EDrawingResourceType DrawingCommandList::GetType() const
+{
+    return eResource_CommandList;
+}
+
+DrawingContext::DrawingContext(const std::shared_ptr<DrawingDevice>& pDevice) : m_pNativeContext(nullptr), m_pDevice(pDevice), m_pSwapChain(nullptr), m_pDepthBuffer(nullptr)
 {
 }
 
@@ -271,6 +347,8 @@ DrawingContext::~DrawingContext()
 {
     m_pNativeContext = nullptr;
     m_pDevice = nullptr;
+    m_pSwapChain = nullptr;
+    m_pDepthBuffer = nullptr;
 }
 
 std::shared_ptr<DrawingNativeContext> DrawingContext::GetNativeContext()
@@ -283,11 +361,85 @@ void DrawingContext::SetNativeContext(std::shared_ptr<DrawingNativeContext> cont
     m_pNativeContext = context;
 }
 
-bool DrawingDevice::CreatePrimitiveInfo(const DrawingPrimitiveDesc& desc, std::shared_ptr<DrawingPrimitive>& pRes)
+void DrawingContext::SetSwapChain(const std::shared_ptr<DrawingTarget> pSwapChain)
 {
-    auto pPrimitiveInfo = std::make_shared<DrawingPrimitive>(std::shared_ptr<DrawingDevice>(this));
-    pPrimitiveInfo->SetPrimitiveType(desc.mPrimitive);
-    pPrimitiveInfo->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
+    m_pSwapChain = pSwapChain;
+}
 
+std::shared_ptr<DrawingTarget> DrawingContext::GetSwapChain() const
+{
+    return m_pSwapChain;
+}
+
+void DrawingContext::SetDepthBuffer(const std::shared_ptr<DrawingDepthBuffer> pDepthBuffer)
+{
+    m_pDepthBuffer = pDepthBuffer;
+}
+
+std::shared_ptr<DrawingDepthBuffer> DrawingContext::GetDepthBuffer() const
+{
+    return m_pDepthBuffer;
+}
+
+void DrawingContext::SetViewport(const Box2& vp)
+{
+    m_viewport = vp;
+}
+
+Box2 DrawingContext::GetViewport() const
+{
+    return m_viewport;
+}
+
+void DrawingContext::UpdateContext(DrawingResourceTable& resTable)
+{
+    UpdateTargets(resTable);
+    UpdateViewport(resTable);
+}
+
+void DrawingContext::UpdateTargets(DrawingResourceTable& resTable)
+{
+    auto pEntry = resTable.GetResourceEntry(BaseRenderer::ScreenTarget());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(m_pSwapChain);
+
+    pEntry = resTable.GetResourceEntry(BaseRenderer::ScreenDepthBuffer());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(m_pDepthBuffer);
+}
+
+void DrawingContext::UpdateViewport(DrawingResourceTable& resTable)
+{
+    auto pStates = GetVaringStates(resTable);
+    pStates->SetViewport(m_viewport);
+}
+
+std::shared_ptr<DrawingVaringStates> DrawingContext::GetVaringStates(DrawingResourceTable& resTable)
+{
+    auto pEntry = resTable.GetResourceEntry(BaseRenderer::DefaultVaringStates());
+    assert(pEntry != nullptr);
+
+    auto pStates = std::dynamic_pointer_cast<DrawingVaringStates>(pEntry->GetResource());
+    assert(pStates != nullptr);
+
+    return pStates;
+}
+
+bool DrawingDevice::CreatePrimitive(const DrawingPrimitiveDesc& desc, std::shared_ptr<DrawingPrimitive>& pRes)
+{
+    auto pPrimitive = std::make_shared<DrawingPrimitive>(shared_from_this());
+    pPrimitive->SetPrimitiveType(desc.mPrimitive);
+    pPrimitive->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
+
+    pRes = pPrimitive;
+    return true;
+}
+
+bool DrawingDevice::CreateVaringStates(const DrawingVaringStatesDesc& desc, std::shared_ptr<DrawingVaringStates>& pRes)
+{
+    auto pVaringStates = std::make_shared<DrawingVaringStates>(shared_from_this());
+    pVaringStates->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
+
+    pRes = pVaringStates;
     return true;
 }

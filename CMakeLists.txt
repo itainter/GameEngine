@@ -14,6 +14,7 @@ include_directories("${PROJECT_SOURCE_DIR}/Engine/Util")
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Common")
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Graphics")
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Graphics/Device")
+include_directories("${PROJECT_SOURCE_DIR}/Engine/Graphics/Renderer")
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Log")
 include_directories("${PROJECT_SOURCE_DIR}/Engine/Math")
 

@@ -5,8 +5,6 @@
 #include "Global.h"
 #include "IApplication.h"
 
-#include "Mat4x4.h"
-
 using namespace Engine;
 
 int main(int argc, char** argv)

@@ -5,8 +5,20 @@
 
 using namespace Engine;
 
-DrawingParameter::DrawingParameter()
+DrawingParameter::DrawingParameter() :
+    m_pName(nullptr),
+    m_pSemantic(nullptr),
+    m_pValue(nullptr),
+    m_size(0),
+    m_type(0)
 {
+}
+
+DrawingParameter::DrawingParameter(const std::shared_ptr<std::string> pName, uint32_t type, void* pInitVal, const std::shared_ptr<std::string> pSemantic) :
+    m_pName(pName),
+    m_pSemantic(pSemantic)
+{
+    CreateParameter(type, pInitVal);
 }
 
 DrawingParameter::~DrawingParameter()
@@ -62,24 +74,24 @@ const uint32_t DrawingParameter::GetStructSize(uint32_t type)
     return GetBitsValue(type, Struct_Size_Bits, Struct_Size_Offset);
 }
 
-std::shared_ptr<const std::string> DrawingParameter::GetName() const
+std::shared_ptr<std::string> DrawingParameter::GetName() const
 {
     return m_pName;
 }
 
-void DrawingParameter::SetName(std::shared_ptr<const std::string> name)
+void DrawingParameter::SetName(std::shared_ptr<std::string> pName)
 {
-    m_pName = name;
+    m_pName = pName;
 }
 
-std::shared_ptr<const std::string> DrawingParameter::GetSemantic() const
+std::shared_ptr<std::string> DrawingParameter::GetSemantic() const
 {
     return m_pSemantic;
 }
 
-void DrawingParameter::SetSemantic(std::shared_ptr<const std::string> semantic)
+void DrawingParameter::SetSemantic(std::shared_ptr<std::string> pSemantic)
 {
-    m_pSemantic = semantic;
+    m_pSemantic = pSemantic;
 }
 
 uint32_t DrawingParameter::GetSize() const
@@ -105,6 +117,28 @@ void DrawingParameter::SetType(uint32_t type)
 const void* const DrawingParameter::GetValuePtr() const
 {
     return m_pValue;
+}
+
+uint32_t DrawingParameter::GetValueSize() const
+{
+    return m_size;
+}
+
+void DrawingParameter::SetValue(const void* pInitVal, uint32_t size)
+{
+    assert(size == m_size);
+
+    if (pInitVal != nullptr)
+    {
+        if (memcmp(m_pValue, pInitVal, size) != 0)
+            memcpy(m_pValue, pInitVal, size);
+        else
+        {
+            static const unsigned int zeroMem[4096] = { 0 };
+            if (memcmp(m_pValue, zeroMem, size) != 0)
+                memset(m_pValue, 0, size);
+        }
+    }
 }
 
 uint32_t DrawingParameter::GetObjectType() const
@@ -421,6 +455,48 @@ void DrawingParameter::AsTexture(const DrawingRawTexture* pTexture)
     AsValue<const DrawingRawTexture*>(pTexture);
 }
 
+const DrawingRawTexBuffer* DrawingParameter::AsBuffer() const
+{
+    assert(GetObjectType() == eObject_Buffer);
+
+    return AsValue<const DrawingRawTexBuffer*>();
+}
+
+void DrawingParameter::AsBuffer(const DrawingRawTexBuffer* pBuffer)
+{
+    assert(GetObjectType() == eObject_Buffer);
+
+    AsValue<const DrawingRawTexBuffer*>(pBuffer);
+}
+
+const DrawingRawRWBuffer* DrawingParameter::AsRWBuffer() const
+{
+    assert(GetObjectType() == eObject_RWBuffer);
+
+    return AsValue<const DrawingRawRWBuffer*>();
+}
+
+void DrawingParameter::AsRWBuffer(const DrawingRawRWBuffer* pRWBuffer)
+{
+    assert(GetObjectType() == eObject_RWBuffer);
+
+    AsValue<const DrawingRawRWBuffer*>(pRWBuffer);
+}
+
+const DrawingRawTexBuffer* DrawingParameter::AsTexBuffer() const
+{
+    assert(GetObjectType() == eObject_TexBuffer);
+
+    return AsValue<const DrawingRawTexBuffer*>();
+}
+
+void DrawingParameter::AsTexBuffer(const DrawingRawTexBuffer* pTexBuffer)
+{
+    assert(GetObjectType() == eObject_TexBuffer);
+
+    AsValue<const DrawingRawTexBuffer*>(pTexBuffer);
+}
+
 const DrawingRawSamplerState* DrawingParameter::AsSampler() const
 {
     assert(GetObjectType() == eObject_Sampler);
@@ -723,6 +799,97 @@ void DrawingParameter::AsSamplerArray(const DrawingRawSamplerState** pState, uin
     AsValueArray<const DrawingRawSamplerState*>(pState, array_size);
 }
 
+void DrawingParameter::CreateParameter(uint32_t type, void* pInitVal)
+{
+    auto objectType = GetObjectType(type);
+
+    if (objectType == eObject_Value)
+        CreateValueParameter(type, pInitVal);
+    else
+        CreateObjectParameter(type, pInitVal);
+}
+
+void DrawingParameter::CreateObjectParameter(uint32_t type, void* pInitVal)
+{
+    m_type = type;
+    UpdateValue(pInitVal, sizeof(void*));
+}
+
+void DrawingParameter::CreateValueParameter(uint32_t type,  void* pInitVal)
+{
+    auto dataSetType = GetDataSetType(type);
+
+    switch (dataSetType)
+    {
+        case eDataSet_Scalar: CreateScalarParameter(type, pInitVal); break;
+        case eDataSet_Vector: CreateVectorParameter(type, pInitVal); break;
+        case eDataSet_Matrix: CreateMatrixParameter(type, pInitVal); break;
+        case eDataSet_Struct: CreateStructParameter(type, pInitVal); break;
+    }
+}
+
+void DrawingParameter::CreateScalarParameter(uint32_t type, void* pInitVal)
+{
+    auto basicType = GetBasicType(type);
+    auto arraySize = GetArraySize(type);
+
+    if (arraySize == 0)
+        arraySize = 1;
+
+    m_type = type;
+    UpdateValue(pInitVal, BasicTypeSize[basicType] * arraySize);
+}
+
+void DrawingParameter::CreateVectorParameter(uint32_t type, void* pInitVal)
+{
+    auto basicType = GetBasicType(type);
+    auto rowSize = GetRowSize(type);
+    auto arraySize = GetArraySize(type);
+
+    if (arraySize == 0)
+        arraySize = 1;
+
+    m_type = type;
+    UpdateValue(pInitVal, BasicTypeSize[basicType] * rowSize * arraySize);
+}
+
+void DrawingParameter::CreateMatrixParameter(uint32_t type, void* pInitVal)
+{
+    auto basicType = GetBasicType(type);
+    auto rowSize = GetRowSize(type);
+    auto colSize = GetColSize(type);
+    auto arraySize = GetArraySize(type);
+
+    if (arraySize == 0)
+        arraySize = 1;
+
+    m_type = type;
+    UpdateValue(pInitVal, BasicTypeSize[basicType] * rowSize * colSize * arraySize);
+}
+
+void DrawingParameter::CreateStructParameter(uint32_t type, void* pInitVal)
+{
+    auto arraySize = GetArraySize(type);
+    auto structSize = GetStructSize(type);
+
+    if (arraySize == 0)
+        arraySize = 1;
+
+    m_type = type;
+    UpdateValue(pInitVal, structSize * arraySize);
+}
+
+void DrawingParameter::UpdateValue(void* pInitVal, uint32_t size)
+{
+    m_size = size;
+    m_pValue = new char[m_size];
+
+    if (pInitVal != nullptr)
+        memcpy(m_pValue, pInitVal, m_size);
+    else
+        memset(m_pValue, 0, m_size);
+}
+
 template <typename T>
 const T& DrawingParameter::AsValue() const
 {
@@ -929,7 +1096,7 @@ void DrawingParameterSet::Remove(std::shared_ptr<DrawingParameter> pParam)
         m_pParamList.erase(result);
 }
 
-void DrawingParameterSet::RemoveAt(uint32_t index)
+void DrawingParameterSet::RemoveAt(int32_t index)
 {
     assert(index >= 0 && index < Count());
     m_pParamList.erase(m_pParamList.cbegin() + index);
@@ -941,12 +1108,54 @@ bool DrawingParameterSet::Contains(const std::shared_ptr<DrawingParameter> pPara
     return (result != m_pParamList.cend());
 }
 
+bool DrawingParameterSet::Contains(const std::shared_ptr<std::string> pName) const
+{
+    return IndexOfName(pName) != -1;
+}
+
+int32_t DrawingParameterSet::IndexOf(const std::shared_ptr<DrawingParameter> pParam) const
+{
+    assert(pParam != nullptr);
+
+    auto it = std::find(m_pParamList.cbegin(), m_pParamList.cend(), pParam);
+
+    return it != m_pParamList.cend() ? static_cast<int32_t>(it - m_pParamList.cbegin()) : -1;
+}
+
+int32_t DrawingParameterSet::IndexOfName(const std::shared_ptr<std::string> pName) const
+{
+    assert(pName != nullptr);
+
+    auto it = std::find_if(m_pParamList.cbegin(), m_pParamList.cend(), [pName](const std::shared_ptr<DrawingParameter> pParam)
+    {
+        assert(pParam != nullptr);
+        return pParam->GetName() == pName;
+    });
+
+    return it != m_pParamList.cend() ? static_cast<int32_t>(it - m_pParamList.cbegin()) : -1;
+}
+
+int32_t DrawingParameterSet::IndexOfSemantic(const std::shared_ptr<std::string> pSemantic) const
+{
+    assert(pSemantic != nullptr);
+
+    auto it = std::find_if(m_pParamList.cbegin(), m_pParamList.cend(), [pSemantic](const std::shared_ptr<DrawingParameter> pParam)
+    {
+        assert(pParam != nullptr);
+
+        const auto lSemantic = pParam->GetSemantic();
+        return lSemantic != nullptr && lSemantic->compare(*pSemantic.get());
+    });
+
+    return it != m_pParamList.cend() ? static_cast<int32_t>(it - m_pParamList.cbegin()) : -1;
+}
+
 void DrawingParameterSet::Clear()
 {
     m_pParamList.clear();
 }
 
-uint32_t DrawingParameterSet::Count() const
+int32_t DrawingParameterSet::Count() const
 {
-    return static_cast<uint32_t>(m_pParamList.size());
+    return static_cast<int32_t>(m_pParamList.size());
 }

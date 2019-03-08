@@ -114,3 +114,5 @@ namespace Engine
     template<typename T>
     Mat2x2<T> operator- (const Mat2x2<T>& mat);
 }
+
+#include "Mat2x2_imp.h"
