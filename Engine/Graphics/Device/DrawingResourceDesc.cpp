@@ -1006,19 +1006,19 @@ DrawingResourceDesc* DrawingSamplerStateDesc::Clone() const
 
 DrawingTargetDesc::DrawingTargetDesc() : DrawingResourceDesc(),
     mHwnd(nullptr), mWidth(0), mHeight(0), mSlices(1), mFormat(eFormat_R8G8B8A8_UNORM),
-    mMultiSampleCount(1), mMultiSampleQuality(0), mFlags(0), mRefreshRate(60), mSwapChain(eSwapChain_Discard), mSwapBufferCount(1)
+    mMultiSampleCount(1), mMultiSampleQuality(0), mFlags(0), mRefreshRate(60), mSwapChain(eSwapChain_Discard)
 {
 }
 
 DrawingTargetDesc::DrawingTargetDesc(const DrawingTargetDesc& desc) : DrawingResourceDesc(desc),
     mHwnd(desc.mHwnd), mWidth(desc.mWidth), mHeight(desc.mHeight), mSlices(desc.mSlices), mFormat(desc.mFormat),
-    mMultiSampleCount(desc.mMultiSampleCount), mMultiSampleQuality(desc.mMultiSampleQuality), mFlags(desc.mFlags), mRefreshRate(desc.mRefreshRate), mSwapChain(desc.mSwapChain), mSwapBufferCount(desc.mSwapBufferCount)
+    mMultiSampleCount(desc.mMultiSampleCount), mMultiSampleQuality(desc.mMultiSampleQuality), mFlags(desc.mFlags), mRefreshRate(desc.mRefreshRate), mSwapChain(desc.mSwapChain)
 {
 }
 
 DrawingTargetDesc::DrawingTargetDesc(DrawingTargetDesc&& desc) : DrawingResourceDesc(std::move(desc)),
     mHwnd(std::move(desc.mHwnd)), mWidth(std::move(desc.mWidth)), mHeight(std::move(desc.mHeight)), mSlices(std::move(desc.mSlices)), mFormat(std::move(desc.mFormat)),
-    mMultiSampleCount(std::move(desc.mMultiSampleCount)), mMultiSampleQuality(std::move(desc.mMultiSampleQuality)), mFlags(std::move(desc.mFlags)), mRefreshRate(std::move(desc.mRefreshRate)), mSwapChain(std::move(desc.mSwapChain)), mSwapBufferCount(std::move(desc.mSwapBufferCount))
+    mMultiSampleCount(std::move(desc.mMultiSampleCount)), mMultiSampleQuality(std::move(desc.mMultiSampleQuality)), mFlags(std::move(desc.mFlags)), mRefreshRate(std::move(desc.mRefreshRate)), mSwapChain(std::move(desc.mSwapChain))
 {
 }
 
@@ -1034,7 +1034,6 @@ DrawingTargetDesc::~DrawingTargetDesc()
     mFlags = 0;
     mRefreshRate = 60;
     mSwapChain = eSwapChain_Discard;
-    mSwapBufferCount = 1;
 }
 
 DrawingTargetDesc& DrawingTargetDesc::operator= (const DrawingTargetDesc& rhs)
@@ -1054,7 +1053,6 @@ DrawingTargetDesc& DrawingTargetDesc::operator= (const DrawingTargetDesc& rhs)
     mFlags = rhs.mFlags;
     mRefreshRate = rhs.mRefreshRate;
     mSwapChain = rhs.mSwapChain;
-    mSwapBufferCount = rhs.mSwapBufferCount;
 
     return *this;
 }
@@ -1251,39 +1249,62 @@ DrawingResourceDesc* DrawingVaringStatesDesc::Clone() const
     return new DrawingVaringStatesDesc(*this);
 }
 
-DrawingCommandListDesc::DrawingCommandListDesc() : DrawingResourceDesc(), mType(eCommandList_Direct)
+DrawingPipelineStateDesc::DrawingPipelineStateDesc() : DrawingResourceDesc()
 {
+    mSubobjectTable.clear();
 }
 
-DrawingCommandListDesc::DrawingCommandListDesc(const DrawingCommandListDesc& desc) : DrawingResourceDesc(desc), mType(desc.mType)
+DrawingPipelineStateDesc::DrawingPipelineStateDesc(const DrawingPipelineStateDesc& desc) : DrawingResourceDesc(desc)
 {
+    CloneFromSubobject(desc.mSubobjectTable);
 }
 
-DrawingCommandListDesc::DrawingCommandListDesc(DrawingCommandListDesc&& desc) : DrawingResourceDesc(std::move(desc)), mType(std::move(desc.mType))
+DrawingPipelineStateDesc::DrawingPipelineStateDesc(DrawingPipelineStateDesc&& desc) : DrawingResourceDesc(std::move(desc))
 {
+    CloneFromSubobject(desc.mSubobjectTable);
+    mSubobjectTable.clear();
 }
 
-DrawingCommandListDesc::~DrawingCommandListDesc()
+DrawingPipelineStateDesc::~DrawingPipelineStateDesc()
 {
-    mType = eCommandList_Direct;
+    mSubobjectTable.clear();
 }
 
-DrawingCommandListDesc& DrawingCommandListDesc::operator= (const DrawingCommandListDesc& rhs)
+DrawingPipelineStateDesc& DrawingPipelineStateDesc::operator= (const DrawingPipelineStateDesc& rhs)
 {
     if (this == &rhs)
         return *this;
 
-    mType = rhs.mType;
+    CloneFromSubobject(rhs.mSubobjectTable);
 
     return *this;
 }
 
-EDrawingResourceType DrawingCommandListDesc::GetType() const
+EDrawingResourceType DrawingPipelineStateDesc::GetType() const
 {
-    return eResource_CommandList;
+    return eResource_Pipeline_State;
 }
 
-DrawingResourceDesc* DrawingCommandListDesc::Clone() const
+DrawingResourceDesc* DrawingPipelineStateDesc::Clone() const
 {
-    return new DrawingCommandListDesc(*this);
+    return new DrawingPipelineStateDesc(*this);
+}
+
+void DrawingPipelineStateDesc::AttachSubobject(EPipelineStateSubobjectType type, std::shared_ptr<std::string> subobject)
+{
+    if (subobject == nullptr)
+        return;
+
+    mSubobjectTable[type] = subobject;
+    AddResourceDescName(type, subobject);
+}
+
+void DrawingPipelineStateDesc::CloneFromSubobject(const SubobjectTable& from)
+{
+    mSubobjectTable.clear();
+    std::for_each(from.cbegin(), from.cend(), [this](const SubobjectTable::value_type& aElem)
+    {
+        if (auto& lpName = aElem.second)
+            mSubobjectTable.emplace(aElem.first, lpName);
+    });
 }

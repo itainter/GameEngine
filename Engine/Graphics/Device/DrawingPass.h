@@ -48,7 +48,7 @@ namespace Engine
         static std::shared_ptr<std::string> RWBufferSlotName(uint32_t index);
         static std::shared_ptr<std::string> PrimitiveSlotName();
         static std::shared_ptr<std::string> VaringStatesSlotName();
-        static std::shared_ptr<std::string> CommandListSlotName();
+        static std::shared_ptr<std::string> PipelineStateSlotName();
 
         std::shared_ptr<std::string> GetName() const;
 
@@ -88,6 +88,7 @@ namespace Engine
         void PushStates();
         void PopStates();
 
+        void UpdatePipelineState();
         void BeginEffect(DrawingContext& dc);
         void EndEffect(DrawingContext& dc);
         bool DrawPrimitive(DrawingContext& dc);
@@ -168,7 +169,7 @@ namespace Engine
             static uint32_t GetRWBufferSlotID(uint32_t index);
             static uint32_t GetPrimitiveSlotID();
             static uint32_t GetVaringStatesSlotID();
-            static uint32_t GetCommandListSlotID();
+            static uint32_t GetPipelineStateSlotID();
 
             void UpdateVertexFormat(const std::shared_ptr<DrawingDevice>& device);
             void UpdateVertexBuffer(const std::shared_ptr<DrawingDevice>& device);
@@ -179,6 +180,7 @@ namespace Engine
             void UpdateRasterState(const std::shared_ptr<DrawingDevice>& device);
             void UpdateViewport(const std::shared_ptr<DrawingDevice>& device);
             void UpdateScissorBox(const std::shared_ptr<DrawingDevice>& device);
+            void UpdatePipelineState(const std::shared_ptr<DrawingDevice>& device);
             void RestoreViewport(const std::shared_ptr<DrawingDevice>& device);
             void RestoreScissorBox(const std::shared_ptr<DrawingDevice>& device);
 
@@ -212,7 +214,7 @@ namespace Engine
                 Varing_State_ID,
                 Indirect_Buffer_ID,
 
-                Command_List_ID,
+                Pipeline_State_ID,
 
                 Max_Static_Slot,
             };

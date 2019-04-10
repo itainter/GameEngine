@@ -20,7 +20,7 @@ void DrawingResourceFactory::SetEffectPool(const std::weak_ptr<DrawingEffectPool
     m_pEffectPool = pEffectPool;
 }
 
-bool DrawingResourceFactory::CreateResource(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes, const void* pData, uint32_t size) const
+bool DrawingResourceFactory::CreateResource(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes, DrawingResourceTable& resTable, const void* pData, uint32_t size) const
 {
     bool result = false;
 
@@ -39,7 +39,7 @@ bool DrawingResourceFactory::CreateResource(const std::shared_ptr<DrawingResourc
     case eResource_Pixel_Shader:    result = CreatePixelShader(pDesc, pRes); break;
     case eResource_Primitive:       result = CreatePrimitive(pDesc, pRes); break;
     case eResource_Varing_States:   result = CreateVaringStates(pDesc, pRes); break;
-    case eResource_CommandList:     result = CreateCommandList(pDesc, pRes); break;
+    case eResource_Pipeline_State:  result = CreatePipelineState(pDesc, pRes, resTable); break;
     default:
         result = false;
         break;
@@ -291,17 +291,22 @@ bool DrawingResourceFactory::CreateVaringStates(const std::shared_ptr<DrawingRes
     return result;
 }
 
-bool DrawingResourceFactory::CreateCommandList(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes) const
+bool DrawingResourceFactory::CreatePipelineState(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes, DrawingResourceTable& resTable) const
 {
-    auto pCommandListDesc = std::static_pointer_cast<const DrawingCommandListDesc>(pDesc);
-    if (pCommandListDesc == nullptr)
+    auto pPipelineStateDesc = std::static_pointer_cast<const DrawingPipelineStateDesc>(pDesc);
+    if (pPipelineStateDesc == nullptr)
         return false;
 
-    std::shared_ptr<DrawingCommandList> pCommandList;
-    bool result = m_pDevice->CreateCommandList(*pCommandListDesc, pCommandList);
-    pRes = pCommandList;
+    std::shared_ptr<DrawingPipelineState> pPipelineState;
 
-    return result;
+    DrawingPipelineState::SubobjectResourceTable subobjectResources;
+    for (const auto& subobject : pPipelineStateDesc->mSubobjectTable)
+        subobjectResources.emplace(subobject.first, resTable.GetResourceEntry(subobject.second)->GetResource());
+
+    bool result = m_pDevice->CreatePipelineState(*pPipelineStateDesc, subobjectResources, pPipelineState);
+    pRes = pPipelineState;
+
+    return true;
 }
 
 DrawingResourceTable::ResourceEntry::~ResourceEntry()
@@ -322,7 +327,7 @@ bool DrawingResourceTable::ResourceEntry::CreateResource()
 
     LoadPrecedingResources();
 
-    if (!m_factory.CreateResource(m_pDesc, pRes, m_pData, m_size))
+    if (!m_factory.CreateResource(m_pDesc, pRes, m_resTable, m_pData, m_size))
         return false;
 
     m_pRes = pRes;

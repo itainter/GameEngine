@@ -10,6 +10,7 @@ namespace Engine
     class DrawingResource;
     class DrawingResourceDesc;
     class DrawingEffectPool;
+    class DrawingResourceTable;
     class DrawingResourceFactory
     {
     public:
@@ -18,7 +19,7 @@ namespace Engine
 
         void SetEffectPool(const std::weak_ptr<DrawingEffectPool> pEffectPool);
 
-        bool CreateResource(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes, const void* pData = nullptr, uint32_t size = 0) const;
+        bool CreateResource(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes, DrawingResourceTable& resTable, const void* pData = nullptr, uint32_t size = 0) const;
 
         bool CreateEffect(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes) const;
         bool CreateVertexFormat(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes) const;
@@ -37,7 +38,7 @@ namespace Engine
         bool CreatePrimitive(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes) const;
         bool CreateVaringStates(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes) const;
 
-        bool CreateCommandList(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes) const;
+        bool CreatePipelineState(const std::shared_ptr<DrawingResourceDesc>& pDesc, std::shared_ptr<DrawingResource>& pRes, DrawingResourceTable& resTable) const;
 
     private:
         std::shared_ptr<DrawingDevice> m_pDevice;

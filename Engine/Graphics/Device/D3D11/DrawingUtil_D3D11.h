@@ -317,7 +317,7 @@ namespace Engine
         }
     };
 
-    inline const char* HLSLFormatToString(EDrawingFormatType format)
+    inline const char* D3D11HLSLFormatToString(EDrawingFormatType format)
     {
         switch (format)
         {

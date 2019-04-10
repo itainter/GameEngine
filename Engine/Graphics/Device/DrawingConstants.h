@@ -9,6 +9,8 @@ namespace Engine
     const uint32_t MAX_RW_BUFFER = 8;
     const uint32_t MAX_VERTEX_STREAM = 32;
 
+    const uint32_t BUFFER_COUNT = 2;
+
     enum EDrawingResourceType
     {
         eResource_Vertex_Buffer = 1,
@@ -36,7 +38,8 @@ namespace Engine
         eResource_DepthBuffer,
         eResource_RWBuffer,
 
-        eResource_CommandList,
+        // This is used for Dx12 only.
+        eResource_Pipeline_State,
     };
 
     enum EDrawingClearFlag

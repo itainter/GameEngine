@@ -183,9 +183,9 @@ namespace Engine
         virtual ~DrawingRawTarget() = default;
     };
 
-    class DrawingRawCommandList
+    class DrawingRawPipelineState
     {
     public:
-        virtual ~DrawingRawCommandList() = default;
+        virtual ~DrawingRawPipelineState() = default;
     };
 }

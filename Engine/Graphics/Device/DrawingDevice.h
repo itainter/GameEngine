@@ -247,13 +247,15 @@ namespace Engine
         Box2 mViewport;
     };
 
-    class DrawingCommandList : public DrawingResourceWrapper<DrawingRawCommandList>
+    class DrawingPipelineState : public DrawingResourceWrapper<DrawingRawPipelineState>
     {
     public:
-        DrawingCommandList(const std::shared_ptr<DrawingDevice>& pDevice);
-        virtual ~DrawingCommandList();
+        DrawingPipelineState(const std::shared_ptr<DrawingDevice>& pDevice);
+        virtual ~DrawingPipelineState();
 
         EDrawingResourceType GetType() const override;
+
+        typedef std::unordered_map<DrawingPipelineStateDesc::EPipelineStateSubobjectType, std::shared_ptr<DrawingResource>> SubobjectResourceTable;
     };
 
     class DrawingContext
@@ -276,7 +278,6 @@ namespace Engine
 
         void UpdateContext(DrawingResourceTable& resTable);
 
-    private:
         void UpdateTargets(DrawingResourceTable& resTable);
         void UpdateViewport(DrawingResourceTable& resTable);
 
@@ -330,7 +331,7 @@ namespace Engine
         virtual bool CreatePrimitive(const DrawingPrimitiveDesc& desc, std::shared_ptr<DrawingPrimitive>& pRes);
         virtual bool CreateVaringStates(const DrawingVaringStatesDesc& desc, std::shared_ptr<DrawingVaringStates>& pRes);
 
-        virtual bool CreateCommandList(const DrawingCommandListDesc& desc, std::shared_ptr<DrawingCommandList>& pRes) = 0;
+        virtual bool CreatePipelineState(const DrawingPipelineStateDesc& desc, const DrawingPipelineState::SubobjectResourceTable& subobjectResources, std::shared_ptr<DrawingPipelineState>& pRes) = 0;
 
         virtual void ClearTarget(std::shared_ptr<DrawingTarget> pTarget, const float4& color) = 0;
         virtual void ClearDepthBuffer(std::shared_ptr<DrawingDepthBuffer> pDepthBuffer, float depth, uint8_t stencil, uint32_t flag) = 0;
@@ -343,9 +344,11 @@ namespace Engine
         virtual void SetDepthState(std::shared_ptr<DrawingDepthState> pDepth, uint32_t stencilRef) = 0;
         virtual void SetRasterState(std::shared_ptr<DrawingRasterState> pRaster) = 0;
 
+        virtual void SetPipelineState(std::shared_ptr<DrawingPipelineState> pPipelineState) = 0;
+
         virtual void PushBlendState() = 0;
         virtual void PopBlendState() = 0;
-        virtual void PushDepthState() = 0;
+        virtual void PushDepthState() = 0; 
         virtual void PopDepthState() = 0;
         virtual void PushRasterState() = 0;
         virtual void PopRasterState() = 0;
@@ -368,6 +371,8 @@ namespace Engine
 
         virtual bool DrawPrimitive(std::shared_ptr<DrawingPrimitive> pRes) = 0;
         virtual bool Present(const std::shared_ptr<DrawingTarget> pTarget, uint32_t syncInterval) = 0;
+
+        virtual void Flush() = 0;
     };
 
     template<EDeviceType type>

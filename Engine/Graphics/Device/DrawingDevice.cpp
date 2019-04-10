@@ -326,17 +326,17 @@ EDrawingResourceType DrawingVaringStates::GetType() const
     return eResource_Varing_States;
 }
 
-DrawingCommandList::DrawingCommandList(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawCommandList>(pDevice)
+DrawingPipelineState::DrawingPipelineState(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawPipelineState>(pDevice)
 {
 }
 
-DrawingCommandList::~DrawingCommandList()
+DrawingPipelineState::~DrawingPipelineState()
 {
 }
 
-EDrawingResourceType DrawingCommandList::GetType() const
+EDrawingResourceType DrawingPipelineState::GetType() const
 {
-    return eResource_CommandList;
+    return eResource_Pipeline_State;
 }
 
 DrawingContext::DrawingContext(const std::shared_ptr<DrawingDevice>& pDevice) : m_pNativeContext(nullptr), m_pDevice(pDevice), m_pSwapChain(nullptr), m_pDepthBuffer(nullptr)

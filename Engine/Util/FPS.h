@@ -5,8 +5,8 @@
 class FPSCounter
 {
 public:
-    using time = std::chrono::time_point<std::chrono::system_clock>;
-    using ms = std::chrono::duration<float, std::milli>;
+    typedef std::chrono::time_point<std::chrono::system_clock> time;
+    typedef std::chrono::duration<float, std::milli> ms;
 
     FPSCounter() : m_fpsCurrent(0), m_fpsAvgSec(0), m_oneSecTicks(0), m_oneSecDuration(std::chrono::milliseconds::zero()){}
     ~FPSCounter() = default;

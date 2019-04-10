@@ -55,7 +55,9 @@
         "unordered_set": "cpp",
         "sstream": "cpp",
         "chrono": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "thread": "cpp",
+        "mutex": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

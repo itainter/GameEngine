@@ -27,6 +27,7 @@ void BasicPrimitiveRenderer::DefineResources(DrawingResourceTable& resTable)
 {
     DefineDefaultResources(resTable);
     DefineShaderResource(resTable);
+    DefinePipelineStateResource(resTable);
 }
 
 void BasicPrimitiveRenderer::SetupStages()
@@ -87,6 +88,20 @@ void BasicPrimitiveRenderer::DefineShaderResource(DrawingResourceTable& resTable
     DefineLinkedEffect(BasicPrimitiveEffect(), BasicPrimitiveVertexShader(), BasicPrimitivePixelShader(), resTable);
 }
 
+void BasicPrimitiveRenderer::DefinePipelineStateResource(DrawingResourceTable& resTable)
+{
+    DefinePipelineState(DefaultVertexFormat(),
+                        BasicPrimitivePipelineState(),
+                        DefaultPrimitive(),
+                        BasicPrimitiveVertexShader(),
+                        BasicPrimitivePixelShader(),
+                        DefaultBlendState(),
+                        DefaultRasterState(),
+                        DefaultDepthState(),
+                        ScreenTarget(),
+                        resTable);
+}
+
 std::shared_ptr<DrawingPass> BasicPrimitiveRenderer::CreateDefaultPass(
     std::shared_ptr<std::string> pPassName,
     std::shared_ptr<std::string> pEffectName,
@@ -95,12 +110,12 @@ std::shared_ptr<DrawingPass> BasicPrimitiveRenderer::CreateDefaultPass(
     auto pPass = CreatePass(pPassName);
 
     BindEffect(*pPass, pEffectName);
+    BindPipelineState(*pPass, BasicPrimitivePipelineState());
     BindInputs(*pPass);
     BindStates(*pPass);
     BindOutput(*pPass);
     BindPrimitive(*pPass, DefaultPrimitive());
     BindVaringStates(*pPass, DefaultVaringStates());
-    BindCommandList(*pPass, DefaultCommandList());
 
     return pPass;
 }

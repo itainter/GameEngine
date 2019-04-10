@@ -37,14 +37,14 @@ void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
     DefineExternalDepthBuffer(ScreenDepthBuffer(), resTable);
 
     DefineDefaultDepthState(resTable);
+    
     DefineDefaultBlendState(resTable);
     DefineDefaultRasterState(resTable);
 
     DefinePrimitive(DefaultPrimitive(), resTable);
     DefineVaringStates(resTable);
-
-    DefineDefaultCommandList(resTable);
 }
+
 
 void BaseRenderer::DefineGeneralEffect(std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pSourceName, std::shared_ptr<std::string> pTechName, DrawingResourceTable& resTable)
 {
@@ -69,6 +69,31 @@ void BaseRenderer::DefineLinkedEffect(std::shared_ptr<std::string> pEffectName, 
     pDesc->AddResourceDescName(DrawingLinkedEffectDesc::PIXEL_SHADER_ID, pPSName);
 
     resTable.AddResourceEntry(pEffectName, pDesc);
+}
+
+void BaseRenderer::DefinePipelineState(std::shared_ptr<std::string> pVertexFormatName,
+                                       std::shared_ptr<std::string> pPipelineStateName, 
+                                       std::shared_ptr<std::string> pPrimitiveName,
+                                       std::shared_ptr<std::string> pVSName,
+                                       std::shared_ptr<std::string> pPSName,
+                                       std::shared_ptr<std::string> pBlendStateName,
+                                       std::shared_ptr<std::string> pRasterStateName,
+                                       std::shared_ptr<std::string> pDepthStencilStateName,
+                                       std::shared_ptr<std::string> pRenderTargetName,
+                                       DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingPipelineStateDesc>();
+
+    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_InputLayout, pVertexFormatName);
+    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_PrimitiveTopology, pPrimitiveName);
+    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_Vs, pVSName);
+    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_Ps, pPSName);
+    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_BlendState, pBlendStateName);
+    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_RasterState, pRasterStateName);
+    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_DepthStencilState, pDepthStencilStateName);
+    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_RenderTarget, pRenderTargetName);
+
+    resTable.AddResourceEntry(pPipelineStateName, pDesc);
 }
 
 void BaseRenderer::DefineVertexShaderFromBlob(std::shared_ptr<std::string> pShaderName, std::shared_ptr<std::string> pSourceName, DrawingResourceTable& resTable)
@@ -248,6 +273,7 @@ void BaseRenderer::DefineExternalDepthBuffer(std::shared_ptr<std::string> pName,
     resTable.AddResourceEntry(pName, pDesc);
 }
 
+
 void BaseRenderer::DefineVaringStates(DrawingResourceTable& resTable)
 {
     auto pDesc = std::make_shared<DrawingVaringStatesDesc>();
@@ -259,18 +285,9 @@ void BaseRenderer::DefinePrimitive(std::shared_ptr<std::string> pName, DrawingRe
 {
     auto pDesc = std::make_shared<DrawingPrimitiveDesc>();
 
-    pDesc->mPrimitive = ePrimitive_LineStrip;
+    pDesc->mPrimitive = ePrimitive_TriangleStrip;
 
     resTable.AddResourceEntry(pName, pDesc);
-}
-
-void BaseRenderer::DefineDefaultCommandList(DrawingResourceTable& resTable)
-{
-    auto pDesc = std::make_shared<DrawingCommandListDesc>();
-
-    pDesc->mType = eCommandList_Direct;
-
-    resTable.AddResourceEntry(DefaultCommandList(), pDesc);
 }
 
 void BaseRenderer::BindResource(DrawingPass& pass, std::shared_ptr<std::string> slotName, std::shared_ptr<std::string> resName)
@@ -281,6 +298,11 @@ void BaseRenderer::BindResource(DrawingPass& pass, std::shared_ptr<std::string> 
 void BaseRenderer::BindEffect(DrawingPass& pass, std::shared_ptr<std::string> pName)
 {
     pass.BindResource(DrawingPass::EffectSlotName(), pName);
+}
+
+void BindPipeline(DrawingPass& pass, std::shared_ptr<std::string> pName)
+{
+    pass.BindResource(DrawingPass::PipelineStateSlotName(), pName);
 }
 
 void BaseRenderer::BindVertexFormat(DrawingPass& pass, std::shared_ptr<std::string> pName)
@@ -333,9 +355,9 @@ void BaseRenderer::BindVaringStates(DrawingPass& pass, std::shared_ptr<std::stri
     pass.BindResource(DrawingPass::VaringStatesSlotName(), pName);
 }
 
-void BaseRenderer::BindCommandList(DrawingPass& pass, std::shared_ptr<std::string> pName)
+void BaseRenderer::BindPipelineState(DrawingPass& pass, std::shared_ptr<std::string> pName)
 {
-    pass.BindResource(DrawingPass::CommandListSlotName(), pName);
+    pass.BindResource(DrawingPass::PipelineStateSlotName(), pName);
 }
 
 void BaseRenderer::BindInputs(DrawingPass& pass)

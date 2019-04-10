@@ -32,6 +32,7 @@ add_library(
 )
 
 include_directories("${PROJECT_SOURCE_DIR}/Thirdparts/Effect11/Include")
+include_directories("${PROJECT_SOURCE_DIR}/Thirdparts/D3DX12/Include")
 
 find_library(Effect11_LIB Effects11.lib HINTS ${PROJECT_SOURCE_DIR}/Thirdparts/Effect11/Lib)
 

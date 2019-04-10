@@ -61,8 +61,6 @@ namespace Engine
         static uint32_t m_sVertexID[MAX_VERTEX_COUNT];
         static uint32_t m_sInstanceID[MAX_INSTANCE_COUNT];
 
-        
-
         static void InitVertexID();
         static void InitInstanceID();
 
@@ -75,6 +73,17 @@ namespace Engine
 
         void DefineGeneralEffect(std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pSourceName, std::shared_ptr<std::string> pTechName, DrawingResourceTable& resTable);
         void DefineLinkedEffect(std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pVSName, std::shared_ptr<std::string> pPSName, DrawingResourceTable& resTable);
+
+        void DefinePipelineState(std::shared_ptr<std::string> pVertexFormatName,
+                                 std::shared_ptr<std::string> pPipelineStateName,
+                                 std::shared_ptr<std::string> pPrimitiveName,
+                                 std::shared_ptr<std::string> pVSName,
+                                 std::shared_ptr<std::string> pPSName,
+                                 std::shared_ptr<std::string> pBlendStateName,
+                                 std::shared_ptr<std::string> pRasterStateName,
+                                 std::shared_ptr<std::string> pDepthStencilStateName,
+                                 std::shared_ptr<std::string> pRenderTargetName,
+                                 DrawingResourceTable& resTable);
 
         void DefineVertexShaderFromBlob(std::shared_ptr<std::string> pShaderName, std::shared_ptr<std::string> pSourceName, DrawingResourceTable& resTable);
         void DefinePixelShaderFromBlob(std::shared_ptr<std::string> pShaderName, std::shared_ptr<std::string> pSourceName, DrawingResourceTable& resTable);
@@ -95,8 +104,6 @@ namespace Engine
         void DefineVaringStates(DrawingResourceTable& resTable);
         void DefinePrimitive(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable);
 
-        void DefineDefaultCommandList(DrawingResourceTable& resTable);
-
         void BindResource(DrawingPass& pass, std::shared_ptr<std::string> slotName, std::shared_ptr<std::string> resName);
         void BindEffect(DrawingPass& pass, std::shared_ptr<std::string> pName);
         void BindVertexFormat(DrawingPass& pass, std::shared_ptr<std::string> pName);
@@ -109,7 +116,7 @@ namespace Engine
         void BindRasterState(DrawingPass& pass, std::shared_ptr<std::string> pName);
         void BindPrimitive(DrawingPass& pass, std::shared_ptr<std::string> pName);
         void BindVaringStates(DrawingPass& pass, std::shared_ptr<std::string> pName);
-        void BindCommandList(DrawingPass& pass, std::shared_ptr<std::string> pName);
+        void BindPipelineState(DrawingPass& pass, std::shared_ptr<std::string> pName);
 
         void BindInputs(DrawingPass& pass);
         void BindStates(DrawingPass& pass);

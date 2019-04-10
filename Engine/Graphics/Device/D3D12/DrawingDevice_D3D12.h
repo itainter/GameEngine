@@ -2,44 +2,30 @@
 #pragma once
 
 #include <d3d12.h>
-#include <dxgi1_5.h>
+#include <dxgi1_6.h>
+#include <queue>
+#include <unordered_map>
 
+#include "SafeQueue.h"
 #include "DrawingConstants.h"
 #include "DrawingType.h"
 #include "DrawingDevice.h"
+#include "DrawingCommandManager_D3D12.h"
+#include "DrawingResourceStateTracker_D3D12.h"
 #include "DrawingUtil_D3D12.h"
 
 namespace Engine
 {
     class DrawingDevice_D3D12;
-    class DrawingCommandManager_D3D12
-    {
-    public:
-        DrawingCommandManager_D3D12(const std::shared_ptr<DrawingDevice_D3D12> device);
-        virtual ~DrawingCommandManager_D3D12();
-
-        std::shared_ptr<ID3D12CommandQueue> GetCommandQueue(EDrawingCommandListType type) const;
-        std::shared_ptr<ID3D12CommandAllocator> GetCommandAllocator(EDrawingCommandListType type) const;
-
-        bool CreateCommandList(const DrawingCommandListDesc& desc, std::shared_ptr<DrawingCommandList>& pRes);
-        std::shared_ptr<DrawingCommandList> GetCurrentCommandList();
-
-    private:
-        std::weak_ptr<DrawingDevice_D3D12> m_pDevice;
-
-        std::shared_ptr<ID3D12CommandQueue> m_pCommandQueue[eCommandList_Count] = { nullptr };
-        std::shared_ptr<ID3D12CommandAllocator> m_pCommandAllocator[eCommandList_Count] = { nullptr };
-
-        std::vector<std::shared_ptr<DrawingCommandList>> m_commandLists;
-
-        uint32_t m_size[eCommandList_Count] = { 0 };
-    };
-
-
+    class DrawingRawVertexShader_D3D12;
+    class DrawingRawPixelShader_D3D12;
     class DrawingDevice_D3D12 : public DrawingDevice
     {
     public:
-        DrawingDevice_D3D12(const std::shared_ptr<ID3D12Device> device);
+        const static uint32_t MAX_RENDER_TARGET_COUNT = 8;
+        const static uint32_t MAX_UAV_SLOT_COUNT = 8;
+
+        DrawingDevice_D3D12(const std::shared_ptr<ID3D12Device2> device);
         virtual ~DrawingDevice_D3D12();
 
         void Initialize() override;
@@ -69,7 +55,7 @@ namespace Engine
         bool CreatePixelShaderFromString(const std::string& str, const DrawingPixelShaderDesc& desc, std::shared_ptr<DrawingPixelShader>& pRes) override;
         bool CreatePixelShaderFromBuffer(const void* pData, uint32_t length, const DrawingPixelShaderDesc& desc, std::shared_ptr<DrawingPixelShader>& pRes) override;
 
-        bool CreateCommandList(const DrawingCommandListDesc& desc, std::shared_ptr<DrawingCommandList>& pRes) override;
+        bool CreatePipelineState(const DrawingPipelineStateDesc& desc, const DrawingPipelineState::SubobjectResourceTable& subobjectResources, std::shared_ptr<DrawingPipelineState>& pRes) override;
 
         void ClearTarget(std::shared_ptr<DrawingTarget> pTarget, const float4& color) override;
         void ClearDepthBuffer(std::shared_ptr<DrawingDepthBuffer> pDepthBuffer, float depth, uint8_t stencil, uint32_t flag) override;
@@ -81,6 +67,8 @@ namespace Engine
         void SetBlendState(std::shared_ptr<DrawingBlendState> pBlend, float4 blendFactor, uint32_t sampleMask) override;
         void SetDepthState(std::shared_ptr<DrawingDepthState> pDepth, uint32_t stencilRef) override;
         void SetRasterState(std::shared_ptr<DrawingRasterState> pRaster) override;
+
+        void SetPipelineState(std::shared_ptr<DrawingPipelineState> pPipelineState) override;
 
         void PushBlendState() override;
         void PopBlendState() override;
@@ -108,39 +96,76 @@ namespace Engine
         bool DrawPrimitive(std::shared_ptr<DrawingPrimitive> pRes) override;
         bool Present(const std::shared_ptr<DrawingTarget> pTarget, uint32_t syncInterval) override;
 
-        std::shared_ptr<ID3D12Device> GetDevice() const;
+        void Flush() override;
+
+        std::shared_ptr<ID3D12Device2> GetDevice() const;
         std::shared_ptr<IDXGIFactory4> GetDXGIFactory() const;
 
-        std::shared_ptr<DrawingCommandManager_D3D12> GetCommandManager() const;
+        std::shared_ptr<DrawingCommandManager_D3D12> GetCommandManager(EDrawingCommandListType type) const;
 
     private:
-        std::shared_ptr<ID3D12Device> m_pDevice;
+        bool DoCreateEffect(const DrawingEffectDesc& desc, const void* pData, uint32_t size, std::shared_ptr<DrawingEffect>& pRes);
+
+        bool DoCreateVertexShader(const DrawingVertexShaderDesc& desc, const void* pData, uint32_t size, std::shared_ptr<DrawingVertexShader>& pRes);
+        bool DoCreatePixelShader(const DrawingPixelShaderDesc& desc, const void* pData, uint32_t size, std::shared_ptr<DrawingPixelShader>& pRes);
+
+        // std::shared_ptr<DrawingRawFxEffect_D3D12> CreateEffectFromMemory(std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pTechName, const void* pData, uint32_t size);
+
+        std::shared_ptr<DrawingRawVertexShader_D3D12> CreateVertexShaderFromBuffer(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEntryName, std::shared_ptr<std::string> pSourceName, const void* pData, uint32_t size);
+        std::shared_ptr<DrawingRawPixelShader_D3D12> CreatePixelShaderFromBuffer(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEntryName, std::shared_ptr<std::string> pSourceName, const void* pData, uint32_t size);
+
+        std::shared_ptr<DrawingRawVertexShader_D3D12> CreateVertexShaderFromBlob(std::shared_ptr<std::string> pName, const void* pShaderByteCode, uint32_t length);
+        std::shared_ptr<DrawingRawPixelShader_D3D12> CreatePixelShaderFromBlob(std::shared_ptr<std::string> pName, const void* pShaderByteCode, uint32_t length);
+
+        std::shared_ptr<DrawingRawVertexShader_D3D12> CreateVertexShaderFromString(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEntryName, std::shared_ptr<std::string> pSourceName, const char* pSrc, uint32_t size);
+        std::shared_ptr<DrawingRawPixelShader_D3D12> CreatePixelShaderFromString(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEntryName, std::shared_ptr<std::string> pSourceName, const char* pSrc, uint32_t size);
+
+    private:
+        std::shared_ptr<ID3D12Device2> m_pDevice;
         std::shared_ptr<IDXGIFactory4> m_pDXGIFactory;
 
-        std::shared_ptr<DrawingCommandManager_D3D12> m_pCommandManager;
+        std::shared_ptr<DrawingCommandManager_D3D12> m_pDirectCommandManager;
+        std::shared_ptr<DrawingCommandManager_D3D12> m_pComputeCommandManager;
+        std::shared_ptr<DrawingCommandManager_D3D12> m_pCopyCommandManager;
+
+        uint64_t m_fenceValues[BUFFER_COUNT] = {};
     };
 
     template<>
     static std::shared_ptr<DrawingDevice> CreateNativeDevice<eDevice_D3D12>()
     {
+#if defined(_DEBUG)
+        ID3D12Debug1* pDebugInterface;
+        D3D12GetDebugInterface(__uuidof(ID3D12Debug1), (void**)&pDebugInterface);
+        pDebugInterface->EnableDebugLayer();
+#endif
+
         uint32_t adaptorIndex = 0;
-        ID3D12Device* pDevice = nullptr;
+        ID3D12Device2* pDevice = nullptr;
         IDXGIFactory4* pDxgiFactory = nullptr;
-        IDXGIAdapter1* pAdapter = nullptr; 
-        std::vector<IDXGIAdapter1*> adapterList;
-        HRESULT hr = CreateDXGIFactory1(IID_PPV_ARGS(&pDxgiFactory));
+        IDXGIAdapter4* pAdapter4 = nullptr; 
+        IDXGIAdapter1* pAdapter1 = nullptr;
+        std::vector<IDXGIAdapter4*> adapterList;
+
+        uint32_t createFactoryFlags = 0;
+#if defined(_DEBUG)
+        createFactoryFlags = DXGI_CREATE_FACTORY_DEBUG;
+#endif
+
+        HRESULT hr = CreateDXGIFactory2(createFactoryFlags, __uuidof(IDXGIFactory4), (void**)&pDxgiFactory);
         if (FAILED(hr))
             return nullptr;
 
-        while (pDxgiFactory->EnumAdapters1(adaptorIndex, &pAdapter) != DXGI_ERROR_NOT_FOUND)
+        while (pDxgiFactory->EnumAdapters1(adaptorIndex, &pAdapter1) != DXGI_ERROR_NOT_FOUND)
         {
-            hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&pDevice));
+            pAdapter1->QueryInterface(&pAdapter4);
+            hr = D3D12CreateDevice(pAdapter4, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device2), (void**)&pDevice);
             if (SUCCEEDED(hr))
             {
-                std::shared_ptr<ID3D12Device> pDevicePtr(pDevice, D3D12Releaser<ID3D12Device>);
+                std::shared_ptr<ID3D12Device2> pDevicePtr(pDevice, D3D12Releaser<ID3D12Device2>);
                 return std::make_shared<DrawingDevice_D3D12>(pDevicePtr);
             }
-            adapterList.push_back(pAdapter);
+            adapterList.push_back(pAdapter4);
             ++adaptorIndex;
         }
 

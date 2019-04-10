@@ -705,7 +705,8 @@ namespace Engine
             m_pDevice(pDevice), m_sizeInBytes(desc.ByteWidth), m_stride(stride), m_startOffset(offset)
         {
             ID3D11Buffer* pRaw = nullptr;
-            HRESULT hr = m_pDevice->GetDevice()->CreateBuffer(&desc, nullptr, &pRaw);
+            HRESULT hr = m_pDevice->GetDevice()->CreateBuffer(&desc
+            , nullptr, &pRaw);
             assert(SUCCEEDED(hr));
             m_pBuffer = std::shared_ptr<ID3D11Buffer>(pRaw, D3D11Releaser<ID3D11Buffer>);
         }
@@ -853,7 +854,7 @@ namespace Engine
     class DrawingRawVertexBuffer_D3D11 : public DrawingRawVertexBuffer
     {
     public:
-        DrawingRawVertexBuffer_D3D11(std::shared_ptr<DrawingDevice_D3D11> pDevice, const D3D11_BUFFER_DESC& desc, const D3D11_SUBRESOURCE_DATA& data, uint32_t stride, uint32_t offset) :
+        DrawingRawVertexBuffer_D3D11(std::shared_ptr<DrawingDevice_D3D11> pDevice, const D3D11_BUFFER_DESC& desc, D3D11_SUBRESOURCE_DATA& data, uint32_t stride, uint32_t offset) :
             m_pDevice(pDevice), m_pBufferImpl(std::make_shared<DrawingRawBuffer_D3D11>(pDevice, desc, data, stride, offset)) {}
 
         virtual ~DrawingRawVertexBuffer_D3D11() = default;
@@ -891,7 +892,7 @@ namespace Engine
     class DrawingRawIndexBuffer_D3D11 : public DrawingRawIndexBuffer
     {
     public:
-        DrawingRawIndexBuffer_D3D11(std::shared_ptr<DrawingDevice_D3D11> pDevice, const D3D11_BUFFER_DESC& desc, const D3D11_SUBRESOURCE_DATA& data, uint32_t stride, uint32_t offset) :
+        DrawingRawIndexBuffer_D3D11(std::shared_ptr<DrawingDevice_D3D11> pDevice, const D3D11_BUFFER_DESC& desc, D3D11_SUBRESOURCE_DATA& data, uint32_t stride, uint32_t offset) :
             m_pDevice(pDevice), m_pBufferImpl(std::make_shared<DrawingRawBuffer_D3D11>(pDevice, desc, data, stride, offset)) {}
 
         virtual ~DrawingRawIndexBuffer_D3D11() = default;

@@ -31,9 +31,9 @@ void DrawingDevice_D3D11::Initialize()
     IDXGIFactory* pDXGIFactoryRaw;
 
     m_pDevice->GetImmediateContext(&pDeviceContextRaw);
-    m_pDevice->QueryInterface(IID_PPV_ARGS(&pDXGIDeviceRaw));
-    pDXGIDeviceRaw->GetParent(IID_PPV_ARGS(&pDXGIAdapterRaw));
-    pDXGIAdapterRaw->GetParent(IID_PPV_ARGS(&pDXGIFactoryRaw));
+    m_pDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&pDXGIDeviceRaw);
+    pDXGIDeviceRaw->GetParent(__uuidof(IDXGIAdapter), (void**)&pDXGIAdapterRaw);
+    pDXGIAdapterRaw->GetParent(__uuidof(IDXGIFactory), (void**)&pDXGIFactoryRaw);
 
     m_pDeviceContext = std::shared_ptr<ID3D11DeviceContext>(pDeviceContextRaw, D3D11Releaser<ID3D11DeviceContext>);
     m_pDXGIDevice = std::shared_ptr<IDXGIDevice>(pDXGIDeviceRaw, D3D11Releaser<IDXGIDevice>);
@@ -52,7 +52,7 @@ std::string CompositeFakeEffectString(const std::vector<DrawingVertexFormatDesc:
 
     for (const auto& elem : elems)
     {
-        fieldStream << HLSLFormatToString(elem.mFormat) << " variable" << varSuffix++ << " : " << elem.mpName->c_str();
+        fieldStream << D3D11HLSLFormatToString(elem.mFormat) << " variable" << varSuffix++ << " : " << elem.mpName->c_str();
         if (elem.mIndex != 0)
             fieldStream << elem.mIndex;
         fieldStream << ";\n";
@@ -198,7 +198,7 @@ bool DrawingDevice_D3D11::CreateTarget(const DrawingTargetDesc& desc, std::share
         SwapChainDesc.SampleDesc.Count = desc.mMultiSampleCount;
         SwapChainDesc.SampleDesc.Quality = desc.mMultiSampleQuality;
         SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        SwapChainDesc.BufferCount = desc.mSwapBufferCount;
+        SwapChainDesc.BufferCount = BUFFER_COUNT;
         SwapChainDesc.OutputWindow = (HWND)desc.mHwnd;
         SwapChainDesc.Windowed = true;
         SwapChainDesc.SwapEffect = D3D11Enum(desc.mSwapChain);
@@ -426,9 +426,8 @@ bool DrawingDevice_D3D11::CreatePixelShaderFromBuffer(const void* pData, uint32_
     return DoCreatePixelShader(desc, pData, length, pRes);
 }
 
-bool DrawingDevice_D3D11::CreateCommandList(const DrawingCommandListDesc& desc, std::shared_ptr<DrawingCommandList>& pRes)
+bool DrawingDevice_D3D11::CreatePipelineState(const DrawingPipelineStateDesc& desc, const DrawingPipelineState::SubobjectResourceTable& subobjectResources, std::shared_ptr<DrawingPipelineState>& pRes)
 {
-    // Not supported in Dx11, just ignore.
     return true;
 }
 
@@ -542,6 +541,10 @@ void DrawingDevice_D3D11::SetRasterState(std::shared_ptr<DrawingRasterState> pRa
     }
     else
         m_pDeviceContext->RSSetState(nullptr);
+}
+
+void DrawingDevice_D3D11::SetPipelineState(std::shared_ptr<DrawingPipelineState> pPipelineState)
+{
 }
 
 void DrawingDevice_D3D11::PushBlendState()
@@ -761,8 +764,6 @@ bool DrawingDevice_D3D11::UpdateEffectTexture(std::shared_ptr<DrawingTexture> pT
 
 bool DrawingDevice_D3D11::UpdateEffectBuffer(std::shared_ptr<DrawingTexBuffer> pBuffer, std::shared_ptr<std::string> pName, std::shared_ptr<DrawingEffect> pEffect)
 {
-
-
     return true;
 }
 
@@ -849,6 +850,11 @@ bool DrawingDevice_D3D11::Present(const std::shared_ptr<DrawingTarget> pTarget, 
         return false;
 
     return true;
+}
+
+void DrawingDevice_D3D11::Flush()
+{
+    m_pDeviceContext->Flush();
 }
 
 std::shared_ptr<ID3D11Device> DrawingDevice_D3D11::GetDevice() const

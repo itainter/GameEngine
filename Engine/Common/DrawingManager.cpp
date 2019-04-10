@@ -12,7 +12,7 @@ using namespace Engine;
 
 DrawingManager::DrawingManager() : m_window(nullptr),
     m_deviceSize(0),
-    m_deviceType(eDevice_D3D11),
+    m_deviceType(eDevice_D3D12),
     m_pDevice(nullptr),
     m_pContext(nullptr),
     m_pEffectPool(nullptr),
@@ -142,7 +142,6 @@ std::shared_ptr<DrawingTarget> DrawingManager::CreateSwapChain()
     desc.mWidth = m_deviceSize.x;
     desc.mHeight = m_deviceSize.y;
     desc.mFormat = eFormat_R8G8B8A8_UNORM;
-    desc.mSwapBufferCount = 2;
 
     std::shared_ptr<DrawingTarget> pSwapChain;
 
@@ -154,7 +153,17 @@ std::shared_ptr<DrawingTarget> DrawingManager::CreateSwapChain()
 
 std::shared_ptr<DrawingDepthBuffer> DrawingManager::CreateDepthBuffer()
 {
-    return nullptr;
+    DrawingDepthBufferDesc desc;
+    desc.mWidth = m_deviceSize.x;
+    desc.mHeight = m_deviceSize.y;
+    desc.mFormat = eFormat_D32_FLOAT;
+
+    std::shared_ptr<DrawingDepthBuffer> pDepthBuffer;
+
+    if (!m_pDevice->CreateDepthBuffer(desc, pDepthBuffer))
+        return nullptr;
+
+    return pDepthBuffer;
 }
 
 bool DrawingManager::PostConfiguration()
@@ -162,17 +171,21 @@ bool DrawingManager::PostConfiguration()
     m_pBasicPrimitiveRenderer->DefineResources(*m_pResourceTable);
     m_pBasicPrimitiveRenderer->SetupStages();
 
-    if(!m_pResourceTable->BuildResources())
-        return false;
-
-    m_pBasicPrimitiveRenderer->MapResources(*m_pResourceTable);
-
     auto pSwapChain = CreateSwapChain();
     auto pDepthBuffer = CreateDepthBuffer();
 
     m_pContext->SetSwapChain(pSwapChain);
     m_pContext->SetDepthBuffer(pDepthBuffer);
     m_pContext->SetViewport(Box2(float2(0, 0), float2((float)gpGlobal->GetConfiguration().width, (float)gpGlobal->GetConfiguration().height)));
+
+    m_pContext->UpdateTargets(*m_pResourceTable);
+
+    if(!m_pResourceTable->BuildResources())
+        return false;
+
+    m_pDevice->Flush();
+
+    m_pBasicPrimitiveRenderer->MapResources(*m_pResourceTable);
 
     return true;
 }

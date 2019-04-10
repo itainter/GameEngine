@@ -74,6 +74,56 @@ namespace Engine
             return DXGI_FORMAT_UNKNOWN;
         }
 
+        D3D12_PRIMITIVE_TOPOLOGY operator()(EDrawingPrimitiveType prim, D3D12_PRIMITIVE_TOPOLOGY) const
+        {
+            switch (prim)
+            {
+            case ePrimitive_Undefined:
+                return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+            case ePrimitive_PointList:
+                return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+            case ePrimitive_LineList:
+                return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+            case ePrimitive_LineStrip:
+                return D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
+            case ePrimitive_TriangleList:
+                return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+            case ePrimitive_TriangleStrip:
+                return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+            case ePrimitive_LineListAdj:
+                return D3D_PRIMITIVE_TOPOLOGY_LINELIST_ADJ;
+            case ePrimitive_LineStripAdj:
+                return D3D_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ;
+            case ePrimitive_TriangleListAdj:
+                return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ;
+            case ePrimitive_TriangleStripAdj:
+                return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ;
+            }
+            return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+        }
+
+        D3D12_PRIMITIVE_TOPOLOGY_TYPE operator()(EDrawingPrimitiveType prim, D3D12_PRIMITIVE_TOPOLOGY_TYPE) const
+        {
+            switch (prim)
+            {
+            case ePrimitive_Undefined:
+                return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+            case ePrimitive_PointList:
+                return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+            case ePrimitive_LineList:
+            case ePrimitive_LineStrip:
+            case ePrimitive_LineListAdj:
+            case ePrimitive_LineStripAdj:
+                return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+            case ePrimitive_TriangleList:
+            case ePrimitive_TriangleStrip:
+            case ePrimitive_TriangleListAdj:
+            case ePrimitive_TriangleStripAdj:
+                return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+            }
+            return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+        }
+
         D3D12_COMMAND_LIST_TYPE operator[](EDrawingCommandListType type) const
         {
             switch (type)
@@ -103,9 +153,16 @@ namespace Engine
         return D3D12Enum()[t];
     }
 
+    template<typename T, typename U>
+    inline auto D3D12Enum(const T& t, const U& u) -> decltype(D3D12Enum()(t, u))
+    {
+        return D3D12Enum()(t, u);
+    }
+
     template<typename T>
     inline void D3D12Releaser(T* p)
     {
         p->Release();
+        p = nullptr;
     }
 }

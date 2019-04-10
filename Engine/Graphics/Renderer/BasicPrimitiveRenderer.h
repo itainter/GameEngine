@@ -31,6 +31,8 @@ namespace Engine
         // Define shader resource names
         FuncResourceName(BasicPrimitiveVertexShader);
         FuncResourceName(BasicPrimitivePixelShader);
+        // Define pipeline state names
+        FuncResourceName(BasicPrimitivePipelineState);
         // Define effect resource names
         FuncResourceName(BasicPrimitiveEffect);
         // Define stage resource names
@@ -42,6 +44,7 @@ namespace Engine
 
     protected:
         void DefineShaderResource(DrawingResourceTable& resTable);
+        void DefinePipelineStateResource(DrawingResourceTable& resTable);
 
     private:
         std::shared_ptr<DrawingPass> CreateDefaultPass(
