@@ -1,8 +1,11 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 
 #include "IDrawingManager.h"
+
+#include "Global.h"
 #include "DrawingDevice.h"
 #include "DrawingEffectPool.h"
 #include "DrawingResourceTable.h"
@@ -34,7 +37,7 @@ namespace Engine
         bool PreConfiguration();
         bool CreateDevice();
         bool CreatePreResource();
-        bool CreateRenderer();
+        bool RegisterRenderer();
         bool PostConfiguration();
 
         std::shared_ptr<DrawingTarget> CreateSwapChain();
@@ -52,6 +55,7 @@ namespace Engine
         std::shared_ptr<DrawingResourceFactory> m_pResourceFactory;
         std::shared_ptr<DrawingResourceTable> m_pResourceTable;
 
-        std::shared_ptr<BasicPrimitiveRenderer> m_pBasicPrimitiveRenderer;
+        typedef std::unordered_map<ERTModule, std::shared_ptr<IRenderer>> RendererTable;
+        RendererTable m_rendererTable;
     };
 }

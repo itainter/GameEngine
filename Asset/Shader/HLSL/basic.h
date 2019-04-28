@@ -3,13 +3,14 @@
 
 struct BasicPrimitive_Input
 {
-    int VertexID : TEXCOORD0;
-    int InstanceID : TEXCOORD1;
+    float3 Position : POSITION;
+    float3 Normal : NORMAL;
 };
 
 struct BasicPrimitive_VertexAttr
 {
     noperspective float4 position : SV_Position;
+    noperspective float3 normal : NORMAL;
 };
 
 #endif

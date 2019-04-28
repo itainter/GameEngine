@@ -12,6 +12,7 @@ namespace Engine
     };
 
     class IDrawingManager;
+    class ISceneManager;
     class IInputManager;
     class ILog;
     class BaseApplication : public IApplication
@@ -31,6 +32,8 @@ namespace Engine
         static bool m_bQuit;
         std::shared_ptr<IEventManager> m_pEventManager;
         std::shared_ptr<IDrawingManager> m_pDrawingManager;
+        std::shared_ptr<IEntityPool> m_pEntityPool;
+        std::shared_ptr<ISceneManager> m_pSceneManager;
         std::shared_ptr<IInputManager> m_pInputManager;
         std::shared_ptr<ILog> m_pSystemLog;
         std::shared_ptr<ILog> m_pInputLog;

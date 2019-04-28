@@ -163,7 +163,7 @@ namespace Engine
             0,
             D3D_DRIVER_TYPE_HARDWARE,
             0,
-            0,
+            flags,
             &featureLevel,
             1,
             D3D11_SDK_VERSION,
@@ -171,6 +171,8 @@ namespace Engine
             nullptr,
             nullptr
             );
+
+
 
         if (FAILED(hr))
             return nullptr;

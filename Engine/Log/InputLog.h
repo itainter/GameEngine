@@ -2,9 +2,9 @@
 
 #include <functional>
 
-#include "ILog.h"
+#include "ILogManager.h"
 #include "Global.h"
-#include "Input.h"
+#include "InputManager.h"
 
 namespace Engine
 {

@@ -222,6 +222,7 @@ bool DrawingDevice_D3D12::CreateEffectFromShader(const DrawingEffectDesc& desc, 
 
     auto pVSShaderRaw = std::dynamic_pointer_cast<DrawingRawVertexShader_D3D12>(pVSShader->GetResource());
     assert(pVSShaderRaw != nullptr);
+
     auto pPSShaderRaw = std::dynamic_pointer_cast<DrawingRawPixelShader_D3D12>(pPSShader->GetResource());
     assert(pPSShaderRaw != nullptr);
 
@@ -242,6 +243,7 @@ bool DrawingDevice_D3D12::CreateVertexShaderFromFile(const DrawingVertexShaderDe
     std::ifstream fstream(desc.mpSourceName->c_str(), std::ios::binary);
     if (!fstream)
         return false;
+        
 
     std::string content((std::istreambuf_iterator<char>(fstream)), std::istreambuf_iterator<char>());
 

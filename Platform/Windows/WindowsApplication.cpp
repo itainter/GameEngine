@@ -1,35 +1,10 @@
 #include <memory>
 
 #include "Global.h"
-#include "IEvent.h"
 #include "WindowsApplication.h"
-#include "EventManager.h"
-#include "DrawingManager.h"
-#include "Input.h"
-#include "SystemLog.h"
-#include "InputLog.h"
 
-using namespace Engine;
 using namespace Platform;
-
-namespace Engine
-{
-    class WindowsSetup : public Setup
-    {
-    public:
-        WindowsSetup()
-        {
-            gpGlobal->RegisterRuntimeModule<WindowsApplication>(eRTModule_App);
-            gpGlobal->RegisterRuntimeModule<EventManager>(eRTModule_EventManager);
-            gpGlobal->RegisterRuntimeModule<DrawingManager>(eRTModule_DrawingManager);
-            gpGlobal->RegisterRuntimeModule<InputManager>(eRTModule_InputManager);
-            gpGlobal->RegisterRuntimeModule<SystemLog>(eRTModule_Log_System);
-            gpGlobal->RegisterRuntimeModule<InputLog>(eRTModule_Log_Input);
-        }
-    };
-
-    static WindowsSetup setup;
-}
+using namespace Engine;
 
 void WindowsApplication::Initialize()
 {
@@ -42,9 +17,6 @@ void WindowsApplication::Initialize()
     m_pWindowsInputManager = std::dynamic_pointer_cast<WindowsInput>(m_pInputManager);
     if (m_pWindowsInputManager)
         m_pWindowsInputManager->Initialize();
-
-    DECLARE_EVENT(eEv_System_App, AppInitEv, std::string("WindowsApplication initialize"));
-    EMITTER_EVENT(AppInitEv);
 }
 
 void WindowsApplication::Shutdown()
@@ -114,8 +86,6 @@ LRESULT CALLBACK WindowsApplication::WindowProc(HWND hWnd, UINT message, WPARAM 
     {
         case WM_DESTROY:
         {
-            DECLARE_EVENT(eEv_System_App, WindowsDestroyEv, std::string("Windows Destroy"));
-            EMITTER_EVENT(WindowsDestroyEv);
             PostQuitMessage(0);
             m_bQuit = true;
         } 

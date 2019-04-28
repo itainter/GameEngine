@@ -3,7 +3,7 @@
 #include <map>
 #include <memory>
 
-#include "IEvent.h"
+#include "IEventManager.h"
 
 namespace Engine
 {

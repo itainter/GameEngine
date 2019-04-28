@@ -1,15 +1,10 @@
 #pragma once
 
 #include "IRuntimeModule.h"
+#include "Global.h"
 
 namespace Engine
 {
-    enum EDeviceType
-    {
-        eDevice_D3D11 = 0,
-        eDevice_D3D12 = 1,
-        eDevice_OGL = 2,
-    };
     class IDrawingManager : public IRuntimeModule
     {
     public:

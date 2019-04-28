@@ -13,7 +13,6 @@ namespace Engine
     {
     public:
         BaseRenderer();
-        BaseRenderer(const std::shared_ptr<DrawingDevice>& pDevice, const std::shared_ptr<DrawingContext>& pContext);
         virtual ~BaseRenderer() {}
 
         virtual void Initialize() override = 0;
@@ -32,14 +31,18 @@ namespace Engine
         virtual void UpdatePrimitive(DrawingResourceTable& resTable) override = 0;
         virtual void Draw(DrawingResourceTable& resTable) override = 0;
 
-        void MapResources(DrawingResourceTable& resTable);
+        void AttachDevice(const std::shared_ptr<DrawingDevice>& pDevice, const std::shared_ptr<DrawingContext>& pContext) override;
+        void AttachMesh(std::shared_ptr<IMesh> pMesh) override;
+
+        void MapResources(DrawingResourceTable& resTable) override;
 
     public:
         FuncResourceName(DefaultVertexFormat);
 
-        FuncResourceName(PerVertexVertexBuffer);
+        FuncResourceName(DefaultPositionBuffer);
+        FuncResourceName(DefaultNormalBuffer);
+
         FuncResourceName(PerVertexIndexBuffer);
-        FuncResourceName(PerInstanceVertexBuffer);
 
         FuncResourceName(ScreenTarget);
         FuncResourceName(ScreenDepthBuffer);
@@ -55,14 +58,23 @@ namespace Engine
         FuncResourceName(DefaultCommandList);
 
     protected:
-        static const uint32_t MAX_VERTEX_COUNT = 65536;
-        static const uint32_t MAX_INSTANCE_COUNT = 65536;
+        static const uint32_t MAX_VERTEX_COUNT = 65536 * 4;
+        static const uint32_t MAX_INDEX_COUNT = 65536 * 4;
 
-        static uint32_t m_sVertexID[MAX_VERTEX_COUNT];
-        static uint32_t m_sInstanceID[MAX_INSTANCE_COUNT];
+        static const uint32_t PositionOffset = sizeof(Vec3<float>);
+        static const uint32_t NormalOffset = sizeof(Vec3<float>);
+
+        static char* m_sVertexID[Attribute::ESemanticType::Count][MAX_VERTEX_COUNT];
+        static char* m_sIndexID[MAX_INDEX_COUNT];
 
         static void InitVertexID();
         static void InitInstanceID();
+
+        uint32_t m_vertexOffset[Attribute::ESemanticType::Count];
+        uint32_t m_indexOffset;
+
+        uint32_t m_vertexCount;
+        uint32_t m_indexCount;
 
         std::shared_ptr<DrawingDevice> m_pDevice;
         std::shared_ptr<DrawingContext> m_pDeviceContext;

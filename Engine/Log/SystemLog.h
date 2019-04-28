@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include "ILog.h"
+#include "ILogManager.h"
 #include "Global.h"
 #include "BaseApplication.h"
 

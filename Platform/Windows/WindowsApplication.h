@@ -12,6 +12,7 @@ namespace Platform
     {
     public:
         WindowsApplication() {}
+        
         virtual ~WindowsApplication() {}
 
         void Initialize() override;

@@ -74,6 +74,32 @@ namespace Engine
             return DXGI_FORMAT_UNKNOWN;
         }
 
+        D3D12_FILL_MODE operator[](EDrawingFillModeType mode) const
+        {
+            switch (mode)
+            {
+            case eFillMode_Solid:
+                return D3D12_FILL_MODE_SOLID;
+            case eFillMode_WireFrame:
+                return D3D12_FILL_MODE_WIREFRAME;
+            }
+            return D3D12_FILL_MODE_SOLID;
+        }
+
+        D3D12_CULL_MODE operator[](EDrawingCullModeType mode) const
+        {
+            switch (mode)
+            {
+            case eCullMode_None:
+                return D3D12_CULL_MODE_NONE;
+            case eCullMode_Front:
+                return D3D12_CULL_MODE_FRONT;
+            case eCullMode_Back:
+                return D3D12_CULL_MODE_BACK;
+            }
+            return D3D12_CULL_MODE_NONE;
+        }
+
         D3D12_PRIMITIVE_TOPOLOGY operator()(EDrawingPrimitiveType prim, D3D12_PRIMITIVE_TOPOLOGY) const
         {
             switch (prim)

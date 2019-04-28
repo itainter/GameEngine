@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "IRuntimeModule.h"
-#include "IEvent.h"
+#include "IEventManager.h"
 
 namespace Engine
 {

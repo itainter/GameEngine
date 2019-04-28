@@ -5,30 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(Default) Launch Engine",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bin/Default/Debug/DefaultApp.exe",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/bin/Default/Debug",
-            "environment": [],
-            "externalConsole": true,
-            "preLaunchTask": "Build Engine"
-        },
-        {
-            "name": "(Windows) Launch Engine",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bin/Windows/Debug/WindowsApp.exe",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/bin/Windows/Debug",
-            "environment": [],
-            "externalConsole": true,
-            "preLaunchTask": "Build Engine"
-        },
-        {
             "name": "(Test) Launch Event Test",
             "type": "cppvsdbg",
             "request": "launch",
@@ -36,6 +12,18 @@
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/bin/Test/Event/Debug",
+            "environment": [],
+            "externalConsole": true,
+            "preLaunchTask": "Build Engine"
+        },
+        {
+            "name": "(Test) Launch Game Test",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/Test/Game/Debug/GameTest.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin/Test/Game/Debug",
             "environment": [],
             "externalConsole": true,
             "preLaunchTask": "Build Engine"

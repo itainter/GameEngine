@@ -3,8 +3,8 @@
 
 using namespace Engine;
 
-uint32_t BaseRenderer::m_sVertexID[MAX_VERTEX_COUNT] = { 0 };
-uint32_t BaseRenderer::m_sInstanceID[MAX_INSTANCE_COUNT] = { 0 };
+char* BaseRenderer::m_sVertexID[Attribute::ESemanticType::Count][MAX_VERTEX_COUNT] = {};
+char* BaseRenderer::m_sIndexID[MAX_INDEX_COUNT] = {};
 
 const uint32_t DrawingLinkedEffectDesc::VERTEX_SHADER_ID;
 const uint32_t DrawingLinkedEffectDesc::PIXEL_SHADER_ID;
@@ -13,13 +13,14 @@ BaseRenderer::BaseRenderer()
 {
     InitVertexID();
     InitInstanceID();
-}
 
-BaseRenderer::BaseRenderer(const std::shared_ptr<DrawingDevice>& pDevice, const std::shared_ptr<DrawingContext>& pContext) :
-    m_pDevice(pDevice), m_pDeviceContext(pContext)
-{
-    InitVertexID();
-    InitInstanceID();
+    m_vertexCount = 0;
+    m_indexCount = 0;
+
+    for (uint32_t i = 0; i < (uint32_t)Attribute::ESemanticType::Count; i++)
+        m_vertexOffset[i] = 0;
+
+    m_indexOffset = 0;
 }
 
 void BaseRenderer::MapResources(DrawingResourceTable& resTable)
@@ -27,11 +28,41 @@ void BaseRenderer::MapResources(DrawingResourceTable& resTable)
     m_stageTable.FetchResources(resTable);
 }
 
+void BaseRenderer::AttachDevice(const std::shared_ptr<DrawingDevice>& pDevice, const std::shared_ptr<DrawingContext>& pContext)
+{
+    m_pDevice = pDevice;
+    m_pDeviceContext = pContext;
+}
+
+void BaseRenderer::AttachMesh(std::shared_ptr<IMesh> pMesh)
+{
+    auto vertexCount = pMesh->VertexCount();
+    auto indexCount = pMesh->IndexCount();
+
+    auto pAttributes = pMesh->GetAttributes();
+
+    std::for_each(pAttributes.cbegin(), pAttributes.cend(), [this](std::shared_ptr<Attribute> pElem)
+    {
+        auto type = (uint32_t)pElem->semanticType;
+        assert(type < (uint32_t)Attribute::ESemanticType::Count);
+        memcpy(m_sVertexID[type] + m_vertexOffset[type], pElem->pData.get(), pElem->size);
+        m_vertexOffset[type] += pElem->size;
+    });
+
+    memcpy(m_sIndexID + m_indexOffset, pMesh->GetIndexData().get(), pMesh->IndexSize());
+    m_indexOffset += pMesh->IndexSize();
+
+    m_vertexCount += vertexCount;
+    m_indexCount += indexCount;
+}
+
 void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
 {
     DefineDefaultVertexFormat(resTable);
-    DefineStaticVertexBuffer(PerVertexVertexBuffer(), 4, MAX_VERTEX_COUNT, &m_sVertexID, 4 * MAX_VERTEX_COUNT, resTable);
-    DefineStaticVertexBuffer(PerInstanceVertexBuffer(), 4, MAX_INSTANCE_COUNT, &m_sInstanceID, 4 * MAX_INSTANCE_COUNT, resTable);
+    DefineStaticVertexBuffer(DefaultPositionBuffer(), PositionOffset, m_vertexCount, &m_sVertexID[(uint32_t)Attribute::ESemanticType::Position], m_vertexOffset[(uint32_t)Attribute::ESemanticType::Position], resTable);
+    DefineStaticVertexBuffer(DefaultNormalBuffer(), NormalOffset, m_vertexCount, &m_sVertexID[(uint32_t)Attribute::ESemanticType::Normal], m_vertexOffset[(uint32_t)Attribute::ESemanticType::Normal], resTable);
+
+    DefineStaticIndexBuffer(PerVertexIndexBuffer(), m_indexCount, &m_sIndexID, m_indexOffset, resTable);
 
     DefineExternalTarget(ScreenTarget(), resTable);
     DefineExternalDepthBuffer(ScreenDepthBuffer(), resTable);
@@ -122,20 +153,22 @@ void BaseRenderer::DefineDefaultVertexFormat(DrawingResourceTable& resTable)
 
     DrawingVertexFormatDesc::VertexInputElement inputElem;
 
-    inputElem.mFormat = eFormat_R32_FLOAT;
-    inputElem.mpName = strPtr("TEXCOORD");
+    inputElem.mFormat = eFormat_R32G32B32_FLOAT;
+    inputElem.mpName = strPtr("POSITION");
     inputElem.mIndex = 0;
     inputElem.mSlot = 0;
     inputElem.mOffset = 0;
+
+    
     inputElem.mInstanceStepRate = 0;
     pDesc->m_inputElements.emplace_back(inputElem);
 
-    inputElem.mFormat = eFormat_R32_FLOAT;
-    inputElem.mpName = strPtr("TEXCOORD");
-    inputElem.mIndex = 1;
+    inputElem.mFormat = eFormat_R32G32B32_FLOAT;
+    inputElem.mpName = strPtr("NORMAL");
+    inputElem.mIndex = 0;
     inputElem.mSlot = 1;
     inputElem.mOffset = 0;
-    inputElem.mInstanceStepRate = 1;
+    inputElem.mInstanceStepRate = 0;
     pDesc->m_inputElements.emplace_back(inputElem);
 
     resTable.AddResourceEntry(DefaultVertexFormat(), pDesc);
@@ -166,8 +199,8 @@ void BaseRenderer::DefineStaticIndexBuffer(std::shared_ptr<std::string> pName, u
 {
     auto pDesc = std::make_shared<DrawingIndexBufferDesc>();
 
-    pDesc->mSizeInBytes = 4 * count;
-    pDesc->mStrideInBytes = 4;
+    pDesc->mSizeInBytes = 2 * count;
+    pDesc->mStrideInBytes = 2;
     pDesc->mUsage = eUsage_Default;
     pDesc->mAccess = eAccess_No_Access;
     pDesc->mFlags = 0;
@@ -245,11 +278,11 @@ void BaseRenderer::DefineDefaultRasterState(DrawingResourceTable& resTable)
     pDesc->mSlopeScaledDepthBias = 0.0f;
     pDesc->mDepthBias = 0;
 
-    pDesc->mCullMode = eCullMode_None;
+    pDesc->mCullMode = eCullMode_Front;
     pDesc->mFillMode = eFillMode_Solid;
 
-    pDesc->mFrontCounterClockwise = false;
-    pDesc->mMultisampleEnable = false;
+    pDesc->mFrontCounterClockwise = true;
+    pDesc->mMultisampleEnable = true;
     pDesc->mScissorEnable = false;
 
     resTable.AddResourceEntry(DefaultRasterState(), pDesc);
@@ -363,8 +396,9 @@ void BaseRenderer::BindPipelineState(DrawingPass& pass, std::shared_ptr<std::str
 void BaseRenderer::BindInputs(DrawingPass& pass)
 {
     BindVertexFormat(pass, DefaultVertexFormat());
-    BindVertexBuffer(pass, 0, PerVertexVertexBuffer());
-    BindVertexBuffer(pass, 1, PerInstanceVertexBuffer());
+    BindVertexBuffer(pass, 0, DefaultPositionBuffer());
+    BindVertexBuffer(pass, 1, DefaultNormalBuffer());
+    BindIndexBuffer(pass, PerVertexIndexBuffer());
 }
 
 void BaseRenderer::BindStates(DrawingPass& pass)
@@ -399,12 +433,8 @@ void BaseRenderer::FlushStage(std::shared_ptr<std::string> pStageName)
 
 void BaseRenderer::InitVertexID()
 {
-    for (uint32_t i = 0; i < MAX_VERTEX_COUNT; ++i)
-        m_sVertexID[i] = i;
 }
 
 void BaseRenderer::InitInstanceID()
 {
-    for (uint32_t i = 0; i < MAX_INSTANCE_COUNT; ++i)
-        m_sInstanceID[i] = i;
 }

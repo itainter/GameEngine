@@ -4,6 +4,19 @@
 
 namespace Engine
 {
+    template <typename T>
+    inline T AddBit(T& mask, uint32_t bit)
+    {
+        mask |= (T)1 << (T)bit;
+        return mask;
+    }
+
+    template <typename T>
+    inline T ClearBit(T& mask, uint32_t bit)
+    {
+        mask &= ~((T)1 << (T)bit);
+        return mask;
+    }
     /***************************************************************************
     * These functions were taken from the MiniEngine.
     * Source code available here:

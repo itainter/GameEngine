@@ -1,10 +1,13 @@
 #include "Global.h"
 
 #include "IApplication.h"
-#include "IEvent.h"
-#include "IInput.h"
+#include "IEventManager.h"
+#include "IInputManager.h"
 #include "IDrawingManager.h"
-#include "Ilog.h"
+#include "ISceneManager.h"
+#include "IlogManager.h"
+#include "IECS.h"
+#include "IRenderer.h"
 
 using namespace Engine;
 
@@ -20,32 +23,48 @@ Global::~Global()
 
 std::shared_ptr<IApplication> Global::GetApplication()
 {
-    return GetRuntimeModule<IApplication, eRTModule_App>();
+    return GetRuntimeModule<IApplication>(eRTModule_App);
+}
+
+std::shared_ptr<IEntityPool> Global::GetEntityPool()
+{
+    return GetRuntimeModule<IEntityPool>(eRTModule_Entity_Pool);
 }
 
 std::shared_ptr<IEventManager> Global::GetEventManager()
 {
-    return GetRuntimeModule<IEventManager, eRTModule_EventManager>();
+    return GetRuntimeModule<IEventManager>(eRTModule_EventManager);
 }
 
 std::shared_ptr<IDrawingManager> Global::GetDrawingManager()
 {
-    return GetRuntimeModule<IDrawingManager, eRTModule_DrawingManager>();
+    return GetRuntimeModule<IDrawingManager>(eRTModule_DrawingManager);
+}
+
+std::shared_ptr<ISceneManager> Global::GetSceneManager()
+{
+    return GetRuntimeModule<ISceneManager>(eRTModule_SceneManager);
 }
 
 std::shared_ptr<IInputManager> Global::GetInputManager()
 {
-    return GetRuntimeModule<IInputManager, eRTModule_InputManager>();
+    return GetRuntimeModule<IInputManager>(eRTModule_InputManager);
 }
 
 std::shared_ptr<ILog> Global::GetLogSystem()
 {
-    return GetRuntimeModule<ILog, eRTModule_Log_System>();
+    return GetRuntimeModule<ILog>(eRTModule_Log_System);
 }
 
 std::shared_ptr<ILog> Global::GetLogInput()
 {
-    return GetRuntimeModule<ILog, eRTModule_Log_Input>();
+    return GetRuntimeModule<ILog>(eRTModule_Log_Input);
+}
+
+std::shared_ptr<IRenderer> Global::GetRenderer(ERTModule module)
+{
+    assert((module >= eRTModule_Renderer_Begin) && (module <= eRTModule_Renderer_End));
+    return GetRuntimeModule<IRenderer>(module);
 }
 
 Configuration& Global::GetConfiguration()

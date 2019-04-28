@@ -1,7 +1,7 @@
 #include <Windows.h>
 
 #include "Global.h"
-#include "IInput.h"
+#include "IInputManager.h"
 #include "WindowsInput.h"
 
 using namespace Engine;

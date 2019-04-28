@@ -3,7 +3,7 @@
 #include <queue>
 #include <stdint.h>
 
-#include "IInput.h"
+#include "IInputManager.h"
 
 namespace Engine
 {

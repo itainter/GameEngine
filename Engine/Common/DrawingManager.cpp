@@ -12,13 +12,12 @@ using namespace Engine;
 
 DrawingManager::DrawingManager() : m_window(nullptr),
     m_deviceSize(0),
-    m_deviceType(eDevice_D3D12),
+    m_deviceType(gpGlobal->GetConfiguration().type),
     m_pDevice(nullptr),
     m_pContext(nullptr),
     m_pEffectPool(nullptr),
     m_pResourceFactory(nullptr),
-    m_pResourceTable(nullptr),
-    m_pBasicPrimitiveRenderer(nullptr)
+    m_pResourceTable(nullptr)
 {
 }
 
@@ -34,13 +33,21 @@ void DrawingManager::Initialize()
 
 void DrawingManager::Shutdown()
 {
+    m_rendererTable.clear();
 }
 
 void DrawingManager::Tick()
 {
     m_pContext->UpdateContext(*m_pResourceTable);
     m_pDevice->ClearTarget(m_pContext->GetSwapChain(), gpGlobal->GetConfiguration().background);
-    m_pBasicPrimitiveRenderer->Draw(*m_pResourceTable);
+
+    std::for_each(m_rendererTable.begin(), m_rendererTable.end(), [this](RendererTable::value_type& aElem)
+    {
+        auto& pRenderer = aElem.second;
+        if (pRenderer != nullptr)
+            pRenderer->Draw(*m_pResourceTable);
+    });
+
     m_pDevice->Present(m_pContext->GetSwapChain(), 0);
 }
 
@@ -77,7 +84,7 @@ bool DrawingManager::EstablishConfiguration()
     if (!CreatePreResource())
         return false;
 
-    if (!CreateRenderer())
+    if (!RegisterRenderer())
         return false;
 
     if (!PostConfiguration())
@@ -127,9 +134,19 @@ bool DrawingManager::CreatePreResource()
     return true;
 }
 
-bool DrawingManager::CreateRenderer()
+bool DrawingManager::RegisterRenderer()
 {
-    m_pBasicPrimitiveRenderer = std::make_shared<BasicPrimitiveRenderer>(m_pDevice, m_pContext);
+    for (uint32_t module = eRTModule_Renderer_Begin; module != eRTModule_Renderer_End; module++)
+    {
+        auto& pRenderer = gpGlobal->GetRenderer((ERTModule)module);
+        if (pRenderer != nullptr)
+        {
+            m_rendererTable.emplace((ERTModule)module, pRenderer);
+            pRenderer->AttachDevice(m_pDevice, m_pContext);
+            pRenderer->DefineResources(*m_pResourceTable);
+            pRenderer->SetupStages();
+        }
+    }
     return true;
 }
 
@@ -142,6 +159,8 @@ std::shared_ptr<DrawingTarget> DrawingManager::CreateSwapChain()
     desc.mWidth = m_deviceSize.x;
     desc.mHeight = m_deviceSize.y;
     desc.mFormat = eFormat_R8G8B8A8_UNORM;
+    //desc.mMultiSampleCount = 4;
+    //desc.mMultiSampleQuality = 0;
 
     std::shared_ptr<DrawingTarget> pSwapChain;
 
@@ -168,9 +187,6 @@ std::shared_ptr<DrawingDepthBuffer> DrawingManager::CreateDepthBuffer()
 
 bool DrawingManager::PostConfiguration()
 {
-    m_pBasicPrimitiveRenderer->DefineResources(*m_pResourceTable);
-    m_pBasicPrimitiveRenderer->SetupStages();
-
     auto pSwapChain = CreateSwapChain();
     auto pDepthBuffer = CreateDepthBuffer();
 
@@ -185,7 +201,12 @@ bool DrawingManager::PostConfiguration()
 
     m_pDevice->Flush();
 
-    m_pBasicPrimitiveRenderer->MapResources(*m_pResourceTable);
+    std::for_each(m_rendererTable.begin(), m_rendererTable.end(), [this](RendererTable::value_type& aElem)
+    {
+        auto& pRenderer = aElem.second;
+        if (pRenderer != nullptr)
+            pRenderer->MapResources(*m_pResourceTable);
+    });
 
     return true;
 }

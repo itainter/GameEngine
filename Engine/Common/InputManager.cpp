@@ -1,6 +1,6 @@
-#include "IInput.h"
+#include "IInputManager.h"
 #include "EventManager.h"
-#include "Input.h"
+#include "InputManager.h"
 
 using namespace Engine;
 

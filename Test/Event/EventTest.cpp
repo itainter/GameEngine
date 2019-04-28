@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "Global.h"
-#include "IEvent.h"
+#include "IEventManager.h"
 #include "EventManager.h"
 
 using namespace Engine;

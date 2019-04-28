@@ -1,8 +1,8 @@
 #include <memory>
 #include <iostream>
 
-#include "ILog.h"
-#include "IEvent.h"
+#include "ILogManager.h"
+#include "IEventManager.h"
 #include "SystemLog.h"
 
 using namespace Engine;

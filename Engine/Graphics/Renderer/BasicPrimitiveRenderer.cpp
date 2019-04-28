@@ -7,10 +7,6 @@ BasicPrimitiveRenderer::BasicPrimitiveRenderer() : BaseRenderer()
 {
 }
 
-BasicPrimitiveRenderer::BasicPrimitiveRenderer(const std::shared_ptr<DrawingDevice>& pDevice, const std::shared_ptr<DrawingContext>& pContext) : BaseRenderer(pDevice, pContext)
-{
-}
-
 void BasicPrimitiveRenderer::Initialize()
 {
 }
@@ -64,10 +60,10 @@ void BasicPrimitiveRenderer::UpdatePrimitive(DrawingResourceTable& resTable)
     if (pPrimitive == nullptr)
         return;
 
-    pPrimitive->SetPrimitiveType(ePrimitive_TriangleStrip);
-    pPrimitive->SetVertexCount(3);
-    pPrimitive->SetIndexCount(0);
-    pPrimitive->SetInstanceCount(64 * 64);
+    pPrimitive->SetPrimitiveType(ePrimitive_TriangleList);
+    pPrimitive->SetVertexCount(m_vertexCount);
+    pPrimitive->SetIndexCount(m_indexCount);
+    pPrimitive->SetInstanceCount(0);
 
     pPrimitive->SetVertexOffset(0);
     pPrimitive->SetIndexOffset(0);

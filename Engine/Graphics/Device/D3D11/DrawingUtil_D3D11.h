@@ -245,8 +245,6 @@ namespace Engine
                 return D3D11_FILL_SOLID;
             case eFillMode_WireFrame:
                 return D3D11_FILL_WIREFRAME;
-
-                
             }
             return D3D11_FILL_SOLID;
         }

@@ -8,7 +8,6 @@ namespace Engine
     {
     public:
         BasicPrimitiveRenderer();
-        BasicPrimitiveRenderer(const std::shared_ptr<DrawingDevice>& pDevice, const std::shared_ptr<DrawingContext>& pContext);
         virtual ~BasicPrimitiveRenderer() {}
 
         void Initialize() override;
