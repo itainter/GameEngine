@@ -12,7 +12,6 @@ namespace Platform
     {
     public:
         WindowsApplication() {}
-        
         virtual ~WindowsApplication() {}
 
         void Initialize() override;
@@ -25,7 +24,6 @@ namespace Platform
         static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
     protected:
-        std::shared_ptr<WindowsInput> m_pWindowsInputManager;
         HWND m_hWnd;
         HDC  m_hDc;
     };

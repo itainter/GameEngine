@@ -7,24 +7,25 @@
 
 #include "Vec4.h"
 #include "FPS.h"
-#include "IRuntimeModule.h"
+#include "IECSWorld.h"
+#include "ECSWorld.h"
 
 namespace Engine
 {
-    enum ERTModule
+    enum ESystemType
     {
-        eRTModule_App = 1,
-        eRTModule_Entity_Pool = 2,
-        eRTModule_EventManager = 3,
-        eRTModule_DrawingManager = 4,
-        eRTModule_SceneManager = 5,
-        eRTModule_InputManager = 6,
-        eRTModule_Log_System = 7,
-        eRTModule_Log_Input = 8,
+        eSystem_EventManager = 0,
+        eSystem_DrawingManager = 1,
+        eSystem_SceneManager = 2,
+        eSystem_InputManager = 3,
+        eSystem_Log_System = 4,
+    };
 
-        eRTModule_Renderer_Begin = 101,
-        eRTModule_Renderer_BasicPrim = 101,
-        eRTModule_Renderer_End = 102,
+    enum ERendererType
+    {
+        eRenderer_Start = 0,
+        eRenderer_BasicPrim = 0,
+        eRenderer_End = 1,
     };
 
     enum EDeviceType
@@ -83,58 +84,72 @@ namespace Engine
     class ISceneManager;
     class IInputManager;
     class ILog;
-    class IEntityPool;
+    class IECSWorld;
     class IRenderer;
 
     class Global
     {
     public:
-        Global() {}
+        Global();
         virtual ~Global();
 
         std::shared_ptr<IApplication> GetApplication();
-        std::shared_ptr<IEntityPool> GetEntityPool();
+        std::shared_ptr<IECSWorld> GetECSWorld();
+
         std::shared_ptr<IEventManager> GetEventManager();
         std::shared_ptr<IDrawingManager> GetDrawingManager();
         std::shared_ptr<ISceneManager> GetSceneManager();
         std::shared_ptr<IInputManager> GetInputManager();
         std::shared_ptr<ILog> GetLogSystem();
-        std::shared_ptr<ILog> GetLogInput();
         // Renderer
-        std::shared_ptr<IRenderer> GetRenderer(ERTModule module);
+        std::shared_ptr<IRenderer> GetRenderer(ERendererType type);
 
         Configuration& GetConfiguration();
         FPSCounter& GetFPSCounter();
 
         template<typename T>
-        void RegisterRuntimeModule(ERTModule e)
+        void RegisterApp()
         {
-            auto it = m_RTModuleMap.find(e);
-            if (it != m_RTModuleMap.end())
-                return;
-            auto module = std::make_shared<T>();
-            std::shared_ptr<IRuntimeModule> result = std::dynamic_pointer_cast<IRuntimeModule>(module);
-
-            m_RTModuleMap[e] = result;
+            m_pWorld = std::make_shared<ECSWorld>();
+            auto app = std::make_shared<T>();
+            auto result = std::dynamic_pointer_cast<IApplication>(app);
+            m_pApp = result;
         }
 
-    private:
         template<typename T>
-        std::shared_ptr<T> GetRuntimeModule(ERTModule e)
+        void RegisterRuntimeModule(ESystemType e)
         {
-            auto it = m_RTModuleMap.find(e);
-            if (it == m_RTModuleMap.end())
-                return nullptr;
-            else
-            {
-                auto& module = it->second;
-                std::shared_ptr<T> result = std::dynamic_pointer_cast<T>(module);
-                return result;
-            }
+            auto it = m_pSystems.find(e);
+            if (it != m_pSystems.end())
+                return;
+            auto system = std::make_shared<T>();
+            auto result = std::dynamic_pointer_cast<IECSSystem>(system);
+
+            m_pSystems[e] = result;
+        }
+
+        template<typename T>
+        void RegisterRenderer(ERendererType e)
+        {
+            auto it = m_pRenderers.find(e);
+            if (it != m_pRenderers.end())
+                return;
+            auto renderer = std::make_shared<T>();
+            auto result = std::dynamic_pointer_cast<IRenderer>(renderer);
+
+            m_pRenderers[e] = result;
         }
 
     private:
-        std::unordered_map<ERTModule, std::shared_ptr<IRuntimeModule>> m_RTModuleMap;
+        std::shared_ptr<IECSSystem> GetRuntimeModule(ESystemType e);
+
+    private:
+        std::shared_ptr<IECSWorld> m_pWorld;
+
+        std::shared_ptr<IApplication> m_pApp;
+        std::unordered_map<ESystemType, std::shared_ptr<IECSSystem>> m_pSystems;
+        std::unordered_map<ERendererType, std::shared_ptr<IRenderer>> m_pRenderers;
+
         Configuration m_config;
         FPSCounter m_fps;
     };

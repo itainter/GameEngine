@@ -1,13 +1,14 @@
 #include "Global.h"
 
 #include "IApplication.h"
+#include "IECSWorld.h"
+#include "IRenderer.h"
+
 #include "IEventManager.h"
-#include "IInputManager.h"
 #include "IDrawingManager.h"
 #include "ISceneManager.h"
-#include "IlogManager.h"
-#include "IECS.h"
-#include "IRenderer.h"
+#include "IInputManager.h"
+#include "ILogManager.h"
 
 using namespace Engine;
 
@@ -16,55 +17,72 @@ namespace Engine
     Global* gpGlobal;
 }
 
+Global::Global()
+{
+}
+
 Global::~Global()
 {
-    m_RTModuleMap.clear();
+    m_pRenderers.clear();
+    m_pSystems.clear();
 }
 
 std::shared_ptr<IApplication> Global::GetApplication()
 {
-    return GetRuntimeModule<IApplication>(eRTModule_App);
+    return m_pApp;
 }
 
-std::shared_ptr<IEntityPool> Global::GetEntityPool()
+std::shared_ptr<IECSWorld> Global::GetECSWorld()
 {
-    return GetRuntimeModule<IEntityPool>(eRTModule_Entity_Pool);
+    return m_pWorld;
 }
 
 std::shared_ptr<IEventManager> Global::GetEventManager()
 {
-    return GetRuntimeModule<IEventManager>(eRTModule_EventManager);
+    auto& pModule = GetRuntimeModule(eSystem_EventManager);
+    auto pEventManager = std::dynamic_pointer_cast<IEventManager>(pModule);
+    return pEventManager;
 }
 
 std::shared_ptr<IDrawingManager> Global::GetDrawingManager()
 {
-    return GetRuntimeModule<IDrawingManager>(eRTModule_DrawingManager);
+    auto& pModule = GetRuntimeModule(eSystem_DrawingManager);
+    auto pDrawingManager = std::dynamic_pointer_cast<IDrawingManager>(pModule);
+    return pDrawingManager;
 }
 
 std::shared_ptr<ISceneManager> Global::GetSceneManager()
 {
-    return GetRuntimeModule<ISceneManager>(eRTModule_SceneManager);
+    auto& pModule = GetRuntimeModule(eSystem_SceneManager);
+    auto pSceneManager = std::dynamic_pointer_cast<ISceneManager>(pModule);
+    return pSceneManager;
 }
 
 std::shared_ptr<IInputManager> Global::GetInputManager()
 {
-    return GetRuntimeModule<IInputManager>(eRTModule_InputManager);
+    auto& pModule = GetRuntimeModule(eSystem_InputManager);
+    auto pInputManager = std::dynamic_pointer_cast<IInputManager>(pModule);
+    return pInputManager;
 }
 
 std::shared_ptr<ILog> Global::GetLogSystem()
 {
-    return GetRuntimeModule<ILog>(eRTModule_Log_System);
+    auto& pModule = GetRuntimeModule(eSystem_Log_System);
+    auto pLogSystem = std::dynamic_pointer_cast<ILog>(pModule);
+    return pLogSystem;
 }
 
-std::shared_ptr<ILog> Global::GetLogInput()
+std::shared_ptr<IRenderer> Global::GetRenderer(ERendererType type)
 {
-    return GetRuntimeModule<ILog>(eRTModule_Log_Input);
-}
-
-std::shared_ptr<IRenderer> Global::GetRenderer(ERTModule module)
-{
-    assert((module >= eRTModule_Renderer_Begin) && (module <= eRTModule_Renderer_End));
-    return GetRuntimeModule<IRenderer>(module);
+    auto it = m_pRenderers.find(type);
+    if (it == m_pRenderers.end())
+        return nullptr;
+    else
+    {
+        auto& renderer = it->second;
+        auto result = std::dynamic_pointer_cast<IRenderer>(renderer);
+        return result;
+    }
 }
 
 Configuration& Global::GetConfiguration()
@@ -75,6 +93,19 @@ Configuration& Global::GetConfiguration()
 FPSCounter& Global::GetFPSCounter()
 {
     return m_fps;
+}
+
+std::shared_ptr<IECSSystem> Global::GetRuntimeModule(ESystemType e)
+{
+    auto it = m_pSystems.find(e);
+    if (it == m_pSystems.end())
+        return nullptr;
+    else
+    {
+        auto& system = it->second;
+        auto result = std::dynamic_pointer_cast<IECSSystem>(system);
+        return result;
+    }
 }
 
 Setup::Setup()

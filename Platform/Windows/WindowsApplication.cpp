@@ -13,25 +13,15 @@ void WindowsApplication::Initialize()
     gpGlobal->GetConfiguration().hWnd = (void*)m_hWnd;
 
     BaseApplication::Initialize();
-
-    m_pWindowsInputManager = std::dynamic_pointer_cast<WindowsInput>(m_pInputManager);
-    if (m_pWindowsInputManager)
-        m_pWindowsInputManager->Initialize();
 }
 
 void WindowsApplication::Shutdown()
 {
-    if (m_pWindowsInputManager)
-        m_pWindowsInputManager->Shutdown();
-
     BaseApplication::Shutdown();
 }
 
 void WindowsApplication::Tick()
 {
-    if (m_pWindowsInputManager)
-        m_pWindowsInputManager->Tick();
-
     MSG msg;
     if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
     {

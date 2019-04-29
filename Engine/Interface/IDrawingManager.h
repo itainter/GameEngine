@@ -1,20 +1,14 @@
 #pragma once
 
-#include "IRuntimeModule.h"
 #include "Global.h"
 
 namespace Engine
 {
-    class IDrawingManager : public IRuntimeModule
+    class IDrawingManager
     {
     public:
         IDrawingManager() = default;
         virtual ~IDrawingManager() = default;
-
-        virtual void Initialize() override = 0;
-        virtual void Shutdown() override = 0;
-
-        virtual void Tick() override = 0;
 
         virtual void Flush() = 0;
         virtual void BeginFrame() = 0;

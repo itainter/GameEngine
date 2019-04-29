@@ -1,11 +1,11 @@
-#include "IECS.h"
+#include "IECSWorld.h"
 
 namespace Engine
 {
     class EntityBase : public IEntity
     {
     public:
-        EntityBase(std::shared_ptr<IEntityPool> pool);
+        EntityBase(std::shared_ptr<IECSWorld> pWorld);
         virtual ~EntityBase();
 
         void AttachComponent(CompID compId, IComponent* pComponent, std::unordered_map<CompID, std::vector<uint8_t>>& memory) override;

@@ -4,6 +4,10 @@
 #include <fstream>
 
 #include "Global.h"
+#include "TransformComponent.h"
+#include "MeshFilterComponent.h"
+#include "MeshRendererComponent.h"
+
 #include "DrawingManager.h"
 #include "D3D11/DrawingDevice_D3D11.h"
 #include "D3D12/DrawingDevice_D3D12.h"
@@ -136,12 +140,12 @@ bool DrawingManager::CreatePreResource()
 
 bool DrawingManager::RegisterRenderer()
 {
-    for (uint32_t module = eRTModule_Renderer_Begin; module != eRTModule_Renderer_End; module++)
+    for (uint32_t type = eRenderer_Start; type != eRenderer_End; type++)
     {
-        auto& pRenderer = gpGlobal->GetRenderer((ERTModule)module);
+        auto& pRenderer = gpGlobal->GetRenderer((ERendererType)type);
         if (pRenderer != nullptr)
         {
-            m_rendererTable.emplace((ERTModule)module, pRenderer);
+            m_rendererTable.emplace((ERendererType)type, pRenderer);
             pRenderer->AttachDevice(m_pDevice, m_pContext);
             pRenderer->DefineResources(*m_pResourceTable);
             pRenderer->SetupStages();

@@ -5,9 +5,11 @@
 
 #include "IInputManager.h"
 
+#include "ECSSystem.h"
+
 namespace Engine
 {
-    class InputManager : public IInputManager
+    class InputManager : public IInputManager, public ECSSystemBase<>
     {
     public:
         InputManager() {}

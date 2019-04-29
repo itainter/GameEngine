@@ -3,7 +3,7 @@
 
 using namespace Engine;
 
-EntityBase::EntityBase(std::shared_ptr<IEntityPool> pool) : IEntity(pool)
+EntityBase::EntityBase(std::shared_ptr<IECSWorld> pWorld) : IEntity(pWorld)
 {
 }
 

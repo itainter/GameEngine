@@ -5,9 +5,11 @@
 
 #include "IEventManager.h"
 
+#include "ECSSystem.h"
+
 namespace Engine
 {
-    class EventManager : public IEventManager
+    class EventManager : public IEventManager, public ECSSystemBase<>
     {
     public:
         EventManager() {}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IECS.h"
+#include "IECSWorld.h"
 #include "Algorithm.h"
 
 namespace Engine

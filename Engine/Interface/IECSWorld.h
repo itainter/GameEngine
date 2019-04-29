@@ -10,7 +10,7 @@ namespace Engine
 {
     class IComponent;
     class IEntity;
-    class IEntityPool;
+    class IECSWorld;
 
     typedef uint32_t CompID;
     typedef uint32_t CompIndex;
@@ -62,7 +62,7 @@ namespace Engine
     class IEntity : public std::enable_shared_from_this<IEntity>
     {
     public:
-        IEntity(std::shared_ptr<IEntityPool> pool) : m_pEntityPool(pool), m_compBitset(0) {}
+        IEntity(std::shared_ptr<IECSWorld> pWorld) : m_pWorld(pWorld), m_compBitset(0) {}
         virtual ~IEntity() = default;
 
         virtual void AttachComponent(CompID compId, IComponent* pComponent, std::unordered_map<CompID, std::vector<uint8_t>>& memory) = 0;
@@ -75,7 +75,7 @@ namespace Engine
         EntityID m_id;
 
     protected:
-        std::shared_ptr<IEntityPool> m_pEntityPool;
+        std::shared_ptr<IECSWorld> m_pWorld;
         CompBitset m_compBitset;
         std::vector<std::pair<CompID, CompIndex>> m_comps;
     };
@@ -96,25 +96,27 @@ namespace Engine
         if (!bFound)
             return nullptr;
 
-        Comp* pComp = (Comp*)(&m_pEntityPool->m_compTable[compId][compIndex]);
+        Comp* pComp = (Comp*)(&m_pWorld->m_compTable[compId][compIndex]);
         return pComp;
     };
 
-    class IECSSystem
+    class IECSSystem : public IRuntimeModule
     {
     public:
         IECSSystem() : m_compBitset(0) {}
         virtual ~IECSSystem() = default;
 
-        virtual void Initialize(std::shared_ptr<IEntity> pEntity) = 0;
-        virtual void Update(std::shared_ptr<IEntity> pEntity) = 0;
+        virtual void Initialize() = 0;
+        virtual void Shutdown() = 0;
+
+        virtual void Tick() = 0;
 
     protected:
         CompBitset m_compBitset;
         std::vector<CompID> m_comps;
     };
 
-    class IEntityPool : public IRuntimeModule
+    class IECSWorld : public IRuntimeModule
     {
     friend IEntity;
     public:
@@ -124,23 +126,26 @@ namespace Engine
         template<typename... Comps>
         std::shared_ptr<IEntity> CreateEntity();
 
-        void AddECSSystem(std::shared_ptr<IECSSystem> pSystem);
+        template<typename T>
+        void AddECSSystem(std::shared_ptr<T> pSystem);
         void RemoveECSSystem(std::shared_ptr<IECSSystem> pSystem);
 
         void Initialize() override 
         {
-            for (uint32_t i = 0; i < m_entityPool.size(); i++)
-                for (uint32_t j = 0; j < m_systemPool.size(); j++)
-                    m_systemPool[j]->Initialize(m_entityPool[i]);
+            for (uint32_t i = 0; i < m_systemPool.size(); i++)
+                m_systemPool[i]->Initialize();
         }
 
-        void Shutdown() override {}
+        void Shutdown() override
+        {
+            for (uint32_t i = 0; i < m_systemPool.size(); i++)
+                m_systemPool[i]->Shutdown();
+        }
 
         void Tick() override
         {
-            for (uint32_t i = 0; i < m_entityPool.size(); i++)
-                for (uint32_t j = 0; j < m_systemPool.size(); j++)
-                    m_systemPool[j]->Update(m_entityPool[i]);
+            for (uint32_t i = 0; i < m_systemPool.size(); i++)
+                m_systemPool[i]->Tick();
         }
 
     private:
@@ -153,7 +158,7 @@ namespace Engine
     };
 
     template<typename ...Comps>
-    inline std::shared_ptr<IEntity> IEntityPool::CreateEntity(Comps... comps)
+    inline std::shared_ptr<IEntity> IECSWorld::CreateEntity(Comps... comps)
     {
         std::vector<CompID> ids = { Comps::m_compID... };
         std::vector<IComponent*> pComponents = { &comps... };
@@ -162,7 +167,7 @@ namespace Engine
     }
 
     template<typename... Comps>
-    inline std::shared_ptr<IEntity> IEntityPool::CreateEntity()
+    inline std::shared_ptr<IEntity> IECSWorld::CreateEntity()
     {
         std::vector<CompID> ids = { Comps::m_compID... };
         std::vector<IComponent*> pComponents = { new Comps()... };
@@ -170,12 +175,14 @@ namespace Engine
         return pEntity;
     }
 
-    inline void IEntityPool::AddECSSystem(std::shared_ptr<IECSSystem> pSystem)
+    template<typename T>
+    inline void IECSWorld::AddECSSystem(std::shared_ptr<T> pSystem)
     {
-        m_systemPool.push_back(pSystem);
+        auto pECSSystem = std::dynamic_pointer_cast<IECSSystem>(pSystem);
+        m_systemPool.push_back(pECSSystem);
     }
 
-    inline void IEntityPool::RemoveECSSystem(std::shared_ptr<IECSSystem> pSystem)
+    inline void IECSWorld::RemoveECSSystem(std::shared_ptr<IECSSystem> pSystem)
     {
         for(uint32_t i = 0; i < m_systemPool.size(); i++)
         {

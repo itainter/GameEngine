@@ -15,7 +15,7 @@ namespace Engine
     public:
         TestSetup()
         {
-            gpGlobal->RegisterRuntimeModule<EventManager>(eRTModule_EventManager);
+            gpGlobal->RegisterRuntimeModule<EventManager>(eSystem_EventManager);
         }
     };
 

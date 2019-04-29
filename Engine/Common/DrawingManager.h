@@ -6,6 +6,8 @@
 #include "IDrawingManager.h"
 
 #include "Global.h"
+#include "ECSSystem.h"
+
 #include "DrawingDevice.h"
 #include "DrawingEffectPool.h"
 #include "DrawingResourceTable.h"
@@ -14,7 +16,10 @@
 
 namespace Engine
 {
-    class DrawingManager : public IDrawingManager
+    class TransformComponent;
+    class MeshFilterComponent;
+    class MeshRendererComponent;
+    class DrawingManager : public IDrawingManager, public ECSSystemBase<TransformComponent, MeshFilterComponent, MeshRendererComponent>
     {
     public:
         DrawingManager();
@@ -22,7 +27,6 @@ namespace Engine
 
         void Initialize() override;
         void Shutdown() override;
-
         void Tick() override;
 
         void Flush() override;
@@ -55,7 +59,7 @@ namespace Engine
         std::shared_ptr<DrawingResourceFactory> m_pResourceFactory;
         std::shared_ptr<DrawingResourceTable> m_pResourceTable;
 
-        typedef std::unordered_map<ERTModule, std::shared_ptr<IRenderer>> RendererTable;
+        typedef std::unordered_map<ERendererType, std::shared_ptr<IRenderer>> RendererTable;
         RendererTable m_rendererTable;
     };
 }

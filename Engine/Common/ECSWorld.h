@@ -1,13 +1,13 @@
 #pragma once
 
-#include "IECS.h"
+#include "IECSWorld.h"
 
 namespace Engine
 {
-    class EntityPool : public IEntityPool
+    class ECSWorld : public IECSWorld
     {
     public:
-        EntityPool() = default;
+        ECSWorld() = default;
 
     protected:
         std::shared_ptr<IEntity> CreateEntity(const std::vector<IComponent*>& pComponents, const std::vector<CompID>& ids) override;

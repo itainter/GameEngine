@@ -18,11 +18,6 @@ file(GLOB SRC_SCENE
     "Scene/*.h"
 )
 
-file(GLOB SRC_SYSTEM
-    "System/*.cpp"
-    "System/*.h"
-)
-
 source_group(Component FILES ${SRC_COMPONENT})
 source_group(Scene FILES ${SRC_SCENE})
 

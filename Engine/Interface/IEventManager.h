@@ -48,13 +48,9 @@ namespace Engine
     typedef std::list<EventDelegate> EventDelegateList;
     typedef uintptr_t EventListenerAddr;
 
-    class IEventManager : public IRuntimeModule
+    class IEventManager
     {
     public:
-        virtual void Initialize() override = 0;
-        virtual void Shutdown() override = 0;
-        virtual void Tick() override = 0;
-
         virtual bool AddListener(IEventData::id_t id, EventDelegate proc) = 0;
         virtual bool RemoveListener(IEventData::id_t id, EventDelegate proc) = 0;
         virtual void QueueEvent(IEventDataPtr e) = 0;
