@@ -3,21 +3,23 @@
 #include <queue>
 #include <stdint.h>
 
-#include "IInputManager.h"
+#include "IInputSystem.h"
 
 #include "ECSSystem.h"
 
 namespace Engine
 {
-    class InputManager : public IInputManager, public ECSSystemBase<>
+    class InputSystem : public IInputSystem, public ECSSystemBase<>
     {
     public:
-        InputManager() {}
-        virtual ~InputManager() {}
+        InputSystem() {}
+        virtual ~InputSystem() {}
 
         void Initialize() override;
         void Shutdown() override;
         void Tick() override;
+
+        void FlushEntity(std::shared_ptr<IEntity> pEntity) override;
 
         void DispatchInputEvent(EInputEvent event, InputMsg msg) override;
 

@@ -48,7 +48,7 @@ namespace Engine
     typedef std::list<EventDelegate> EventDelegateList;
     typedef uintptr_t EventListenerAddr;
 
-    class IEventManager
+    class IEventSystem
     {
     public:
         virtual bool AddListener(IEventData::id_t id, EventDelegate proc) = 0;
@@ -86,7 +86,7 @@ namespace Engine
         bool Dispatch(IEventData::id_t id, EventDelegate proc);
 
     private:
-        std::weak_ptr<IEventManager> el_mEventManager;
+        std::weak_ptr<IEventSystem> el_mEventSystem;
         std::vector<EventPair> el_mEvent;
     }; 
 
@@ -94,7 +94,7 @@ namespace Engine
     Event<decltype(msg), decltype(id), id> event(msg, #id)
 
 #define EMITTER_EVENT(event)                                                                                \
-    gpGlobal->GetEventManager()->QueueEvent(std::shared_ptr<IEventData>(new decltype(event)(event)))
+    gpGlobal->GetEventSystem()->QueueEvent(std::shared_ptr<IEventData>(new decltype(event)(event)))
 
 #define DECLARE_LISTENER()                                                                                  \
     EventListener listener

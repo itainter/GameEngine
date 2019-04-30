@@ -4,10 +4,10 @@
 
 namespace Engine
 {
-    class ILog : public IRuntimeModule
+    class ILogSystem : public IRuntimeModule
     {
     public:
-        virtual ~ILog() {}
+        virtual ~ILogSystem() {}
 
         virtual void Initialize() override = 0;
         virtual void Shutdown() override = 0;

@@ -4,13 +4,12 @@
 
 namespace Engine
 {
-    class IDrawingManager
+    class IDrawingSystem
     {
     public:
-        IDrawingManager() = default;
-        virtual ~IDrawingManager() = default;
+        IDrawingSystem() = default;
+        virtual ~IDrawingSystem() = default;
 
-        virtual void Flush() = 0;
         virtual void BeginFrame() = 0;
         virtual void EndFrame() = 0;
 

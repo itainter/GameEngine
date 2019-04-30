@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include "IDrawingManager.h"
+#include "IDrawingSystem.h"
 
 #include "DirtyData.h"
 #include "DrawingType.h"

@@ -4,11 +4,11 @@
 
 namespace Engine
 {
-    class ISceneManager : public IRuntimeModule
+    class ISceneSystem : public IRuntimeModule
     {
     public:
-        ISceneManager() = default;
-        virtual ~ISceneManager() = default;
+        ISceneSystem() = default;
+        virtual ~ISceneSystem() = default;
 
         virtual void Initialize() = 0;
         virtual void Shutdown() = 0;

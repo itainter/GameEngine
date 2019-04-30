@@ -1,6 +1,6 @@
 #pragma once
 
-#include "InputManager.h"
+#include "InputSystem.h"
 
 namespace Platform
 {
@@ -51,7 +51,7 @@ namespace Platform
         eEm_InputControl_F12 = 42,
     };
 
-    class WindowsInput : public Engine::InputManager
+    class WindowsInput : public Engine::InputSystem
     {
     public:
         WindowsInput() {}

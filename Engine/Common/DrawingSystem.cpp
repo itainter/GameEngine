@@ -8,13 +8,13 @@
 #include "MeshFilterComponent.h"
 #include "MeshRendererComponent.h"
 
-#include "DrawingManager.h"
+#include "DrawingSystem.h"
 #include "D3D11/DrawingDevice_D3D11.h"
 #include "D3D12/DrawingDevice_D3D12.h"
 
 using namespace Engine;
 
-DrawingManager::DrawingManager() : m_window(nullptr),
+DrawingSystem::DrawingSystem() : m_window(nullptr),
     m_deviceSize(0),
     m_deviceType(gpGlobal->GetConfiguration().type),
     m_pDevice(nullptr),
@@ -25,22 +25,22 @@ DrawingManager::DrawingManager() : m_window(nullptr),
 {
 }
 
-DrawingManager::~DrawingManager()
+DrawingSystem::~DrawingSystem()
 {
 }
 
-void DrawingManager::Initialize()
+void DrawingSystem::Initialize()
 {
     if (!EstablishConfiguration())
         return;
 }
 
-void DrawingManager::Shutdown()
+void DrawingSystem::Shutdown()
 {
     m_rendererTable.clear();
 }
 
-void DrawingManager::Tick()
+void DrawingSystem::Tick()
 {
     m_pContext->UpdateContext(*m_pResourceTable);
     m_pDevice->ClearTarget(m_pContext->GetSwapChain(), gpGlobal->GetConfiguration().background);
@@ -55,29 +55,37 @@ void DrawingManager::Tick()
     m_pDevice->Present(m_pContext->GetSwapChain(), 0);
 }
 
-void DrawingManager::Flush()
+void DrawingSystem::FlushEntity(std::shared_ptr<IEntity> pEntity)
+{
+    auto pRenderer = pEntity->GetComponent<MeshRendererComponent>();
+    auto pMesh = pEntity->GetComponent<MeshFilterComponent>();
+
+    if (m_bEntityChanged)
+        pRenderer->GetRenderer()->AttachMesh(pMesh->GetMesh());
+
+    m_bEntityChanged = false;
+}
+
+void DrawingSystem::BeginFrame()
 {
 }
 
-void DrawingManager::BeginFrame()
+
+void DrawingSystem::EndFrame()
 {
 }
 
-void DrawingManager::EndFrame()
-{
-}
-
-EDeviceType DrawingManager::GetDeviceType() const
+EDeviceType DrawingSystem::GetDeviceType() const
 {
     return m_deviceType;
 }
 
-void DrawingManager::SetDeviceType(EDeviceType type)
+void DrawingSystem::SetDeviceType(EDeviceType type)
 {
     m_deviceType = type;
 }
 
-bool DrawingManager::EstablishConfiguration()
+bool DrawingSystem::EstablishConfiguration()
 {
     if (!PreConfiguration())
         return false;
@@ -97,7 +105,7 @@ bool DrawingManager::EstablishConfiguration()
     return true;
 }
 
-bool DrawingManager::PreConfiguration()
+bool DrawingSystem::PreConfiguration()
 {
     if (gpGlobal == nullptr)
         return false;
@@ -109,7 +117,7 @@ bool DrawingManager::PreConfiguration()
     return true;
 }
 
-bool DrawingManager::CreateDevice()
+bool DrawingSystem::CreateDevice()
 {
     switch(m_deviceType)
     {
@@ -127,7 +135,7 @@ bool DrawingManager::CreateDevice()
     return true;
 }
 
-bool DrawingManager::CreatePreResource()
+bool DrawingSystem::CreatePreResource()
 {
     m_pEffectPool = std::make_shared<DrawingEffectPool>(m_pDevice);
     m_pResourceFactory = std::make_shared<DrawingResourceFactory>(m_pDevice);
@@ -138,7 +146,7 @@ bool DrawingManager::CreatePreResource()
     return true;
 }
 
-bool DrawingManager::RegisterRenderer()
+bool DrawingSystem::RegisterRenderer()
 {
     for (uint32_t type = eRenderer_Start; type != eRenderer_End; type++)
     {
@@ -154,7 +162,7 @@ bool DrawingManager::RegisterRenderer()
     return true;
 }
 
-std::shared_ptr<DrawingTarget> DrawingManager::CreateSwapChain()
+std::shared_ptr<DrawingTarget> DrawingSystem::CreateSwapChain()
 {
     assert(m_window != nullptr);
 
@@ -163,8 +171,8 @@ std::shared_ptr<DrawingTarget> DrawingManager::CreateSwapChain()
     desc.mWidth = m_deviceSize.x;
     desc.mHeight = m_deviceSize.y;
     desc.mFormat = eFormat_R8G8B8A8_UNORM;
-    //desc.mMultiSampleCount = 4;
-    //desc.mMultiSampleQuality = 0;
+    desc.mMultiSampleCount = 4;
+    desc.mMultiSampleQuality = 0;
 
     std::shared_ptr<DrawingTarget> pSwapChain;
 
@@ -174,7 +182,7 @@ std::shared_ptr<DrawingTarget> DrawingManager::CreateSwapChain()
     return pSwapChain;
 }
 
-std::shared_ptr<DrawingDepthBuffer> DrawingManager::CreateDepthBuffer()
+std::shared_ptr<DrawingDepthBuffer> DrawingSystem::CreateDepthBuffer()
 {
     DrawingDepthBufferDesc desc;
     desc.mWidth = m_deviceSize.x;
@@ -189,7 +197,7 @@ std::shared_ptr<DrawingDepthBuffer> DrawingManager::CreateDepthBuffer()
     return pDepthBuffer;
 }
 
-bool DrawingManager::PostConfiguration()
+bool DrawingSystem::PostConfiguration()
 {
     auto pSwapChain = CreateSwapChain();
     auto pDepthBuffer = CreateDepthBuffer();

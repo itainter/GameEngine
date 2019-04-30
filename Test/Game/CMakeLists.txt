@@ -20,7 +20,6 @@ target_link_libraries(
     Common
     Graphics
     Entity
-    Log
 )
 
 set_target_properties(

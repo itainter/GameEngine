@@ -4,11 +4,11 @@
 #include "IECSWorld.h"
 #include "IRenderer.h"
 
-#include "IEventManager.h"
-#include "IDrawingManager.h"
-#include "ISceneManager.h"
-#include "IInputManager.h"
-#include "ILogManager.h"
+#include "IEventSystem.h"
+#include "IDrawingSystem.h"
+#include "ISceneSystem.h"
+#include "IInputSystem.h"
+#include "ILogSystem.h"
 
 using namespace Engine;
 
@@ -37,38 +37,38 @@ std::shared_ptr<IECSWorld> Global::GetECSWorld()
     return m_pWorld;
 }
 
-std::shared_ptr<IEventManager> Global::GetEventManager()
+std::shared_ptr<IEventSystem> Global::GetEventSystem()
 {
-    auto& pModule = GetRuntimeModule(eSystem_EventManager);
-    auto pEventManager = std::dynamic_pointer_cast<IEventManager>(pModule);
-    return pEventManager;
+    auto& pModule = GetRuntimeModule(eSystem_Event);
+    auto pEventSystem = std::dynamic_pointer_cast<IEventSystem>(pModule);
+    return pEventSystem;
 }
 
-std::shared_ptr<IDrawingManager> Global::GetDrawingManager()
+std::shared_ptr<IDrawingSystem> Global::GetDrawingSystem()
 {
-    auto& pModule = GetRuntimeModule(eSystem_DrawingManager);
-    auto pDrawingManager = std::dynamic_pointer_cast<IDrawingManager>(pModule);
-    return pDrawingManager;
+    auto& pModule = GetRuntimeModule(eSystem_Drawing);
+    auto pDrawingSystem = std::dynamic_pointer_cast<IDrawingSystem>(pModule);
+    return pDrawingSystem;
 }
 
-std::shared_ptr<ISceneManager> Global::GetSceneManager()
+std::shared_ptr<ISceneSystem> Global::GetSceneSystem()
 {
-    auto& pModule = GetRuntimeModule(eSystem_SceneManager);
-    auto pSceneManager = std::dynamic_pointer_cast<ISceneManager>(pModule);
-    return pSceneManager;
+    auto& pModule = GetRuntimeModule(eSystem_Scene);
+    auto pSceneSystem = std::dynamic_pointer_cast<ISceneSystem>(pModule);
+    return pSceneSystem;
 }
 
-std::shared_ptr<IInputManager> Global::GetInputManager()
+std::shared_ptr<IInputSystem> Global::GetInputSystem()
 {
-    auto& pModule = GetRuntimeModule(eSystem_InputManager);
-    auto pInputManager = std::dynamic_pointer_cast<IInputManager>(pModule);
-    return pInputManager;
+    auto& pModule = GetRuntimeModule(eSystem_Input);
+    auto pInputSystem = std::dynamic_pointer_cast<IInputSystem>(pModule);
+    return pInputSystem;
 }
 
-std::shared_ptr<ILog> Global::GetLogSystem()
+std::shared_ptr<ILogSystem> Global::GetLogSystem()
 {
-    auto& pModule = GetRuntimeModule(eSystem_Log_System);
-    auto pLogSystem = std::dynamic_pointer_cast<ILog>(pModule);
+    auto& pModule = GetRuntimeModule(eSystem_Log);
+    auto pLogSystem = std::dynamic_pointer_cast<ILogSystem>(pModule);
     return pLogSystem;
 }
 

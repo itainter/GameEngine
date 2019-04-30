@@ -1,6 +1,6 @@
-#include "IInputManager.h"
-#include "EventManager.h"
-#include "InputManager.h"
+#include "IInputSystem.h"
+#include "EventSystem.h"
+#include "InputSystem.h"
 
 using namespace Engine;
 
@@ -9,17 +9,17 @@ std::ostream& operator<< (std::ostream &out, InputMsg const& e)
     return out << "(control ID: " << e.CtrID() << ", param 1: " << e.Param1() << ", param 2: " << e.Param2() << ")" << std::endl;
 }
 
-void InputManager::Initialize()
+void InputSystem::Initialize()
 {
 }
 
-void InputManager::Shutdown()
+void InputSystem::Shutdown()
 {
     while (!m_inputQueue.empty())
         m_inputQueue.pop();
 }
 
-void InputManager::Tick()
+void InputSystem::Tick()
 {
     while (!m_inputQueue.empty())
     {
@@ -86,7 +86,11 @@ void InputManager::Tick()
     }
 }
 
-void InputManager::DispatchInputEvent(EInputEvent event, InputMsg msg)
+void InputSystem::FlushEntity(std::shared_ptr<IEntity> pEntity)
+{
+}
+
+void InputSystem::DispatchInputEvent(EInputEvent event, InputMsg msg)
 {
     m_inputQueue.emplace(event, msg);
 }

@@ -1,7 +1,7 @@
 #include <Windows.h>
 
 #include "Global.h"
-#include "IInputManager.h"
+#include "IInputSystem.h"
 #include "WindowsInput.h"
 
 using namespace Engine;
@@ -21,7 +21,7 @@ void WindowsInput::Tick()
 
 void WindowsInput::PeekWindowsInputMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
-    auto pInputManager = gpGlobal->GetInputManager();
+    auto pInputSystem = gpGlobal->GetInputSystem();
     InputMsg msg;
     switch (message)
     {
@@ -29,7 +29,7 @@ void WindowsInput::PeekWindowsInputMessage(UINT message, WPARAM wParam, LPARAM l
         {
             msg.setCtrID(eEm_InputControl_Char);
             msg.setParam1((int64_t)wParam);
-            pInputManager->DispatchInputEvent(eEv_Input_KeyChar, msg);
+            pInputSystem->DispatchInputEvent(eEv_Input_KeyChar, msg);
             break;
         }
         case WM_KEYUP:
@@ -72,9 +72,9 @@ void WindowsInput::PeekWindowsInputMessage(UINT message, WPARAM wParam, LPARAM l
             if (bCatched)
             {
                 if (message == WM_KEYUP)
-                    pInputManager->DispatchInputEvent(eEv_Input_KeyUp, msg);
+                    pInputSystem->DispatchInputEvent(eEv_Input_KeyUp, msg);
                 else if (message == WM_KEYDOWN)
-                    pInputManager->DispatchInputEvent(eEv_Input_KeyDown, msg);
+                    pInputSystem->DispatchInputEvent(eEv_Input_KeyDown, msg);
             }
             break;
         }

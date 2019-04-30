@@ -1,9 +1,9 @@
 #include "WindowsApplication.h"
-#include "EventManager.h"
-#include "DrawingManager.h"
-#include "SceneManager.h"
-#include "InputManager.h"
-#include "SystemLog.h"
+#include "EventSystem.h"
+#include "DrawingSystem.h"
+#include "SceneSystem.h"
+#include "InputSystem.h"
+#include "LogSystem.h"
 
 #include "TransformComponent.h"
 #include "MeshFilterComponent.h"
@@ -25,24 +25,24 @@ public:
         gpGlobal->GetConfiguration().appName = "Game Test";
         gpGlobal->GetConfiguration().width = 1080;
         gpGlobal->GetConfiguration().height = 1080;
-        gpGlobal->GetConfiguration().type = eDevice_D3D12;
+        gpGlobal->GetConfiguration().type = eDevice_D3D11;
 
         gpGlobal->RegisterApp<WindowsApplication>();
 
-        gpGlobal->RegisterRuntimeModule<InputManager>(eSystem_InputManager);
-        gpGlobal->RegisterRuntimeModule<EventManager>(eSystem_EventManager);
-        gpGlobal->RegisterRuntimeModule<SceneManager>(eSystem_SceneManager);
-        gpGlobal->RegisterRuntimeModule<DrawingManager>(eSystem_DrawingManager);
-        gpGlobal->RegisterRuntimeModule<SystemLog>(eSystem_Log_System);
+        gpGlobal->RegisterRuntimeModule<InputSystem>(eSystem_Input);
+        gpGlobal->RegisterRuntimeModule<EventSystem>(eSystem_Event);
+        gpGlobal->RegisterRuntimeModule<SceneSystem>(eSystem_Scene);
+        gpGlobal->RegisterRuntimeModule<DrawingSystem>(eSystem_Drawing);
+        gpGlobal->RegisterRuntimeModule<LogSystem>(eSystem_Log);
 
         gpGlobal->RegisterRenderer<BasicPrimitiveRenderer>(eRenderer_BasicPrim);
 
         auto& pWorld = gpGlobal->GetECSWorld();
 
         // ECSSystem
-        pWorld->AddECSSystem(gpGlobal->GetInputManager());
-        pWorld->AddECSSystem(gpGlobal->GetEventManager());
-        pWorld->AddECSSystem(gpGlobal->GetDrawingManager());
+        pWorld->AddECSSystem(gpGlobal->GetInputSystem());
+        pWorld->AddECSSystem(gpGlobal->GetEventSystem());
+        pWorld->AddECSSystem(gpGlobal->GetDrawingSystem());
         pWorld->AddECSSystem(gpGlobal->GetLogSystem());
 
         // Entity
@@ -52,13 +52,11 @@ public:
 
         posComp.SetPosition(Vec3<float>(1.0f, 1.0f, 1.0f));
 
-        auto pMesh = std::make_shared<CubeMesh>();
-        //auto pMesh = std::make_shared<GLTF2Mesh>("Asset/Scene/Test/DamagedHelmet.gltf")
+        //auto pMesh = std::make_shared<CubeMesh>();
+        auto pMesh = std::make_shared<GLTF2Mesh>("Asset/Scene/Test/DamagedHelmet.gltf");
 
         meshFilterComp.SetMesh(pMesh);
         meshRendererComp.SetRenderer(gpGlobal->GetRenderer(eRenderer_BasicPrim));
-
-        gpGlobal->GetRenderer(eRenderer_BasicPrim)->AttachMesh(pMesh);
 
         auto entity = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(posComp, meshFilterComp, meshRendererComp);
     }

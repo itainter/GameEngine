@@ -39,7 +39,7 @@ BasicPrimitive_VertexAttr BasicPrimitive_VS(BasicPrimitive_Input input)
     output.position.xyz = input.Position.xyz;
     output.position.w = 1.0f;
 
-    float4x4 viewMatrix = LookAt(float3(2.0f, 3.0f, 3.0f), float3(0.0f, 0.0f, 0.0f), float3(0.0f, 1.0f, 0.0f));
+    float4x4 viewMatrix = LookAt(float3(-2.5f, 1.0f, -2.0f), float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, -1.0f));
     float4x4 projectionMatrix = Projection(60.0f, 1080.0f / 1080.0f, 1.0f, 100.0f);
 
     output.position = mul(output.position, viewMatrix);

@@ -14,11 +14,11 @@ namespace Engine
 {
     enum ESystemType
     {
-        eSystem_EventManager = 0,
-        eSystem_DrawingManager = 1,
-        eSystem_SceneManager = 2,
-        eSystem_InputManager = 3,
-        eSystem_Log_System = 4,
+        eSystem_Event = 0,
+        eSystem_Drawing = 1,
+        eSystem_Scene = 2,
+        eSystem_Input = 3,
+        eSystem_Log = 4,
     };
 
     enum ERendererType
@@ -79,11 +79,11 @@ namespace Engine
     };
 
     class IApplication;
-    class IEventManager;
-    class IDrawingManager;
-    class ISceneManager;
-    class IInputManager;
-    class ILog;
+    class IEventSystem;
+    class IDrawingSystem;
+    class ISceneSystem;
+    class IInputSystem;
+    class ILogSystem;
     class IECSWorld;
     class IRenderer;
 
@@ -96,11 +96,11 @@ namespace Engine
         std::shared_ptr<IApplication> GetApplication();
         std::shared_ptr<IECSWorld> GetECSWorld();
 
-        std::shared_ptr<IEventManager> GetEventManager();
-        std::shared_ptr<IDrawingManager> GetDrawingManager();
-        std::shared_ptr<ISceneManager> GetSceneManager();
-        std::shared_ptr<IInputManager> GetInputManager();
-        std::shared_ptr<ILog> GetLogSystem();
+        std::shared_ptr<IEventSystem> GetEventSystem();
+        std::shared_ptr<IDrawingSystem> GetDrawingSystem();
+        std::shared_ptr<ISceneSystem> GetSceneSystem();
+        std::shared_ptr<IInputSystem> GetInputSystem();
+        std::shared_ptr<ILogSystem> GetLogSystem();
         // Renderer
         std::shared_ptr<IRenderer> GetRenderer(ERendererType type);
 

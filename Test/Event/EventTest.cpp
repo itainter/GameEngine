@@ -3,8 +3,8 @@
 #include <iostream>
 
 #include "Global.h"
-#include "IEventManager.h"
-#include "EventManager.h"
+#include "IEventSystem.h"
+#include "EventSystem.h"
 
 using namespace Engine;
 
@@ -15,7 +15,7 @@ namespace Engine
     public:
         TestSetup()
         {
-            gpGlobal->RegisterRuntimeModule<EventManager>(eSystem_EventManager);
+            gpGlobal->RegisterRuntimeModule<EventSystem>(eSystem_Event);
         }
     };
 
@@ -75,7 +75,7 @@ int main()
         EMITTER_EVENT(Test_3_Ev);
     }
 
-    gpGlobal->GetEventManager()->ProcessEvents();
+    gpGlobal->GetEventSystem()->ProcessEvents();
 
     return 0;
 }

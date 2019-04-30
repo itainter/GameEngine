@@ -3,7 +3,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "IDrawingManager.h"
+#include "IDrawingSystem.h"
 
 #include "Global.h"
 #include "ECSSystem.h"
@@ -19,17 +19,18 @@ namespace Engine
     class TransformComponent;
     class MeshFilterComponent;
     class MeshRendererComponent;
-    class DrawingManager : public IDrawingManager, public ECSSystemBase<TransformComponent, MeshFilterComponent, MeshRendererComponent>
+    class DrawingSystem : public IDrawingSystem, public ECSSystemBase<TransformComponent, MeshFilterComponent, MeshRendererComponent>
     {
     public:
-        DrawingManager();
-        virtual ~DrawingManager();
+        DrawingSystem();
+        virtual ~DrawingSystem();
 
         void Initialize() override;
         void Shutdown() override;
         void Tick() override;
 
-        void Flush() override;
+        void FlushEntity(std::shared_ptr<IEntity> pEntity) override;
+
         void BeginFrame() override;
         void EndFrame() override;
 
@@ -51,6 +52,8 @@ namespace Engine
         void* m_window;
         uint2 m_deviceSize;
         EDeviceType m_deviceType;
+
+        bool m_bEntityChanged = true;
 
         std::shared_ptr<DrawingDevice> m_pDevice;
         std::shared_ptr<DrawingContext> m_pContext;

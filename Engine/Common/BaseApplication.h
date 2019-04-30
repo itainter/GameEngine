@@ -11,9 +11,9 @@ namespace Engine
         eEv_System_App = 1,
     };
 
-    class IDrawingManager;
-    class ISceneManager;
-    class IInputManager;
+    class IDrawingSystem;
+    class ISceneSystem;
+    class IInputSystem;
     class ILog;
     class BaseApplication : public IApplication
     {

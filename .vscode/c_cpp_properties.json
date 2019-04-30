@@ -19,7 +19,6 @@
                 "${workspaceFolder}/Engine/Entity/Component",
                 "${workspaceFolder}/Engine/Entity/Mesh",
                 "${workspaceFolder}/Engine/Entity/Scene",
-                "${workspaceFolder}/Engine/Log",
                 "${workspaceFolder}/Engine/Math",
                 "${workspaceFolder}/Engine/Util",
                 "${workspaceFolder}/Platform/Windows",

@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "IRuntimeModule.h"
-#include "IEventManager.h"
+#include "IEventSystem.h"
 
 namespace Engine
 {
@@ -47,10 +47,10 @@ namespace Engine
     };
 
 
-    class IInputManager : public IRuntimeModule
+    class IInputSystem : public IRuntimeModule
     {
     public:
-        virtual ~IInputManager() {}
+        virtual ~IInputSystem() {}
 
         virtual void Initialize() override = 0;
         virtual void Shutdown() override = 0;
