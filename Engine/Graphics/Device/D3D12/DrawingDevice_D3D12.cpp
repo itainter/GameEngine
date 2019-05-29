@@ -31,6 +31,15 @@ void DrawingDevice_D3D12::Initialize()
     m_pDirectCommandManager = std::make_shared<DrawingCommandManager_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), eCommandList_Direct);
     m_pComputeCommandManager = std::make_shared<DrawingCommandManager_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), eCommandList_Compute);
     m_pCopyCommandManager = std::make_shared<DrawingCommandManager_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), eCommandList_Copy);
+
+    m_pUploadAllocator = std::make_shared<DrawingUploadAllocator_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()));
+
+    for (uint32_t i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i)
+    {
+        m_pDescriptorAllocators[i] = std::make_shared<DrawingDescriptorAllocator_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), D3D12Enum(static_cast<EDrawingDescriptorHeapType>(i)));
+        m_pDynamicDescriptorHeaps[i] = std::make_shared<DrawingDynamicDescriptorHeap_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), D3D12Enum(static_cast<EDrawingDescriptorHeapType>(i)));
+        m_pDescriptorHeaps[i] = nullptr;
+    }
 }
 
 void DrawingDevice_D3D12::Shutdown()
@@ -68,10 +77,8 @@ bool DrawingDevice_D3D12::CreateVertexFormat(const DrawingVertexFormatDesc& desc
 
 bool DrawingDevice_D3D12::CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData, uint32_t size)
 {
-    if ((pData != nullptr) && (size < desc.mSizeInBytes))
+    if ((pData != nullptr) && (size > desc.mSizeInBytes))
         return false;
-
-    auto& resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(desc.mSizeInBytes, D3D12_RESOURCE_FLAG_NONE);
 
     D3D12_SUBRESOURCE_DATA subResData;
     ZeroMemory(&subResData, sizeof(D3D12_SUBRESOURCE_DATA));
@@ -82,7 +89,7 @@ bool DrawingDevice_D3D12::CreateVertexBuffer(const DrawingVertexBufferDesc& desc
     auto pVertexBuffer = std::make_shared<DrawingVertexBuffer>(shared_from_this());
     auto commandList = m_pCopyCommandManager->GetCommandList();
 
-    std::shared_ptr<DrawingRawVertexBuffer> pVertexBufferRaw = std::make_shared<DrawingRawVertexBuffer_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), resourceDesc, subResData, desc.mStrideInBytes);
+    std::shared_ptr<DrawingRawVertexBuffer> pVertexBufferRaw = std::make_shared<DrawingRawVertexBuffer_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), subResData, size, desc.mStrideInBytes);
 
     pVertexBuffer->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
     pVertexBuffer->SetResource(pVertexBufferRaw);
@@ -94,10 +101,8 @@ bool DrawingDevice_D3D12::CreateVertexBuffer(const DrawingVertexBufferDesc& desc
 
 bool DrawingDevice_D3D12::CreateIndexBuffer(const DrawingIndexBufferDesc& desc, std::shared_ptr<DrawingIndexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData, uint32_t size)
 {
-    if ((pData != nullptr) && (size < desc.mSizeInBytes))
+    if ((pData != nullptr) && (size > desc.mSizeInBytes))
         return false;
-
-    auto& resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(desc.mSizeInBytes, D3D12_RESOURCE_FLAG_NONE);
 
     D3D12_SUBRESOURCE_DATA subResData;
     ZeroMemory(&subResData, sizeof(D3D12_SUBRESOURCE_DATA));
@@ -108,7 +113,7 @@ bool DrawingDevice_D3D12::CreateIndexBuffer(const DrawingIndexBufferDesc& desc, 
     auto pIndexBuffer = std::make_shared<DrawingIndexBuffer>(shared_from_this());
     auto commandList = m_pCopyCommandManager->GetCommandList();
 
-    std::shared_ptr<DrawingRawIndexBuffer> pIndexBufferRaw = std::make_shared<DrawingRawIndexBuffer_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), resourceDesc, subResData, desc.mStrideInBytes);
+    std::shared_ptr<DrawingRawIndexBuffer> pIndexBufferRaw = std::make_shared<DrawingRawIndexBuffer_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), subResData, size, desc.mStrideInBytes);
 
     pIndexBuffer->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
     pIndexBuffer->SetResource(pIndexBufferRaw);
@@ -118,8 +123,54 @@ bool DrawingDevice_D3D12::CreateIndexBuffer(const DrawingIndexBufferDesc& desc, 
     return true;
 }
 
-bool DrawingDevice_D3D12::CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData, uint32_t size)
+bool DrawingDevice_D3D12::CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData[], uint32_t size[], uint32_t slices)
 {
+    auto pTexture = std::make_shared<DrawingTexture>(shared_from_this());
+    std::shared_ptr<DrawingRawTexture> pRawTexture = nullptr;
+
+    std::vector<D3D12_SUBRESOURCE_DATA> subResData(slices);
+    uint32_t dataSize = 0;
+    switch (desc.mType)
+    {
+        case eTexture_1D:
+        case eTexture_1DArray:
+        {
+            break;
+        }
+        case eTexture_2D:
+        case eTexture_2DArray:
+        case eTexture_Cube:
+        {
+            D3D12_RESOURCE_DESC texture2DDesc;
+            texture2DDesc = CD3DX12_RESOURCE_DESC::Tex2D(D3D12Enum(desc.mFormat), static_cast<UINT64>(desc.mWidth), static_cast<UINT>(desc.mHeight), static_cast<UINT16>(desc.mArraySize), 1);
+
+            if (!subResData.empty())
+            {
+                auto mipLevels = slices / desc.mArraySize;
+                for (uint32_t index = 0; index < desc.mArraySize; ++index)
+                {
+                    auto bytesPerRow = desc.mBytesPerRow;
+                    auto bytesPerSlice = desc.mBytesPerSlice;
+                    for (uint32_t level = 0; level < mipLevels; ++level)
+                    {
+                        auto LOD = index * level + level;
+                        ZeroMemory(&subResData[LOD], sizeof(D3D12_SUBRESOURCE_DATA));
+                        subResData[LOD].pData = *(pData++);
+                        subResData[LOD].RowPitch = bytesPerRow;
+                        dataSize += size[LOD];
+                        bytesPerRow = bytesPerRow > 1U ? bytesPerRow >> 1 : 1U;
+                    }
+                }
+            }
+            pRawTexture = std::make_shared<DrawingRawTexture2D_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), texture2DDesc, subResData, dataSize);
+        }
+    }
+
+    pTexture->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
+    pTexture->SetResource(pRawTexture);
+
+    pRes = pTexture;
+
     return true;
 }
 
@@ -139,8 +190,8 @@ bool DrawingDevice_D3D12::CreateTarget(const DrawingTargetDesc& desc, std::share
         SwapChainDesc.BufferDesc.Format = D3D12Enum(desc.mFormat);
         SwapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
         SwapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-        SwapChainDesc.SampleDesc.Count = desc.mMultiSampleCount;
-        SwapChainDesc.SampleDesc.Quality = desc.mMultiSampleQuality;
+        SwapChainDesc.SampleDesc.Count = 1;
+        SwapChainDesc.SampleDesc.Quality = 0;
         SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         SwapChainDesc.BufferCount = BUFFER_COUNT;
         SwapChainDesc.OutputWindow = (HWND)desc.mHwnd;
@@ -286,6 +337,8 @@ bool DrawingDevice_D3D12::CreatePixelShaderFromBuffer(const void* pData, uint32_
 bool DrawingDevice_D3D12::CreatePipelineState(const DrawingPipelineStateDesc& desc, const DrawingPipelineState::SubobjectResourceTable& subobjectResources, std::shared_ptr<DrawingPipelineState>& pRes)
 {
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineDesc = {};
+    std::shared_ptr<DrawingRawEffect_D3D12> pEffectRaw = nullptr;
+
     for (const auto& subobjectResource : subobjectResources)
     {
         switch (subobjectResource.first)
@@ -296,16 +349,36 @@ bool DrawingDevice_D3D12::CreatePipelineState(const DrawingPipelineStateDesc& de
             case DrawingPipelineStateDesc::ePipelineStateSubobjectType_PrimitiveTopology:
                 pipelineDesc.PrimitiveTopologyType = D3D12Enum(std::dynamic_pointer_cast<DrawingPrimitive>(subobjectResource.second)->GetPrimitiveType(), pipelineDesc.PrimitiveTopologyType);
                 break;
-            case DrawingPipelineStateDesc::ePipelineStateSubobjectType_Vs:
-                pipelineDesc.VS = CD3DX12_SHADER_BYTECODE(std::dynamic_pointer_cast<DrawingRawVertexShader_D3D12>(std::dynamic_pointer_cast<DrawingVertexShader>(subobjectResource.second)->GetResource())->Get().get());
+            case DrawingPipelineStateDesc::ePipelineStateSubobjectType_Effect:
+            {
+                pEffectRaw = std::dynamic_pointer_cast<DrawingRawEffect_D3D12>(std::dynamic_pointer_cast<DrawingEffect>(subobjectResource.second)->GetResource());
+                auto pShaderEffectRaw = std::dynamic_pointer_cast<DrawingRawShaderEffect_D3D12>(pEffectRaw);
+                assert(pShaderEffectRaw != nullptr);
+                auto pVSShaderRaw = std::dynamic_pointer_cast<DrawingRawVertexShader_D3D12>(pShaderEffectRaw->GetRawShader(DrawingRawShader::RawShader_VS));
+                auto pPSShaderRaw = std::dynamic_pointer_cast<DrawingRawPixelShader_D3D12>(pShaderEffectRaw->GetRawShader(DrawingRawShader::RawShader_PS));
+                auto pRootSignature = pShaderEffectRaw->GetRootSignature();
+                assert(pVSShaderRaw != nullptr);
+                assert(pPSShaderRaw != nullptr);
+                pipelineDesc.VS = CD3DX12_SHADER_BYTECODE(pVSShaderRaw->Get().get());
+                pipelineDesc.PS = CD3DX12_SHADER_BYTECODE(pPSShaderRaw->Get().get());
+                pipelineDesc.pRootSignature = pRootSignature->GetRootSignature().get();
                 break;
-            case DrawingPipelineStateDesc::ePipelineStateSubobjectType_Ps:
-                pipelineDesc.PS = CD3DX12_SHADER_BYTECODE(std::dynamic_pointer_cast<DrawingRawPixelShader_D3D12>(std::dynamic_pointer_cast<DrawingPixelShader>(subobjectResource.second)->GetResource())->Get().get());
-                break;
+            }
             case DrawingPipelineStateDesc::ePipelineStateSubobjectType_BlendState:
-                pipelineDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+            {
+                D3D12_BLEND_DESC blendDesc = {};
+                blendDesc.RenderTarget[0].BlendEnable = true;
+                blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+                blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+                blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+                blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
+                blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+                blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+                blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+                pipelineDesc.BlendState = CD3DX12_BLEND_DESC(blendDesc);
                 pipelineDesc.SampleMask = UINT_MAX;
                 break;
+            }
             case DrawingPipelineStateDesc::ePipelineStateSubobjectType_RasterState:
                 pipelineDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
                 break;
@@ -326,22 +399,8 @@ bool DrawingDevice_D3D12::CreatePipelineState(const DrawingPipelineStateDesc& de
         }
     }
 
-    /* ----------------- TODO ----------------- */
-    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
-    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-    rootSignatureDescription.Init_1_1(0, nullptr, 0, nullptr, rootSignatureFlags);
-
-    ID3D12RootSignature* m_RootSignature = nullptr;
-    ID3DBlob* rootSignatureBlob;
-    ID3DBlob* errorBlob;
-    HRESULT hr = D3DX12SerializeVersionedRootSignature(&rootSignatureDescription, D3D_ROOT_SIGNATURE_VERSION_1_1, &rootSignatureBlob, &errorBlob);
-
-    hr = GetDevice()->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(), rootSignatureBlob->GetBufferSize(), __uuidof(ID3D12RootSignature), (void**)&m_RootSignature);
-    pipelineDesc.pRootSignature = m_RootSignature;
-    /* ----------------- TODO ----------------- */
-
     auto pPipelineState = std::make_shared<DrawingPipelineState>(shared_from_this());
-    std::shared_ptr<DrawingRawPipelineState> pPipelineStateRaw = std::make_shared<DrawingRawPipelineState_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), m_RootSignature, pipelineDesc);
+    std::shared_ptr<DrawingRawPipelineState> pPipelineStateRaw = std::make_shared<DrawingRawPipelineState_D3D12>(std::static_pointer_cast<DrawingDevice_D3D12>(shared_from_this()), pEffectRaw, pipelineDesc);
 
     pPipelineState->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
     pPipelineState->SetResource(pPipelineStateRaw);
@@ -388,10 +447,7 @@ void DrawingDevice_D3D12::SetVertexBuffer(std::shared_ptr<DrawingVertexBuffer> p
     for (uint32_t index = 0; index < count; ++index)
     {
         if (pVertexBuffersRaw[index] != nullptr)
-        {
-            m_pDirectCommandManager->TransitionBarrier(pVertexBuffersRaw[index]->GetBuffer(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
             commandList->IASetVertexBuffers(index, 1, &pVertexBuffersRaw[index]->GetVertexBufferView());
-        }
     }
 }
 
@@ -402,7 +458,6 @@ void DrawingDevice_D3D12::SetIndexBuffer(std::shared_ptr<DrawingIndexBuffer> pIB
         std::shared_ptr<DrawingRawIndexBuffer_D3D12> pIndexBuffersRaw = std::dynamic_pointer_cast<DrawingRawIndexBuffer_D3D12>(pIB->GetResource());
         auto commandList = m_pDirectCommandManager->GetCommandList();
 
-        m_pDirectCommandManager->TransitionBarrier(pIndexBuffersRaw->GetBuffer(), D3D12_RESOURCE_STATE_INDEX_BUFFER);
         commandList->IASetIndexBuffer(&pIndexBuffersRaw->GetIndexBufferView());
     }
 }
@@ -429,8 +484,8 @@ void DrawingDevice_D3D12::SetPipelineState(std::shared_ptr<DrawingPipelineState>
         auto commandList = m_pDirectCommandManager->GetCommandList();
         commandList->SetPipelineState(pPipelineStateRaw->GetPipelineState().get());
 
-        auto rootSignature = pPipelineStateRaw->GetRootSignature();
-        commandList->SetGraphicsRootSignature(rootSignature.get());
+        auto rootSignature = pPipelineStateRaw->GetEffect()->GetRootSignature();
+        commandList->SetGraphicsRootSignature(rootSignature->GetRootSignature().get());
     }
 }
 
@@ -517,11 +572,38 @@ void DrawingDevice_D3D12::SetTargets(std::shared_ptr<DrawingTarget> pTarget[], u
 
 bool DrawingDevice_D3D12::UpdateEffectParameter(std::shared_ptr<DrawingParameter> pParam, std::shared_ptr<DrawingEffect> pEffect)
 {
+    assert(pEffect != nullptr);
+    auto pRawEffect = std::dynamic_pointer_cast<DrawingRawEffect_D3D12>(pEffect->GetResource());
+    assert(pRawEffect != nullptr);
+
+    pRawEffect->UpdateParameter(pParam);
+
     return true;
 }
 
 bool DrawingDevice_D3D12::UpdateEffectTexture(std::shared_ptr<DrawingTexture> pTex, std::shared_ptr<std::string> pName, std::shared_ptr<DrawingEffect> pEffect)
 {
+    assert(pTex != nullptr);
+    assert(pEffect != nullptr);
+
+    auto pRawEffect = std::dynamic_pointer_cast<DrawingRawEffect_D3D12>(pEffect->GetResource());
+    assert(pRawEffect != nullptr);
+
+    auto pRawTex = std::dynamic_pointer_cast<DrawingRawTexture_D3D12>(pTex->GetResource());
+    assert(pRawTex != nullptr);
+
+    auto pParamSet = pRawEffect->GetParameterSet();
+
+    int32_t index = pParamSet.IndexOfName(pName);
+    if (index < 0)
+        return false;
+
+    auto pParam = pParamSet[index];
+    if (pParam == nullptr)
+        return false;
+
+    pParam->AsTexture(pRawTex.get());
+
     return true;
 }
 
@@ -557,10 +639,22 @@ bool DrawingDevice_D3D12::UpdateEffectOutputRWBuffer(std::shared_ptr<DrawingRWBu
 
 void DrawingDevice_D3D12::BeginEffect(DrawingContext& dc, std::shared_ptr<DrawingEffect> pEffect)
 {
+    assert(pEffect != nullptr);
+
+    auto pRawEffect = std::dynamic_pointer_cast<DrawingRawEffect_D3D12>(pEffect->GetResource());
+    assert(pRawEffect != nullptr);
+
+    pRawEffect->Apply();
 }
 
 void DrawingDevice_D3D12::EndEffect(DrawingContext& dc, std::shared_ptr<DrawingEffect> pEffect)
 {
+    assert(pEffect != nullptr);
+
+    auto pRawEffect = std::dynamic_pointer_cast<DrawingRawEffect_D3D12>(pEffect->GetResource());
+    assert(pRawEffect != nullptr);
+
+    pRawEffect->Terminate();
 }
 
 bool DrawingDevice_D3D12::DrawPrimitive(std::shared_ptr<DrawingPrimitive> pRes)
@@ -618,6 +712,15 @@ void DrawingDevice_D3D12::Flush()
     m_pComputeCommandManager->WaitForFenceValue(fenceValue);
 }
 
+uint32_t DrawingDevice_D3D12::FormatBytes(EDrawingFormatType type)
+{
+    return D3D12FormatBytes(type);
+}
+
+DrawingDescriptorAllocator_D3D12::Allocation DrawingDevice_D3D12::AllocationDescriptors(EDrawingDescriptorHeapType type, uint32_t numDescriptors)
+{
+    return m_pDescriptorAllocators[type]->Allocate(numDescriptors);
+}
 
 std::shared_ptr<ID3D12Device2> DrawingDevice_D3D12::GetDevice() const
 {
@@ -643,6 +746,21 @@ std::shared_ptr<DrawingCommandManager_D3D12> DrawingDevice_D3D12::GetCommandMana
             assert(false);
     }
     return nullptr;
+}
+
+std::shared_ptr<DrawingUploadAllocator_D3D12> DrawingDevice_D3D12::GetUploadAllocator() const
+{
+    return m_pUploadAllocator;
+}
+
+std::shared_ptr<DrawingDescriptorAllocator_D3D12> DrawingDevice_D3D12::GetDescriptorAllocator(EDrawingDescriptorHeapType type) const
+{
+    return m_pDescriptorAllocators[type];
+}
+
+std::shared_ptr<DrawingDynamicDescriptorHeap_D3D12> DrawingDevice_D3D12::GetDynamicDescriptorHeap(EDrawingDescriptorHeapType type) const
+{
+    return m_pDynamicDescriptorHeaps[type];
 }
 
 bool DrawingDevice_D3D12::DoCreateEffect(const DrawingEffectDesc& desc, const void* pData, uint32_t size, std::shared_ptr<DrawingEffect>& pRes)

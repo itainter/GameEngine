@@ -165,7 +165,48 @@ namespace Engine
             }
             return D3D12_COMMAND_LIST_TYPE_DIRECT;
         }
+
+        D3D12_DESCRIPTOR_HEAP_TYPE operator[](EDrawingDescriptorHeapType type) const
+        {
+            switch (type)
+            {
+            case eDescriptorHeap_CBV_SRV_UVA:
+                return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            case eDescriptorHeap_Sampler:
+                return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+            case eDescriptorHeap_RTV:
+                return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+            case eDescriptorHeap_DSV:
+                return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+            }
+            return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        }
     };
+
+    inline uint8_t D3D12FormatBytes(EDrawingFormatType format)
+    {
+        switch (format)
+        {
+        case eFormat_R32_UINT:
+        case eFormat_R32_SINT:
+        case eFormat_R32_FLOAT:
+            return 4U;
+        case eFormat_R32G32_UINT:
+        case eFormat_R32G32_SINT:
+        case eFormat_R32G32_FLOAT:
+            return 8U;
+        case eFormat_R32G32B32_UINT:
+        case eFormat_R32G32B32_SINT:
+        case eFormat_R32G32B32_FLOAT:
+            return 12U;
+        case eFormat_R32G32B32A32_UINT:
+        case eFormat_R32G32B32A32_SINT:
+        case eFormat_R32G32B32A32_FLOAT:
+            return 16U;
+        }
+
+        return 0U;
+    }
 
     inline const DrawingToD3DEnum_D3D12& D3D12Enum(void)
     {

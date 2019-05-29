@@ -4,16 +4,16 @@
 
 namespace Engine
 {
-    class BasicPrimitiveRenderer final : public BaseRenderer
+    class ForwardRenderer final : public BaseRenderer
     {
     public:
-        BasicPrimitiveRenderer();
-        virtual ~BasicPrimitiveRenderer() {}
+        ForwardRenderer();
+        virtual ~ForwardRenderer() {}
 
         void Initialize() override;
         void Shutdown() override;
 
-        void Tick() override;
+        void Tick(float elapsedTime) override;
 
         void DefineResources(DrawingResourceTable& resTable) override;
         void SetupStages() override;
@@ -38,8 +38,6 @@ namespace Engine
         FuncResourceName(BasicPrimitiveStage);
         // Define effect resource names
         FuncResourceName(BasicPrimitiveDefaultPass);
-        // Define index buffer resource names
-        FuncResourceName(BasicPrimitiveIndexBuffer);
 
     protected:
         void DefineShaderResource(DrawingResourceTable& resTable);
@@ -48,7 +46,6 @@ namespace Engine
     private:
         std::shared_ptr<DrawingPass> CreateDefaultPass(
             std::shared_ptr<std::string> pPassName,
-            std::shared_ptr<std::string> pEffectName,
-            std::shared_ptr<std::string> pIndexName);
+            std::shared_ptr<std::string> pEffectName);
     };
 }

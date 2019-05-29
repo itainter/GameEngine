@@ -1,4 +1,6 @@
 #include <array>
+#include <iostream> 
+#include <algorithm> 
 
 #include "Macros.h"
 #include "DrawingRawResource_D3D11.h"
@@ -67,7 +69,7 @@ static void UpdateSampler(DrawingParameter* pParam, ID3DX11EffectVariable* pVar)
     pSampler->SetSampler(0, pState != nullptr ? pState->Get().get() : nullptr);
 }
 
-void DrawingRawFxEffect_D3D11::SParamVar::UpdateParamValue(const DrawingRawFxEffect_D3D11* apEffect)
+void DrawingRawFxEffect_D3D11::_SParamVar::UpdateParamValue(const DrawingRawFxEffect_D3D11* apEffect)
 {
     assert(m_pParam != nullptr);
     assert(mpVar != nullptr);
@@ -177,7 +179,7 @@ void DrawingRawFxEffect_D3D11::ProcessVariable(ID3DX11EffectVariable* pVar)
     pVar->GetType()->GetDesc(&descType);
 
     uint32_t dataSize = 0;
-    auto paramType = DrawingDevice_D3D11::GetParamType(descType, dataSize);
+    auto paramType = DrawingDevice::GetParamType(descType, dataSize);
 
     if (paramType != EParamType::EParam_Invalid)
     {
@@ -199,6 +201,64 @@ void DrawingRawFxEffect_D3D11::ProcessVariable(ID3DX11EffectVariable* pVar)
         m_pParamSet->Add(pParam);
         mVarList.emplace_back(SParamVar(pParam, pVar));
     }
+}
+
+static void CollectVariables(DrawingDevice::ConstBufferPropTable& cbPropTable, const DrawingRawShader_D3D11* pShader)
+{
+    const auto& varTable = pShader->GetVariableTable();
+    for (auto iter = varTable.begin(); iter != varTable.end(); ++iter)
+    {
+        auto& varDesc = iter->second;
+        DrawingDevice::VarProp var_prop;
+        var_prop.mpName = varDesc.mpName;
+        var_prop.mType = varDesc.mParamType;
+        var_prop.mSizeInBytes = varDesc.mSizeInBytes;
+        var_prop.mOffset = varDesc.mOffset;
+        auto cbPropIt = cbPropTable.find(varDesc.mpCBName);
+        if (cbPropIt == cbPropTable.end())
+        {
+            DrawingDevice::ConstBufferProp local_cb_prop;
+            local_cb_prop.mpName = varDesc.mpCBName;
+            local_cb_prop.mSizeInBytes = varDesc.mCBSizeInBytes;
+            local_cb_prop.mVarProps.emplace_back(var_prop);
+            cbPropTable.emplace(varDesc.mpCBName, local_cb_prop);
+        }
+        else
+        {
+            auto cbProp = cbPropIt->second;
+            if ((cbProp.mpName != varDesc.mpCBName) ||
+                (cbProp.mSizeInBytes != varDesc.mCBSizeInBytes))
+            {
+                assert(false);
+                continue;
+            }
+            cbProp.mVarProps.emplace_back(var_prop);
+        }
+    }
+}
+
+static void SortVariables(DrawingDevice::ConstBufferPropTable& cbPropTable)
+{
+    for (auto iter = cbPropTable.begin(); iter != cbPropTable.end(); ++iter)
+    {
+        DrawingDevice::ConstBufferProp& cbProp = iter->second;
+        std::qsort(cbProp.mVarProps.data(), cbProp.mVarProps.size(), sizeof(DrawingDevice::VarProp), [](const void* a, const void* b)
+        {
+            const DrawingDevice::VarProp& var1 = *(static_cast<const DrawingDevice::VarProp*>(a));
+            const DrawingDevice::VarProp& var2 = *(static_cast<const DrawingDevice::VarProp*>(b));
+            if (var1.mOffset < var2.mOffset)
+                return -1;
+            else if (var1.mOffset > var2.mOffset)
+                return 1;
+            return 0;
+        });
+    }
+}
+
+static void BuildCBPropTable(DrawingDevice::ConstBufferPropTable& cbPropTable, const DrawingRawShader_D3D11* pShader)
+{
+    CollectVariables(cbPropTable, pShader);
+    SortVariables(cbPropTable);
 }
 
 void DrawingRawShader_D3D11::ProcessVariables(std::shared_ptr<std::string> pName, uint32_t size, ID3D11ShaderReflectionConstantBuffer* pBuffer, uint32_t count)
@@ -224,7 +284,7 @@ void DrawingRawShader_D3D11::ProcessVariables(std::shared_ptr<std::string> pName
         pD3D11Type->GetDesc(&typeDesc);
 
         uint32_t dataSize = 0;
-        imp.mParamType = DrawingDevice_D3D11::GetParamType(typeDesc, dataSize);
+        imp.mParamType = DrawingDevice::GetParamType(typeDesc, dataSize);
         if (dataSize < 4)
             dataSize = 4;
         assert(dataSize == varDesc.Size);
@@ -332,6 +392,9 @@ DrawingRawShaderEffect_D3D11::DrawingRawShaderEffect_D3D11(std::shared_ptr<Drawi
             default:
                 break;
         }
+
+        assert(shaderImpl != nullptr);
+        LoadShaderInfo(shaderImpl, type);
     }
 }
 
@@ -347,11 +410,13 @@ DrawingRawShaderEffect_D3D11::DrawingRawShaderEffect_D3D11(std::shared_ptr<Drawi
     {
         m_shaderBlocks[DrawingRawShader::RawShader_VS] = std::make_shared<ShaderBlock>();
         m_shaderBlocks[DrawingRawShader::RawShader_VS]->mpShader = pVertexShader;
+        LoadShaderInfo(vsShaderImpl, DrawingRawShader::RawShader_VS);
     }
     if (psShaderImpl != nullptr)
     {
         m_shaderBlocks[DrawingRawShader::RawShader_PS] = std::make_shared<ShaderBlock>();
         m_shaderBlocks[DrawingRawShader::RawShader_PS]->mpShader = pPixelShader;
+        LoadShaderInfo(vsShaderImpl, DrawingRawShader::RawShader_PS);
     }
 }
 
@@ -368,6 +433,68 @@ void DrawingRawShaderEffect_D3D11::Terminate()
 
 void DrawingRawShaderEffect_D3D11::SParamVar::UpdateValues(void)
 {
+    assert(mpParam != nullptr);
+    std::shared_ptr<DrawingRawConstantBuffer> pPrevCB = nullptr;
+    for (auto index = 0; index < DrawingRawShader::RawShader_Count; ++index)
+    {
+        auto pCurCB = mpCB[index];
+        if (pCurCB != nullptr && pCurCB != pPrevCB)
+        {
+            pCurCB->SetValue(mOffset[index], mpParam->GetValuePtr(), mpParam->GetValueSize());
+            pPrevCB = pCurCB;
+            mpParam->SetDirty(false);
+        }
+    }
+}
+
+void DrawingRawShaderEffect_D3D11::CheckAndAddResource(const DrawingRawShader_Common::ShaderResourceDesc& desc, uint32_t paramType, const DrawingRawShader::DrawingRawShaderType shaderType, std::unordered_map<std::shared_ptr<std::string>, SParamRes>& resTable) const
+{
+    auto paramIndex = m_pParamSet->IndexOfName(desc.mpName);
+
+    if (paramIndex != DrawingParameterSet::npos)
+    {
+        assert((*m_pParamSet)[paramIndex] != nullptr && (*m_pParamSet)[paramIndex]->GetType() == paramType);
+
+        auto iter = resTable.find(desc.mpName);
+        if (iter != resTable.end())
+            (iter->second).mStartSlot[shaderType] = desc.mStartSlot;
+    }
+    else
+    {
+        auto pParam = std::make_shared<DrawingParameter>(desc.mpName, paramType);
+        m_pParamSet->Add(pParam);
+
+        SParamRes paramRes;
+        paramRes.mpParam = pParam;
+        paramRes.mCount = desc.mCount;
+        paramRes.mStartSlot[shaderType] = desc.mStartSlot;
+
+        resTable.emplace(desc.mpName, paramRes);
+    }
+}
+
+void DrawingRawShaderEffect_D3D11::LoadShaderInfo(const DrawingRawShader_D3D11* pShader, const DrawingRawShader::DrawingRawShaderType shaderType)
+{
+    LoadConstantBufferFromShader(pShader, shaderType);
+    LoadTexturesFromShader(pShader, shaderType);
+}
+
+void DrawingRawShaderEffect_D3D11::LoadConstantBufferFromShader(const DrawingRawShader_D3D11* pShader, const DrawingRawShader::DrawingRawShaderType shaderType)
+{
+    DrawingDevice::ConstBufferPropTable cbPropTable;
+    BuildCBPropTable(cbPropTable, pShader);
+    BindConstantBuffer(cbPropTable, pShader, shaderType);
+    GenerateParameters(pShader, shaderType);
+}
+
+void DrawingRawShaderEffect_D3D11::LoadTexturesFromShader(const DrawingRawShader_D3D11* pShader, const DrawingRawShader::DrawingRawShaderType shaderType)
+{
+    for (auto& item : pShader->GetTextureTable())
+    {
+        auto& desc = item.second;
+        auto paramType = COMPOSE_TYPE(eObject_Texture, eDataSet_Object, eBasic_FP32, desc.mCount <= 1 ? 0 : desc.mCount, 0, 0);
+        CheckAndAddResource(desc, paramType, shaderType, mTexTable);
+    }
 }
 
 void DrawingRawShaderEffect_D3D11::UpdateParameterValues()
@@ -378,6 +505,12 @@ void DrawingRawShaderEffect_D3D11::UpdateParameterValues()
 
 void DrawingRawShaderEffect_D3D11::UpdateConstantBuffers()
 {
+    for (auto& item : mConstBufferTable)
+    {
+        auto& pCB = item.second.mpCB;
+        if (pCB->IsDirty())
+            pCB->UpdateToHardware();
+    }
 }
 
 void DrawingRawShaderEffect_D3D11::UpdateDevice()
@@ -450,11 +583,37 @@ void DrawingRawShaderEffect_D3D11::SetConstBufferSlots(ShaderBlock& shaderBlock,
         auto& constDesc = item.second;
         if (constDesc.mStartSlot[shaderType] == EMPTY_SLOT)
             continue;
+
+        auto pCB = std::dynamic_pointer_cast<DrawingRawConstantBuffer_D3D11>(constDesc.mpCB);
+        assert(pCB != nullptr);
+        shaderBlock.mCBSlots[constDesc.mStartSlot[shaderType]] = pCB->GetBuffer().get();
+        shaderBlock.mCBSlotsCount = max(shaderBlock.mCBSlotsCount, constDesc.mStartSlot[shaderType]);
     }
 }
 
 void DrawingRawShaderEffect_D3D11::SetTextureSlots(ShaderBlock& shaderBlock, const DrawingRawShader::DrawingRawShaderType shaderType)
 {
+    for (auto& item : mTexTable)
+    {
+        auto& resDesc = item.second;
+        if (nullptr == resDesc.mpParam || resDesc.mStartSlot[shaderType] == EMPTY_SLOT)
+            continue;
+
+        uint32_t arraySize{ 0 };
+        auto pTexArray = resDesc.mpParam->AsTextureArray(arraySize);
+        assert(arraySize == 0 || arraySize == resDesc.mCount);
+
+        for (uint32_t index = 0; index < resDesc.mCount; ++index)
+        {
+            auto pTex = static_cast<const DrawingRawTexture_D3D11*>(pTexArray[index]);
+            if (pTex == nullptr)
+                continue;
+
+            uint32_t curSlot = index + resDesc.mStartSlot[shaderType];
+            shaderBlock.mSRVSlots[curSlot] = pTex->GetShaderResourceView().get();
+            shaderBlock.mSRVSlotsCount = max(shaderBlock.mSRVSlotsCount, curSlot);
+        }
+    }
 }
 
 void DrawingRawShaderEffect_D3D11::SetSamplerSlots(ShaderBlock& shaderBlock, const DrawingRawShader::DrawingRawShaderType shaderType)
@@ -467,4 +626,78 @@ void DrawingRawShaderEffect_D3D11::SetTexBufferSlots(ShaderBlock& shaderBlock, c
 
 void DrawingRawShaderEffect_D3D11::SetRWBufferSlots(ShaderBlock& shaderBlock, const DrawingRawShader::DrawingRawShaderType shaderType)
 {
+}
+
+void DrawingRawShaderEffect_D3D11::BindConstantBuffer(DrawingDevice::ConstBufferPropTable& cbPropTable, const DrawingRawShader_D3D11* pShader, const DrawingRawShader::DrawingRawShaderType shaderType)
+{
+    for (auto& lItem : pShader->GetConstanceBufferTable())
+    {
+        auto& desc = lItem.second;
+        auto& cbPropIt = cbPropTable.find(desc.mpName);
+        if (cbPropIt == cbPropTable.end())
+            continue;
+
+        auto& cbProp = cbPropIt->second;
+        auto pDevCBProp = m_pDevice->FindConstantBuffer(cbProp);
+
+        if (nullptr == pDevCBProp)
+        {
+            cbProp.mpCB = std::make_shared<DrawingRawConstantBuffer_D3D11>(m_pDevice, cbProp.mSizeInBytes);
+            m_pDevice->AddConstantBuffer(cbProp);
+        }
+        else
+            cbProp.mpCB = pDevCBProp->mpCB;
+
+        auto& cbIt = mConstBufferTable.find(desc.mpName);
+        if (cbIt == mConstBufferTable.end())
+        {
+            SConstBuffer local_cb_desc;
+            local_cb_desc.mpName = cbProp.mpName;
+            local_cb_desc.mSizeInBytes = cbProp.mSizeInBytes;
+            local_cb_desc.mpCB = cbProp.mpCB;
+            local_cb_desc.mStartSlot[shaderType] = desc.mStartSlot;
+
+            mConstBufferTable.emplace(desc.mpName, local_cb_desc);
+        }
+        else
+            (cbIt->second).mStartSlot[shaderType] = desc.mStartSlot;
+    }
+}
+
+void DrawingRawShaderEffect_D3D11::GenerateParameters(const DrawingRawShader_D3D11* pShader, const DrawingRawShader::DrawingRawShaderType shaderType)
+{
+    for (auto& lItem : pShader->GetVariableTable())
+    {
+        auto& desc = lItem.second;
+        auto& varIt = mVarTable.find(desc.mpName);
+        auto& cbIt = mConstBufferTable.find(desc.mpCBName);
+
+        if (varIt == mVarTable.end())
+        {
+            SParamVar local_var_desc;
+
+            local_var_desc.mpParam = std::make_shared<DrawingParameter>(desc.mpName, desc.mParamType);
+            local_var_desc.mSizeInBytes = desc.mSizeInBytes;
+            local_var_desc.mOffset[shaderType] = desc.mOffset;
+            if (cbIt != mConstBufferTable.end())
+                local_var_desc.mpCB[shaderType] = (cbIt->second).mpCB;
+            else
+                local_var_desc.mpCB[shaderType] = nullptr;
+
+            mVarTable.emplace(desc.mpName, local_var_desc);
+            m_pParamSet->Add(local_var_desc.mpParam);
+        }
+        else
+        {
+            auto& var = varIt->second;
+            if (var.mpParam->GetType() != desc.mParamType)
+            {
+                assert(false);
+                continue;
+            }
+
+            var.mOffset[shaderType] = desc.mOffset;
+            var.mpCB[shaderType] = cbIt != mConstBufferTable.end() ? (cbIt->second).mpCB : nullptr;
+        }
+    }
 }

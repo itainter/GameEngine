@@ -59,10 +59,14 @@ void BaseRenderer::AttachMesh(std::shared_ptr<IMesh> pMesh)
 void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
 {
     DefineDefaultVertexFormat(resTable);
-    DefineStaticVertexBuffer(DefaultPositionBuffer(), PositionOffset, m_vertexCount, &m_sVertexID[(uint32_t)Attribute::ESemanticType::Position], m_vertexOffset[(uint32_t)Attribute::ESemanticType::Position], resTable);
-    DefineStaticVertexBuffer(DefaultNormalBuffer(), NormalOffset, m_vertexCount, &m_sVertexID[(uint32_t)Attribute::ESemanticType::Normal], m_vertexOffset[(uint32_t)Attribute::ESemanticType::Normal], resTable);
+    DefineStaticVertexBuffer(DefaultPositionBuffer(), PositionOffset, MAX_VERTEX_COUNT, &m_sVertexID[(uint32_t)Attribute::ESemanticType::Position], m_vertexOffset[(uint32_t)Attribute::ESemanticType::Position], resTable);
+    DefineStaticVertexBuffer(DefaultNormalBuffer(), NormalOffset, MAX_VERTEX_COUNT, &m_sVertexID[(uint32_t)Attribute::ESemanticType::Normal], m_vertexOffset[(uint32_t)Attribute::ESemanticType::Normal], resTable);
 
-    DefineStaticIndexBuffer(PerVertexIndexBuffer(), m_indexCount, &m_sIndexID, m_indexOffset, resTable);
+    DefineStaticIndexBuffer(DefaultIndexBuffer(), MAX_INDEX_COUNT, &m_sIndexID, m_indexOffset, resTable);
+
+    DefineWorldMatrixConstantBuffer(resTable);
+    DefineViewMatrixConstantBuffer(resTable);
+    DefineProjectionMatrixConstantBuffer(resTable);
 
     DefineExternalTarget(ScreenTarget(), resTable);
     DefineExternalDepthBuffer(ScreenDepthBuffer(), resTable);
@@ -105,8 +109,7 @@ void BaseRenderer::DefineLinkedEffect(std::shared_ptr<std::string> pEffectName, 
 void BaseRenderer::DefinePipelineState(std::shared_ptr<std::string> pVertexFormatName,
                                        std::shared_ptr<std::string> pPipelineStateName, 
                                        std::shared_ptr<std::string> pPrimitiveName,
-                                       std::shared_ptr<std::string> pVSName,
-                                       std::shared_ptr<std::string> pPSName,
+                                       std::shared_ptr<std::string> pEffectName,
                                        std::shared_ptr<std::string> pBlendStateName,
                                        std::shared_ptr<std::string> pRasterStateName,
                                        std::shared_ptr<std::string> pDepthStencilStateName,
@@ -117,8 +120,7 @@ void BaseRenderer::DefinePipelineState(std::shared_ptr<std::string> pVertexForma
 
     pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_InputLayout, pVertexFormatName);
     pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_PrimitiveTopology, pPrimitiveName);
-    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_Vs, pVSName);
-    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_Ps, pPSName);
+    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_Effect, pEffectName);
     pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_BlendState, pBlendStateName);
     pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_RasterState, pRasterStateName);
     pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_DepthStencilState, pDepthStencilStateName);
@@ -158,8 +160,6 @@ void BaseRenderer::DefineDefaultVertexFormat(DrawingResourceTable& resTable)
     inputElem.mIndex = 0;
     inputElem.mSlot = 0;
     inputElem.mOffset = 0;
-
-    
     inputElem.mInstanceStepRate = 0;
     pDesc->m_inputElements.emplace_back(inputElem);
 
@@ -189,7 +189,7 @@ void BaseRenderer::DefineStaticVertexBuffer(std::shared_ptr<std::string> pName, 
         auto pEntry = resTable.GetResourceEntry(pName);
         if (pEntry != nullptr)
         {
-            pEntry->SetInitData(data, size);
+            pEntry->SetInitData(0, data, size);
             pEntry->SetInitDataSlices(1);
         }
     }
@@ -210,11 +210,46 @@ void BaseRenderer::DefineStaticIndexBuffer(std::shared_ptr<std::string> pName, u
         auto pEntry = resTable.GetResourceEntry(pName);
         if (pEntry != nullptr)
         {
-            pEntry->SetInitData(data, size);
+            pEntry->SetInitData(0, data, size);
             pEntry->SetInitDataSlices(1);
         }
     }
+}
 
+void BaseRenderer::DefineWorldMatrixConstantBuffer(DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingConstantBufferDesc>();
+
+    DrawingConstantBufferDesc::ParamDesc param;
+    param.mpName = strPtr("gWorldMatrix");
+    param.mType = EParam_Float4x4;
+    pDesc->mParameters.emplace_back(param);
+
+    resTable.AddResourceEntry(DefaultWorldMatrix(), pDesc);
+}
+
+void BaseRenderer::DefineViewMatrixConstantBuffer(DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingConstantBufferDesc>();
+
+    DrawingConstantBufferDesc::ParamDesc param;
+    param.mpName = strPtr("gViewMatrix");
+    param.mType = EParam_Float4x4;
+    pDesc->mParameters.emplace_back(param);
+
+    resTable.AddResourceEntry(DefaultViewMatrix(), pDesc);
+}
+
+void BaseRenderer::DefineProjectionMatrixConstantBuffer(DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingConstantBufferDesc>();
+
+    DrawingConstantBufferDesc::ParamDesc param;
+    param.mpName = strPtr("gProjectionView");
+    param.mType = EParam_Float4x4;
+    pDesc->mParameters.emplace_back(param);
+
+    resTable.AddResourceEntry(DefaultProjectionMatrix(), pDesc);
 }
 
 void BaseRenderer::DefineDefaultDepthState(DrawingResourceTable& resTable)
@@ -222,20 +257,20 @@ void BaseRenderer::DefineDefaultDepthState(DrawingResourceTable& resTable)
     auto pDesc = std::make_shared<DrawingDepthStateDesc>();
 
     pDesc->mDepthState.mDepthEnable = true;
-    pDesc->mDepthState.mDepthWriteEnable = false;
-    pDesc->mDepthState.mDepthFunc = eComparison_Always;
+    pDesc->mDepthState.mDepthWriteEnable = true;
+    pDesc->mDepthState.mDepthFunc = eComparison_Less;
 
-    pDesc->mStencilState.mStencilEnable = false;
+    pDesc->mStencilState.mStencilEnable = true;
     pDesc->mStencilState.mStencilReadMask = 0;
     pDesc->mStencilState.mStencilWriteMask = 0;
 
     pDesc->mStencilState.mFrontFace.mStencilPassOp = eStencilOp_Keep;
-    pDesc->mStencilState.mFrontFace.mStencilFailOp = eStencilOp_Keep;
+    pDesc->mStencilState.mFrontFace.mStencilFailOp = eStencilOp_Incr;
     pDesc->mStencilState.mFrontFace.mStencilDepthFailOp = eStencilOp_Keep;
     pDesc->mStencilState.mFrontFace.mStencilFunc = eComparison_Always;
 
     pDesc->mStencilState.mBackFace.mStencilPassOp = eStencilOp_Keep;
-    pDesc->mStencilState.mBackFace.mStencilFailOp = eStencilOp_Keep;
+    pDesc->mStencilState.mBackFace.mStencilFailOp = eStencilOp_Decr;
     pDesc->mStencilState.mBackFace.mStencilDepthFailOp = eStencilOp_Keep;
     pDesc->mStencilState.mBackFace.mStencilFunc = eComparison_Always;
 
@@ -251,14 +286,14 @@ void BaseRenderer::DefineDefaultBlendState(DrawingResourceTable& resTable)
 
     for (uint32_t i = 0; i < MAX_TARGETS; ++i)
     {
-        pDesc->mTargets[i].mBlendEnable = false;
+        pDesc->mTargets[i].mBlendEnable = true;
 
-        pDesc->mTargets[i].mColorBlend.mBlendSrc = eBlend_One;
-        pDesc->mTargets[i].mColorBlend.mBlendDst = eBlend_Zero;
+        pDesc->mTargets[i].mColorBlend.mBlendSrc = eBlend_SrcAlpha;
+        pDesc->mTargets[i].mColorBlend.mBlendDst = eBlend_InvSrcAlpha;
         pDesc->mTargets[i].mColorBlend.mBlendOp = eBlendOp_Add;
 
-        pDesc->mTargets[i].mAlphaBlend.mBlendSrc = eBlend_One;
-        pDesc->mTargets[i].mAlphaBlend.mBlendDst = eBlend_Zero;
+        pDesc->mTargets[i].mAlphaBlend.mBlendSrc = eBlend_SrcAlpha;
+        pDesc->mTargets[i].mAlphaBlend.mBlendDst = eBlend_InvSrcAlpha;
         pDesc->mTargets[i].mAlphaBlend.mBlendOp = eBlendOp_Add;
 
         pDesc->mTargets[i].mRenderTargetWriteMask = DrawingBlendStateDesc::BlendTarget::WriteMast_All;
@@ -278,10 +313,10 @@ void BaseRenderer::DefineDefaultRasterState(DrawingResourceTable& resTable)
     pDesc->mSlopeScaledDepthBias = 0.0f;
     pDesc->mDepthBias = 0;
 
-    pDesc->mCullMode = eCullMode_Front;
+    pDesc->mCullMode = eCullMode_Back;
     pDesc->mFillMode = eFillMode_Solid;
 
-    pDesc->mFrontCounterClockwise = true;
+    pDesc->mFrontCounterClockwise = false;
     pDesc->mMultisampleEnable = true;
     pDesc->mScissorEnable = false;
 
@@ -306,6 +341,49 @@ void BaseRenderer::DefineExternalDepthBuffer(std::shared_ptr<std::string> pName,
     resTable.AddResourceEntry(pName, pDesc);
 }
 
+bool BaseRenderer::DefineDynamicTexture(std::shared_ptr<std::string> pName, EDrawingFormatType format, uint32_t elementCount, DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingTextureDesc>();
+
+    uint32_t texelBytes = m_pDevice->FormatBytes(format);
+    uint32_t rowCount = elementCount / DYNAMIC_TEX_ROW_SIZE;
+    if ((elementCount % DYNAMIC_TEX_ROW_SIZE) != 0)
+        rowCount += 1;
+
+    pDesc->mType = eTexture_2D;
+    pDesc->mFormat = format;
+
+    pDesc->mWidth = DYNAMIC_TEX_ROW_SIZE;
+    pDesc->mHeight = rowCount;
+    pDesc->mDepth = 1;
+    pDesc->mArraySize = 1;
+    pDesc->mMipLevels = 1;
+
+    pDesc->mBytesPerRow = texelBytes * DYNAMIC_TEX_ROW_SIZE;
+    pDesc->mBytesPerSlice = texelBytes * DYNAMIC_TEX_ROW_SIZE * rowCount;
+
+    pDesc->mUsage = eUsage_Dynamic;
+    pDesc->mAccess = eAccess_Write;
+    pDesc->mFlags = 0;
+
+    if (!resTable.AddResourceEntry(pName, pDesc))
+        return false;
+
+    return true;
+}
+
+void BaseRenderer::DefineDynamicTextureWithInit(std::shared_ptr<std::string> pName, EDrawingFormatType format, uint32_t elementCount, void* pData, uint32_t size, DrawingResourceTable& resTable)
+{
+    if (DefineDynamicTexture(pName, format, elementCount, resTable))
+    {
+        auto pEntry = resTable.GetResourceEntry(pName);
+        if (pEntry != nullptr)
+        {
+            pEntry->SetInitData(0, pData, size);
+            pEntry->SetInitDataSlices(1);
+        }
+    }
+}
 
 void BaseRenderer::DefineVaringStates(DrawingResourceTable& resTable)
 {
@@ -393,12 +471,24 @@ void BaseRenderer::BindPipelineState(DrawingPass& pass, std::shared_ptr<std::str
     pass.BindResource(DrawingPass::PipelineStateSlotName(), pName);
 }
 
+void BaseRenderer::AddConstantSlot(DrawingPass& pass, std::shared_ptr<std::string> pName)
+{
+    pass.AddResourceSlot(pName, ResourceSlot_ConstBuffer);
+    pass.BindResource(pName, pName);
+}
+
+void BaseRenderer::AddTextureSlot(DrawingPass& pass, std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pParamName)
+{
+    pass.AddResourceSlot(pName, ResourceSlot_Texture, pParamName);
+    
+}
+
 void BaseRenderer::BindInputs(DrawingPass& pass)
 {
     BindVertexFormat(pass, DefaultVertexFormat());
     BindVertexBuffer(pass, 0, DefaultPositionBuffer());
     BindVertexBuffer(pass, 1, DefaultNormalBuffer());
-    BindIndexBuffer(pass, PerVertexIndexBuffer());
+    BindIndexBuffer(pass, DefaultIndexBuffer());
 }
 
 void BaseRenderer::BindStates(DrawingPass& pass)
@@ -412,6 +502,13 @@ void BaseRenderer::BindOutput(DrawingPass& pass)
 {
     BindTarget(pass, 0, ScreenTarget());
     BindDepthBuffer(pass, ScreenDepthBuffer());
+}
+
+void BaseRenderer::BindConstants(DrawingPass& pass)
+{
+    AddConstantSlot(pass, DefaultWorldMatrix());
+    AddConstantSlot(pass, DefaultViewMatrix());
+    AddConstantSlot(pass, DefaultProjectionMatrix());
 }
 
 std::shared_ptr<DrawingStage> BaseRenderer::CreateStage(std::shared_ptr<std::string> pName)

@@ -1,7 +1,11 @@
+#include "Algorithm.h"
+
 #include "BaseRenderer.h"
 #include "DrawingDevice.h"
 
 using namespace Engine;
+
+uint32_t DrawingDevice::s_gConstantBufferID = 0;
 
 DrawingResource::DrawingResource(const std::shared_ptr<DrawingDevice>& pDevice) : m_pDevice(pDevice),
     m_pName(nullptr), m_pDesc(nullptr)
@@ -192,6 +196,69 @@ DrawingIndexBuffer::~DrawingIndexBuffer()
 EDrawingResourceType DrawingIndexBuffer::GetType() const
 {
     return eResource_Index_Buffer;
+}
+
+DrawingConstantBuffer::DrawingConstantBuffer(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResource(pDevice),
+    m_pParams(std::make_shared<DrawingParameterSet>())
+{
+}
+
+DrawingConstantBuffer::~DrawingConstantBuffer()
+{
+    ClearParameters();
+}
+
+void DrawingConstantBuffer::AddParameter(std::shared_ptr<DrawingParameter> pParam)
+{
+    m_pParams->AddUnique(pParam);
+}
+
+void DrawingConstantBuffer::RemoveParameter(std::shared_ptr<DrawingParameter> pParam)
+{
+    m_pParams->Remove(pParam);
+}
+
+std::shared_ptr<DrawingParameter> DrawingConstantBuffer::GetParameter(std::shared_ptr<std::string> pName)
+{
+    int32_t paramIndex = m_pParams->IndexOfName(pName);
+    if (paramIndex == -1)
+        return nullptr;
+
+    return (*m_pParams)[paramIndex];
+}
+
+bool DrawingConstantBuffer::UpdateEffect(std::shared_ptr<DrawingEffect> pEffect)
+{
+    bool ret = true;
+    for (int32_t i = 0; i < m_pParams->Count(); ++i)
+    {
+        std::shared_ptr<DrawingParameter> pParam = (*m_pParams)[i];
+        if (pParam != nullptr)
+        {
+            if (!UpdateParameterToEffect(pParam, pEffect))
+                ret = false;
+        }
+    }
+    return ret;
+}
+
+EDrawingResourceType DrawingConstantBuffer::GetType() const
+{
+    return eResource_Constant_Buffer;
+}
+
+void DrawingConstantBuffer::ClearParameters()
+{
+    if (m_pParams != nullptr)
+        m_pParams->Clear();
+
+    m_pParams = nullptr;
+}
+
+bool DrawingConstantBuffer::UpdateParameterToEffect(std::shared_ptr<DrawingParameter> pParam, std::shared_ptr<DrawingEffect> pEffect)
+{
+    assert(pParam != nullptr);
+    return m_pDevice->UpdateEffectParameter(pParam, pEffect);
 }
 
 DrawingTarget::DrawingTarget(const std::shared_ptr<DrawingDevice>& pDevice) : DrawingResourceWrapper<DrawingRawTarget>(pDevice)
@@ -397,6 +464,39 @@ void DrawingContext::UpdateContext(DrawingResourceTable& resTable)
     UpdateViewport(resTable);
 }
 
+void DrawingContext::UpdateTransform(DrawingResourceTable& resTable, float4x4 trans)
+{
+    auto pEntry = resTable.GetResourceEntry(BaseRenderer::DefaultWorldMatrix());
+    assert(pEntry != nullptr);
+    auto pCB = std::dynamic_pointer_cast<DrawingConstantBuffer>(pEntry->GetResource());
+    if (pCB == nullptr)
+        return;
+    auto pParam = pCB->GetParameter(strPtr("gWorldMatrix"));
+    if (pParam != nullptr)
+        pParam->AsFloat4x4(trans);
+}
+
+void DrawingContext::UpdateCamera(DrawingResourceTable& resTable, float4x4 proj, float4x4 view)
+{
+    auto pEntry = resTable.GetResourceEntry(BaseRenderer::DefaultProjectionMatrix());
+    assert(pEntry != nullptr);
+    auto pCB = std::dynamic_pointer_cast<DrawingConstantBuffer>(pEntry->GetResource());
+    if (pCB == nullptr)
+        return;
+    auto pParam = pCB->GetParameter(strPtr("gProjectionView"));
+    if (pParam != nullptr)
+        pParam->AsFloat4x4(proj);
+
+    pEntry = resTable.GetResourceEntry(BaseRenderer::DefaultViewMatrix());
+    assert(pEntry != nullptr);
+    pCB = std::dynamic_pointer_cast<DrawingConstantBuffer>(pEntry->GetResource());
+    if (pCB == nullptr)
+        return;
+    pParam = pCB->GetParameter(strPtr("gViewMatrix"));
+    if (pParam != nullptr)
+        pParam->AsFloat4x4(view);
+}
+
 void DrawingContext::UpdateTargets(DrawingResourceTable& resTable)
 {
     auto pEntry = resTable.GetResourceEntry(BaseRenderer::ScreenTarget());
@@ -425,6 +525,25 @@ std::shared_ptr<DrawingVaringStates> DrawingContext::GetVaringStates(DrawingReso
     return pStates;
 }
 
+bool DrawingDevice::CreateConstantBuffer(const DrawingConstantBufferDesc& desc, std::shared_ptr<DrawingConstantBuffer>& pRes)
+{
+    std::shared_ptr<DrawingRawConstantBuffer> pConstantBufferRaw = nullptr;
+
+    auto pConstantBuffer = std::make_shared<DrawingConstantBuffer>(shared_from_this());
+
+    for (int32_t i = 0; i < desc.mParameters.size(); ++i)
+    {
+        const auto& paramDesc = desc.mParameters[i];
+        auto& pParam = std::make_shared<DrawingParameter>(paramDesc.mpName, paramDesc.mType);
+        pConstantBuffer->AddParameter(pParam);
+    }
+
+    pConstantBuffer->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
+
+    pRes = pConstantBuffer;
+    return true;
+}
+
 bool DrawingDevice::CreatePrimitive(const DrawingPrimitiveDesc& desc, std::shared_ptr<DrawingPrimitive>& pRes)
 {
     auto pPrimitive = std::make_shared<DrawingPrimitive>(shared_from_this());
@@ -442,4 +561,29 @@ bool DrawingDevice::CreateVaringStates(const DrawingVaringStatesDesc& desc, std:
 
     pRes = pVaringStates;
     return true;
+}
+
+DrawingDevice::ConstBufferProp* DrawingDevice::FindConstantBuffer(const DrawingDevice::ConstBufferProp& prop)
+{
+    ConstBufferProp* pCBProp = nullptr;
+
+    std::for_each(m_constantBufferPool.begin(), m_constantBufferPool.end(), [this, &prop, &pCBProp](ConstBufferPropTable::value_type& aElem) {
+        auto& devProp = aElem.second;
+        if (devProp.IsEqual(prop))
+            pCBProp = &devProp;
+    });
+    return pCBProp;
+}
+
+void DrawingDevice::AddConstantBuffer(const ConstBufferProp& prop)
+{
+    auto pName = strPtr(std::to_string(s_gConstantBufferID));
+    s_gConstantBufferID++;
+
+    m_constantBufferPool.emplace(pName, prop);
+}
+
+void DrawingDevice::ClearConstantBuffers()
+{
+    m_constantBufferPool.clear();
 }

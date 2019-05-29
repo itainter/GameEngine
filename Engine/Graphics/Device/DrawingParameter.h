@@ -22,11 +22,11 @@ namespace Engine
         Array_Size_Bits = 8,
         Array_Size_Offset = 12,
 
-        Row_Size_Bits = 4,
-        Row_Size_Offset = 8,
-
         Col_Size_Bits = 4,
-        Col_Size_Offset = 4,
+        Col_Size_Offset = 8,
+
+        Row_Size_Bits = 4,
+        Row_Size_Offset = 4,
 
         Struct_Size_Bits = 4,
         Struct_Size_Offset = 0,
@@ -62,17 +62,15 @@ namespace Engine
         eBasic_Count,
     };
 
-    static const uint32_t BasicTypeSize[eBasic_Count];
-
     #define SET_BITS(val, bits, offset) ((val & ((0x1 << bits) - 1)) << offset)
 
-    #define COMPOSE_TYPE(object, dataset, basic, array, row, col)       \
+    #define COMPOSE_TYPE(object, dataset, basic, array, col, row)       \
         SET_BITS(object, Object_Type_Bits, Object_Type_Offset) |        \
         SET_BITS(dataset, DataSet_Type_Bits, DataSet_Type_Offset) |     \
         SET_BITS(basic, Basic_Type_Bits, Basic_Type_Offset) |           \
         SET_BITS(array, Array_Size_Bits, Array_Size_Offset) |           \
-        SET_BITS(row, Row_Size_Bits, Row_Size_Offset) |                 \
-        SET_BITS(col, Col_Size_Bits, Col_Size_Offset)
+        SET_BITS(col, Col_Size_Bits, Col_Size_Offset) |                 \
+        SET_BITS(row, Row_Size_Bits, Row_Size_Offset)
 
     #define COMPOSE_STRUCT_TYPE(object, dataset, basic, array, struct)  \
         SET_BITS(object, Object_Type_Bits, Object_Type_Offset) |        \
@@ -82,8 +80,8 @@ namespace Engine
         SET_BITS(struct, Struct_Size_Bits, Struct_Size_Offset)
 
     #define COMPOSE_SCALAR(basic)           COMPOSE_TYPE(eObject_Value, eDataSet_Scalar, basic, 0, 0, 0)
-    #define COMPOSE_VECTOR(basic, size)     COMPOSE_TYPE(eObject_Value, eDataSet_Vector, basic, 0, size, 0)
-    #define COMPOSE_MATRIX(basic, row, col) COMPOSE_TYPE(eObject_Value, eDataSet_Matrix, basic, 0, row, col)
+    #define COMPOSE_VECTOR(basic, size)     COMPOSE_TYPE(eObject_Value, eDataSet_Vector, basic, 0, 0, size)
+    #define COMPOSE_MATRIX(basic, row, col) COMPOSE_TYPE(eObject_Value, eDataSet_Matrix, basic, 0, col, row)
     #define COMPOSE_OBJECT(object)          COMPOSE_TYPE(object, eDataSet_Object, eBasic_FP32, 0, 0, 0)
     #define COMPOSE_STRUCT(size)            COMPOSE_STRUCT_TYPE(eObject_Value, eDataSet_Struct, eBasic_FP32, 0, size)
 
@@ -143,7 +141,7 @@ namespace Engine
     {
     public:
         DrawingParameter();
-        DrawingParameter(const std::shared_ptr<std::string> pName, uint32_t type, void* pInitVal, const std::shared_ptr<std::string> pSemantic);
+        DrawingParameter(const std::shared_ptr<std::string> pName, uint32_t type, void* pInitVal = nullptr, const std::shared_ptr<std::string> pSemantic = nullptr);
         virtual ~DrawingParameter();
 
         static const uint32_t GetBitsValue(uint32_t val, uint32_t bits, uint32_t offset);
@@ -157,6 +155,9 @@ namespace Engine
 
         std::shared_ptr<std::string> GetName() const;
         void SetName(std::shared_ptr<std::string> pName);
+
+        bool IsDirty() const;
+        void SetDirty(bool bDirty);
 
         std::shared_ptr<std::string> GetSemantic() const;
         void SetSemantic(std::shared_ptr<std::string> pSemantic);
@@ -320,6 +321,9 @@ namespace Engine
         const DrawingRawSamplerState* const* AsSamplerArray(uint32_t& array_size) const;
         void AsSamplerArray(const DrawingRawSamplerState** pState, uint32_t array_size);
 
+    public:
+        static const uint32_t BasicTypeSize[eBasic_Count];
+
     private:
         void CreateParameter(uint32_t type, void* pInitVal);
         void CreateObjectParameter(uint32_t type, void* pInitVal);
@@ -377,6 +381,7 @@ namespace Engine
         void* m_pValue;
         uint32_t m_size;
         uint32_t m_type;
+        bool m_bDirty;
     };
 
     class DrawingParameterSet
@@ -414,6 +419,8 @@ namespace Engine
         {
             return operator[](IndexOfName(pName));
         }
+
+        static const int32_t npos = -1;
 
     private:
         typedef std::vector<std::shared_ptr<DrawingParameter>> ParameterList;

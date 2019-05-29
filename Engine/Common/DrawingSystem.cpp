@@ -1,12 +1,14 @@
-#pragma once
-
 #include <assert.h>
 #include <fstream>
 
 #include "Global.h"
+#include "CameraComponent.h"
 #include "TransformComponent.h"
 #include "MeshFilterComponent.h"
 #include "MeshRendererComponent.h"
+#include "PolylineRendererComponent.h"
+
+#include "PolylineRenderer.h"
 
 #include "DrawingSystem.h"
 #include "D3D11/DrawingDevice_D3D11.h"
@@ -40,30 +42,63 @@ void DrawingSystem::Shutdown()
     m_rendererTable.clear();
 }
 
-void DrawingSystem::Tick()
+void DrawingSystem::Tick(float elapsedTime)
 {
-    m_pContext->UpdateContext(*m_pResourceTable);
-    m_pDevice->ClearTarget(m_pContext->GetSwapChain(), gpGlobal->GetConfiguration().background);
-
-    std::for_each(m_rendererTable.begin(), m_rendererTable.end(), [this](RendererTable::value_type& aElem)
+    for (auto& camera : m_pCameraList)
     {
-        auto& pRenderer = aElem.second;
+        auto pCameraComponent = camera->GetComponent<CameraComponent>();
+        auto pTransformComponent = camera->GetComponent<TransformComponent>();
+
+        auto proj = UpdateProjectionMatrix(pCameraComponent);
+        auto view = UpdateViewMatrix(pTransformComponent);
+
+        m_pContext->UpdateContext(*m_pResourceTable);
+        m_pContext->UpdateCamera(*m_pResourceTable, proj, view);
+
+        m_pDevice->ClearTarget(m_pContext->GetSwapChain(), gpGlobal->GetConfiguration().background);
+
+        auto& pRenderer = gpGlobal->GetRenderer(pCameraComponent->GetRendererType());
         if (pRenderer != nullptr)
-            pRenderer->Draw(*m_pResourceTable);
-    });
+        {
+            for (auto& pEntity : m_pMeshList)
+            {
+                auto pTrans = pEntity->GetComponent<TransformComponent>();
+                auto trans = UpdateWorldMatrix(pTrans);
+                m_pContext->UpdateTransform(*m_pResourceTable, trans);
+                pRenderer->Draw(*m_pResourceTable);
+            }
+        }
+    }
+
+    auto& pPolyLineRenderer = gpGlobal->GetRenderer(eRenderer_Polyline);
+    if (pPolyLineRenderer != nullptr)
+        pPolyLineRenderer->Draw(*m_pResourceTable);
 
     m_pDevice->Present(m_pContext->GetSwapChain(), 0);
 }
 
 void DrawingSystem::FlushEntity(std::shared_ptr<IEntity> pEntity)
 {
-    auto pRenderer = pEntity->GetComponent<MeshRendererComponent>();
-    auto pMesh = pEntity->GetComponent<MeshFilterComponent>();
+    if (pEntity->HasComponent<CameraComponent>() && pEntity->HasComponent<TransformComponent>())
+        m_pCameraList.emplace_back(pEntity);
 
-    if (m_bEntityChanged)
-        pRenderer->GetRenderer()->AttachMesh(pMesh->GetMesh());
+    if (pEntity->HasComponent<MeshFilterComponent>() && pEntity->HasComponent<TransformComponent>())
+    {
+        auto meshFilter = pEntity->GetComponent<MeshFilterComponent>();
+        auto& pRenderer = gpGlobal->GetRenderer(eRenderer_Forward);
+        if (pRenderer != nullptr)
+        {
+            pRenderer->AttachMesh(meshFilter->GetMesh());
+            m_pMeshList.emplace_back(pEntity);
+        }
+    }
 
-    m_bEntityChanged = false;
+    if (pEntity->HasComponent<PolylineRendererComponent>())
+    {
+        auto& pRenderer = std::dynamic_pointer_cast<PolylineRenderer>(gpGlobal->GetRenderer(eRenderer_Polyline));
+        if (pRenderer != nullptr)
+            pRenderer->AttachSegment(pEntity->GetComponent<PolylineRendererComponent>()->GetGeometry());
+    }
 }
 
 void DrawingSystem::BeginFrame()
@@ -171,7 +206,7 @@ std::shared_ptr<DrawingTarget> DrawingSystem::CreateSwapChain()
     desc.mWidth = m_deviceSize.x;
     desc.mHeight = m_deviceSize.y;
     desc.mFormat = eFormat_R8G8B8A8_UNORM;
-    desc.mMultiSampleCount = 4;
+    desc.mMultiSampleCount = 1;
     desc.mMultiSampleQuality = 0;
 
     std::shared_ptr<DrawingTarget> pSwapChain;
@@ -221,4 +256,62 @@ bool DrawingSystem::PostConfiguration()
     });
 
     return true;
+}
+
+float4x4 DrawingSystem::UpdateWorldMatrix(TransformComponent* pTransform)
+{
+    float3 rotate = pTransform->GetRotate();
+
+    float cosR = std::cosf(rotate.y);
+    float sinR = std::sinf(rotate.y);
+
+    float4x4 ret = {
+        cosR, 0.f, sinR, 0.f,
+        0.f, 1.f, 0.f, 0.f,
+        -sinR, 0.f, cosR, 0.f,
+        0.f, 0.f, 0.f, 1.f
+    };
+
+    return ret;
+}
+
+float4x4 DrawingSystem::UpdateViewMatrix(TransformComponent* pTransform)
+{
+    float3 pos = pTransform->GetPosition();
+    float3 at = float3(0.0f, 0.0f, 1.0f);
+    float3 up = float3(0.0f, 1.0f, 0.0f);
+
+    float3 z = (at - pos).Normalize();
+    float3 x = up.Cross(z).Normalize();
+    float3 y = z.Cross(x);
+
+    float4x4 ret = {
+        x.x, y.x, z.x, 0.f,
+        x.y, y.y, z.y, 0.f,
+        x.z, y.z, z.z, 0.f,
+        -x.Dot(pos), -y.Dot(pos), -z.Dot(pos), 1.f
+    };
+
+    return ret;
+}
+
+float4x4 DrawingSystem::UpdateProjectionMatrix(CameraComponent* pCamera)
+{
+    auto fovy = pCamera->GetFov();
+    auto zn = pCamera->GetClippingNear();
+    auto zf = pCamera->GetClippingFar();
+    auto aspect = (float)(gpGlobal->GetConfiguration().width) / (float)(gpGlobal->GetConfiguration().height);
+
+    float d2r = PI_F / 180.0f;
+    float yScale = 1.0f / std::tanf(d2r * fovy / 2.0f);
+    float xScale = yScale / aspect;
+
+    float4x4 ret = {
+        xScale, 0.0f, 0.0f, 0.0f,
+        0.0f, yScale, 0.0f, 0.0f,
+        0.0f, 0.0f, zf / (zf - zn), 1.0f,
+        0.0f, 0.0f, -zn * zf / (zf - zn), 0.0f
+    };
+
+    return ret;
 }

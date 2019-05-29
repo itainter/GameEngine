@@ -4,6 +4,7 @@
 #include <dxgi.h>
 #include <memory>
 #include <stack>
+#include <vector>
 
 #include "DrawingType.h"
 #include "DrawingDevice.h"
@@ -17,6 +18,7 @@ namespace Engine
     class DrawingRawVertexShader_D3D11;
     class DrawingRawPixelShader_D3D11;
     class DrawingRawFxEffect_D3D11;
+    class DrawingRawConstantBuffer_D3D11;
     class DrawingDevice_D3D11 : public DrawingDevice
     {
     public:
@@ -36,7 +38,7 @@ namespace Engine
         bool CreateVertexFormat(const DrawingVertexFormatDesc& desc, std::shared_ptr<DrawingVertexFormat>& pRes) override;
         bool CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData = nullptr, uint32_t size = 0) override;
         bool CreateIndexBuffer(const DrawingIndexBufferDesc& desc, std::shared_ptr<DrawingIndexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData = nullptr, uint32_t size = 0) override;
-        bool CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData = nullptr, uint32_t size = 0) override;
+        bool CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData[] = nullptr, uint32_t size[] = nullptr, uint32_t slices = 0) override;
         bool CreateTarget(const DrawingTargetDesc& desc, std::shared_ptr<DrawingTarget>& pRes) override;
         bool CreateDepthBuffer(const DrawingDepthBufferDesc& desc, std::shared_ptr<DrawingDepthBuffer>& pRes) override;
 
@@ -112,12 +114,11 @@ namespace Engine
 
         void Flush() override;
 
+        uint32_t FormatBytes(EDrawingFormatType type) override;
+
         std::shared_ptr<ID3D11Device> GetDevice() const;
         std::shared_ptr<ID3D11DeviceContext> GetDeviceContext() const;
         std::shared_ptr<IDXGIFactory> GetDXGIFactory() const;
-
-        template<typename DescType>
-        static uint32_t GetParamType(const DescType& type, uint32_t& size);
 
     private:
         bool DoCreateEffect(const DrawingEffectDesc& desc, const void* pData, uint32_t size, std::shared_ptr<DrawingEffect>& pRes);

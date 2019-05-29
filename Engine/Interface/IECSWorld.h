@@ -71,6 +71,9 @@ namespace Engine
         template<typename Comp>
         inline Comp* GetComponent();
 
+        template<typename Comp>
+        inline bool HasComponent();
+
     public:
         EntityID m_id;
 
@@ -100,6 +103,13 @@ namespace Engine
         return pComp;
     };
 
+    template<typename Comp>
+    inline bool IEntity::HasComponent()
+    {
+        static_assert(std::is_base_of<IComponent, Comp>::value);
+        return IsBitOf(m_compBitset, Comp::m_compID);
+    };
+
     class IECSSystem : public IRuntimeModule
     {
     public:
@@ -109,7 +119,7 @@ namespace Engine
         virtual void Initialize() = 0;
         virtual void Shutdown() = 0;
 
-        virtual void Tick() = 0;
+        virtual void Tick(float elapsedTime) = 0;
         virtual void FlushEntity(std::shared_ptr<IEntity> pEntity) = 0;
 
     protected:
@@ -143,10 +153,10 @@ namespace Engine
                 m_systemPool[i]->Shutdown();
         }
 
-        void Tick() override
+        void Tick(float elapsedTime) override
         {
             for (uint32_t i = 0; i < m_systemPool.size(); i++)
-                m_systemPool[i]->Tick();
+                m_systemPool[i]->Tick(elapsedTime);
         }
 
     private:

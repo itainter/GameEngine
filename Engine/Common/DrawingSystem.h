@@ -12,7 +12,7 @@
 #include "DrawingEffectPool.h"
 #include "DrawingResourceTable.h"
 #include "DrawingType.h"
-#include "BasicPrimitiveRenderer.h"
+#include "ForwardRenderer.h"
 
 namespace Engine
 {
@@ -27,7 +27,7 @@ namespace Engine
 
         void Initialize() override;
         void Shutdown() override;
-        void Tick() override;
+        void Tick(float elapsedTime) override;
 
         void FlushEntity(std::shared_ptr<IEntity> pEntity) override;
 
@@ -48,12 +48,14 @@ namespace Engine
         std::shared_ptr<DrawingTarget> CreateSwapChain();
         std::shared_ptr<DrawingDepthBuffer> CreateDepthBuffer();
 
+        float4x4 UpdateWorldMatrix(TransformComponent* pTransform);
+        float4x4 UpdateViewMatrix(TransformComponent* pTransform);
+        float4x4 UpdateProjectionMatrix(CameraComponent* pCamera);
+
     private:
         void* m_window;
         uint2 m_deviceSize;
         EDeviceType m_deviceType;
-
-        bool m_bEntityChanged = true;
 
         std::shared_ptr<DrawingDevice> m_pDevice;
         std::shared_ptr<DrawingContext> m_pContext;
@@ -61,6 +63,9 @@ namespace Engine
         std::shared_ptr<DrawingEffectPool> m_pEffectPool;
         std::shared_ptr<DrawingResourceFactory> m_pResourceFactory;
         std::shared_ptr<DrawingResourceTable> m_pResourceTable;
+
+        std::vector<std::shared_ptr<IEntity>> m_pCameraList;
+        std::vector<std::shared_ptr<IEntity>> m_pMeshList;
 
         typedef std::unordered_map<ERendererType, std::shared_ptr<IRenderer>> RendererTable;
         RendererTable m_rendererTable;

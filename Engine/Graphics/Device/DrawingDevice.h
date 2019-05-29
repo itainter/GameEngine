@@ -6,8 +6,12 @@
 
 #include "IDrawingSystem.h"
 
+#include "CameraComponent.h"
+#include "TransformComponent.h"
+
 #include "DirtyData.h"
 #include "DrawingType.h"
+#include "DrawingParameter.h"
 #include "DrawingRawResource.h"
 #include "DrawingResourceDesc.h"
 #include "DrawingResourceTable.h"
@@ -174,6 +178,28 @@ namespace Engine
         EDrawingResourceType GetType() const override;
     };
 
+    class DrawingConstantBuffer : public DrawingResource
+    {
+    public:
+        DrawingConstantBuffer(const std::shared_ptr<DrawingDevice>& pDevice);
+        virtual ~DrawingConstantBuffer();
+
+        void AddParameter(std::shared_ptr<DrawingParameter> pParam);
+        void RemoveParameter(std::shared_ptr<DrawingParameter> pParam);
+        std::shared_ptr<DrawingParameter> GetParameter(std::shared_ptr<std::string> pName);
+
+        bool UpdateEffect(std::shared_ptr<DrawingEffect> pEffect);
+
+        EDrawingResourceType GetType() const override;
+
+    private:
+        void ClearParameters();
+        bool UpdateParameterToEffect(std::shared_ptr<DrawingParameter> pParam, std::shared_ptr<DrawingEffect> pEffect);
+
+    private:
+        std::shared_ptr<DrawingParameterSet> m_pParams;
+    };
+
     class DrawingTarget : public DrawingResourceWrapper<DrawingRawTarget>
     {
     public:
@@ -277,6 +303,8 @@ namespace Engine
         Box2 GetViewport() const;
 
         void UpdateContext(DrawingResourceTable& resTable);
+        void UpdateTransform(DrawingResourceTable& resTable, float4x4 trans);
+        void UpdateCamera(DrawingResourceTable& resTable, float4x4 proj, float4x4 view);
 
         void UpdateTargets(DrawingResourceTable& resTable);
         void UpdateViewport(DrawingResourceTable& resTable);
@@ -307,9 +335,10 @@ namespace Engine
         virtual bool CreateVertexFormat(const DrawingVertexFormatDesc& desc, std::shared_ptr<DrawingVertexFormat>& pRes) = 0;
         virtual bool CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData = nullptr, uint32_t size = 0) = 0;
         virtual bool CreateIndexBuffer(const DrawingIndexBufferDesc& desc, std::shared_ptr<DrawingIndexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData = nullptr, uint32_t size = 0) =  0;
-        virtual bool CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData = nullptr, uint32_t size = 0) = 0;
+        virtual bool CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData[] = nullptr, uint32_t size[] = nullptr, uint32_t slices = 0) = 0;
         virtual bool CreateTarget(const DrawingTargetDesc& desc, std::shared_ptr<DrawingTarget>& pRes) = 0;
         virtual bool CreateDepthBuffer(const DrawingDepthBufferDesc& desc, std::shared_ptr<DrawingDepthBuffer>& pRes) = 0;
+        virtual bool CreateConstantBuffer(const DrawingConstantBufferDesc& desc, std::shared_ptr<DrawingConstantBuffer>& pRes);
 
         virtual bool CreateBlendState(const DrawingBlendStateDesc& desc, std::shared_ptr<DrawingBlendState>& pRes) = 0;
         virtual bool CreateDepthState(const DrawingDepthStateDesc& desc, std::shared_ptr<DrawingDepthState>& pRes) = 0;
@@ -373,8 +402,252 @@ namespace Engine
         virtual bool Present(const std::shared_ptr<DrawingTarget> pTarget, uint32_t syncInterval) = 0;
 
         virtual void Flush() = 0;
+
+        virtual uint32_t FormatBytes(EDrawingFormatType type) = 0;
+
+        template<typename DescType>
+        static uint32_t GetParamType(const DescType& type, uint32_t& size);
+
+        struct ConstBufferProp;
+        ConstBufferProp* FindConstantBuffer(const ConstBufferProp& prop);
+        void AddConstantBuffer(const ConstBufferProp& prop);
+        void ClearConstantBuffers();
+
+        struct VarProp
+        {
+            VarProp() :mpName(nullptr), mOffset(0), mSizeInBytes(0), mType(0)
+            {}
+
+            std::shared_ptr<std::string> mpName;
+            uint32_t mOffset;
+            uint32_t mSizeInBytes;
+            uint32_t mType;
+        };
+
+        typedef std::vector<VarProp> VarPropTable;
+        struct ConstBufferProp
+        {
+            ConstBufferProp() : mpName(nullptr), mSizeInBytes(0), mpCB(nullptr)
+            {}
+
+            ~ConstBufferProp()
+            {
+                mpCB = nullptr;
+                mVarProps.clear();
+            }
+
+            bool IsEqual(const ConstBufferProp& prop)
+            {
+                if (mSizeInBytes != prop.mSizeInBytes)
+                    return false;
+
+                if (mVarProps.size() != prop.mVarProps.size())
+                    return false;
+
+                if (memcmp(mVarProps.data(), prop.mVarProps.data(), sizeof(VarProp) * mVarProps.size()) != 0)
+                    return false;
+
+                return true;
+            }
+
+            std::shared_ptr<std::string> mpName;
+            uint32_t mSizeInBytes;
+            std::shared_ptr<DrawingRawConstantBuffer> mpCB;
+            VarPropTable mVarProps;
+        };
+
+        typedef std::unordered_map<std::shared_ptr<std::string>, ConstBufferProp> ConstBufferPropTable;
+
+        ConstBufferPropTable m_constantBufferPool;
+        static uint32_t s_gConstantBufferID;
     };
 
     template<EDeviceType type>
     static std::shared_ptr<DrawingDevice> CreateNativeDevice() { return nullptr; }
+
+    template <typename DescType>
+    static void GetStructInfo(const DescType& descType, uint32_t& dataSetType, uint32_t& arraySize, uint32_t& structSize)
+    {
+        dataSetType = eDataSet_Struct;
+    
+        structSize = 0;
+        arraySize = descType.Elements;
+    }
+    
+    template <typename DescType>
+    static bool GetBasicTypeInfo(const DescType& descType, uint32_t& dataSetType, uint32_t& rowSize, uint32_t& colSize, uint32_t& arraySize, uint32_t& structSize)
+    {
+        bool isValid = true;
+        switch (descType.Class)
+        {
+            case D3D_SVC_SCALAR:
+            {
+                dataSetType = eDataSet_Scalar;
+                arraySize = descType.Elements;
+                break;
+            }
+            case D3D_SVC_VECTOR:
+            {
+                dataSetType = eDataSet_Vector;
+                rowSize = descType.Columns;
+                arraySize = descType.Elements;
+                break;
+            }
+            case D3D_SVC_MATRIX_COLUMNS:
+            {
+                dataSetType = eDataSet_Matrix;
+                rowSize = descType.Columns;
+                colSize = descType.Rows;
+                arraySize = descType.Elements;
+                break;
+            }
+            case D3D_SVC_MATRIX_ROWS:
+            {
+                dataSetType = eDataSet_Matrix;
+                rowSize = descType.Rows;
+                colSize = descType.Columns;
+                arraySize = descType.Elements;
+                break;
+            }
+            case D3D_SVC_OBJECT:
+            {
+                dataSetType = eDataSet_Object;
+                arraySize = descType.Elements;
+                break;
+            }
+            case D3D_SVC_STRUCT:
+            {
+                GetStructInfo(descType, dataSetType, structSize, arraySize);
+                break;
+            }
+            default:
+            {
+                dataSetType = 0xffffffff;
+                rowSize = 0;
+                colSize = 0;
+                arraySize = 0;
+                structSize = 0;
+    
+                isValid = false;
+    
+            }
+        }
+    
+        return isValid;
+    }
+    
+    template <class DescType>
+    static uint32_t GenerateParamType(const DescType& descType, uint32_t dataSetType, uint32_t rowSize, uint32_t colSize, uint32_t arraySize, uint32_t structSize, uint32_t& dataSize)
+    {
+        uint32_t paramType = (uint32_t)EParam_Invalid;
+    
+        if (dataSetType == eDataSet_Object)
+        {
+            switch (descType.Type)
+            {
+                case D3D_SVT_TEXTURE:
+                case D3D_SVT_TEXTURE1D:
+                case D3D_SVT_TEXTURE2D:
+                case D3D_SVT_TEXTURE2DARRAY:
+                case D3D_SVT_TEXTURE2DMS:
+                case D3D_SVT_TEXTURE3D:
+                case D3D_SVT_TEXTURECUBE:
+                {
+                    paramType = COMPOSE_TYPE(eObject_Texture, eDataSet_Object, eBasic_FP32, 0, 0, 0);
+                    break;
+                }
+                case D3D_SVT_BYTEADDRESS_BUFFER:
+                case D3D_SVT_STRUCTURED_BUFFER:
+                {
+                    paramType = COMPOSE_TYPE(eObject_TexBuffer, eDataSet_Object, eBasic_FP32, 0, 0, 0);
+                    break;
+                }
+                case D3D_SVT_BUFFER:
+                {
+                    paramType = COMPOSE_TYPE(eObject_Buffer, eDataSet_Object, eBasic_FP32, 0, 0, 0);
+                    break;
+                }
+                case D3D_SVT_RWBYTEADDRESS_BUFFER:
+                case D3D_SVT_RWSTRUCTURED_BUFFER:
+                {
+                    paramType = COMPOSE_TYPE(eObject_RWBuffer, eDataSet_Object, eBasic_FP32, 0, 0, 0);
+                    break;
+                }
+                case D3D_SVT_SAMPLER:
+                case D3D_SVT_SAMPLER1D:
+                case D3D_SVT_SAMPLER2D:
+                case D3D_SVT_SAMPLER3D:
+                case D3D_SVT_SAMPLERCUBE:
+                {
+                    paramType = COMPOSE_TYPE(eObject_Sampler, eDataSet_Object, eBasic_FP32, 0, 0, 0);
+                    break;
+                }
+                default:
+                {
+                    return (uint32_t)EParam_Invalid;
+                }
+            }
+            dataSize = sizeof(void *);
+    
+        }
+        else if (dataSetType == eDataSet_Struct)
+        {
+            paramType = COMPOSE_STRUCT_TYPE(eObject_Value, eDataSet_Struct, eBasic_FP32, 0, structSize);
+            dataSize = structSize * arraySize;
+        }
+        else
+        {
+            uint32_t basicType = eBasic_FP32;
+            switch (descType.Type)
+            {
+                case D3D_SVT_BOOL:
+                    basicType = eBasic_Bool;
+                    break;
+                case D3D_SVT_INT:
+                    basicType = eBasic_Int32;
+                    break;
+                case D3D_SVT_UINT:
+                    basicType = eBasic_UInt32;
+                    break;
+                case D3D_SVT_FLOAT:
+                    basicType = eBasic_FP32;
+                    break;
+                case D3D_SVT_DOUBLE:
+                    basicType = eBasic_FP64;
+                    break;
+                default:
+                {
+                    return (uint32_t)EParam_Invalid;
+                }
+    
+            }
+    
+            paramType = COMPOSE_TYPE(eObject_Value, dataSetType, basicType, arraySize, colSize, rowSize);
+    
+            uint32_t t_array_size = arraySize == 0 ? 1 : arraySize;
+            uint32_t t_row_size = rowSize == 0 ? 1 : rowSize;
+            uint32_t t_col_size = colSize == 0 ? 1 : colSize;
+    
+            dataSize = DrawingParameter::BasicTypeSize[basicType] * t_row_size * t_col_size * t_array_size;
+        }
+    
+        return paramType;
+    }
+    
+    template<typename DescType>
+    static uint32_t DrawingDevice::GetParamType(const DescType& type, uint32_t& size)
+    {
+        uint32_t dataSetType = eDataSet_Scalar;
+        uint32_t rowSize = 0;
+        uint32_t colSize = 0;
+        uint32_t arraySize = 0;
+        uint32_t structSize = 0;
+    
+        bool isValidType = GetBasicTypeInfo(type, dataSetType, rowSize, colSize, arraySize, structSize);
+    
+        if (!isValidType)
+            return (uint32_t)EParam_Invalid;
+    
+        return GenerateParamType(type, dataSetType, rowSize, colSize, arraySize, structSize, size);
+    }
 }

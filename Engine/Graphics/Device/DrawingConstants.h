@@ -16,6 +16,8 @@ namespace Engine
         eResource_Vertex_Buffer = 1,
         eResource_Index_Buffer,
 
+        eResource_Constant_Buffer,
+
         eResource_Vertex_Format,
 
         eResource_Vertex_Shader,
@@ -277,5 +279,14 @@ namespace Engine
         eCommandList_Compute,
         eCommandList_Copy,
         eCommandList_Count,
+    };
+
+    enum EDrawingDescriptorHeapType
+    {
+        eDescriptorHeap_CBV_SRV_UVA,
+        eDescriptorHeap_Sampler,
+        eDescriptorHeap_RTV,
+        eDescriptorHeap_DSV,
+        eDescriptorHeap_Count,
     };
 }

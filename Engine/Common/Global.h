@@ -15,17 +15,19 @@ namespace Engine
     enum ESystemType
     {
         eSystem_Event = 0,
-        eSystem_Drawing = 1,
-        eSystem_Scene = 2,
-        eSystem_Input = 3,
-        eSystem_Log = 4,
+        eSystem_Animation = 1,
+        eSystem_Drawing = 2,
+        eSystem_Scene = 3,
+        eSystem_Input = 4,
+        eSystem_Log = 5,
     };
 
     enum ERendererType
     {
         eRenderer_Start = 0,
-        eRenderer_BasicPrim = 0,
-        eRenderer_End = 1,
+        eRenderer_Forward = 0,
+        eRenderer_Polyline,
+        eRenderer_End,
     };
 
     enum EDeviceType
@@ -80,6 +82,7 @@ namespace Engine
 
     class IApplication;
     class IEventSystem;
+    class IAnimationSystem;
     class IDrawingSystem;
     class ISceneSystem;
     class IInputSystem;
@@ -97,6 +100,7 @@ namespace Engine
         std::shared_ptr<IECSWorld> GetECSWorld();
 
         std::shared_ptr<IEventSystem> GetEventSystem();
+        std::shared_ptr<IAnimationSystem> GetAnimationSystem();
         std::shared_ptr<IDrawingSystem> GetDrawingSystem();
         std::shared_ptr<ISceneSystem> GetSceneSystem();
         std::shared_ptr<IInputSystem> GetInputSystem();

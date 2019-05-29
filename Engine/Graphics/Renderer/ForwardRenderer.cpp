@@ -1,56 +1,56 @@
-#include "BasicPrimitiveRenderer.h"
+#include "ForwardRenderer.h"
 #include "DrawingDevice.h"
 
 using namespace Engine;
 
-BasicPrimitiveRenderer::BasicPrimitiveRenderer() : BaseRenderer()
+ForwardRenderer::ForwardRenderer() : BaseRenderer()
 {
 }
 
-void BasicPrimitiveRenderer::Initialize()
+void ForwardRenderer::Initialize()
 {
 }
 
-void BasicPrimitiveRenderer::Shutdown()
+void ForwardRenderer::Shutdown()
 {
 }
 
-void BasicPrimitiveRenderer::Tick()
+void ForwardRenderer::Tick(float elapsedTime)
 {
 }
 
-void BasicPrimitiveRenderer::DefineResources(DrawingResourceTable& resTable)
+void ForwardRenderer::DefineResources(DrawingResourceTable& resTable)
 {
     DefineDefaultResources(resTable);
     DefineShaderResource(resTable);
     DefinePipelineStateResource(resTable);
 }
 
-void BasicPrimitiveRenderer::SetupStages()
+void ForwardRenderer::SetupStages()
 {
     auto pStage = CreateStage(BasicPrimitiveStage());
-    pStage->AppendDrawingPass(CreateDefaultPass(BasicPrimitiveDefaultPass(), BasicPrimitiveEffect(), BasicPrimitiveIndexBuffer()));
+    pStage->AppendDrawingPass(CreateDefaultPass(BasicPrimitiveDefaultPass(), BasicPrimitiveEffect()));
 
     m_stageTable.AddDrawingStage(pStage->GetName(), pStage);
 }
 
-void BasicPrimitiveRenderer::SetupBuffers(DrawingResourceTable& resTable)
+void ForwardRenderer::SetupBuffers(DrawingResourceTable& resTable)
 {
 }
 
-void BasicPrimitiveRenderer::Cleanup()
+void ForwardRenderer::Cleanup()
 {
 }
 
-void BasicPrimitiveRenderer::BeginFrame()
+void ForwardRenderer::BeginFrame()
 {
 }
 
-void BasicPrimitiveRenderer::EndFrame()
+void ForwardRenderer::EndFrame()
 {
 }
 
-void BasicPrimitiveRenderer::UpdatePrimitive(DrawingResourceTable& resTable)
+void ForwardRenderer::UpdatePrimitive(DrawingResourceTable& resTable)
 {
     auto pEntry = resTable.GetResourceEntry(DefaultPrimitive());
     if (pEntry == nullptr)
@@ -70,13 +70,13 @@ void BasicPrimitiveRenderer::UpdatePrimitive(DrawingResourceTable& resTable)
     pPrimitive->SetInstanceOffset(0);
 }
 
-void BasicPrimitiveRenderer::Draw(DrawingResourceTable& resTable)
+void ForwardRenderer::Draw(DrawingResourceTable& resTable)
 {
     UpdatePrimitive(resTable);
     FlushStage(BasicPrimitiveStage());
 }
 
-void BasicPrimitiveRenderer::DefineShaderResource(DrawingResourceTable& resTable)
+void ForwardRenderer::DefineShaderResource(DrawingResourceTable& resTable)
 {
     DefineVertexShader(BasicPrimitiveVertexShader(), strPtr("Asset\\Shader\\HLSL\\basic.vs"), strPtr("BasicPrimitive_VS"), resTable);
     DefinePixelShader(BasicPrimitivePixelShader(), strPtr("Asset\\Shader\\HLSL\\basic.ps"), strPtr("BasicPrimitive_PS"), resTable);
@@ -84,13 +84,12 @@ void BasicPrimitiveRenderer::DefineShaderResource(DrawingResourceTable& resTable
     DefineLinkedEffect(BasicPrimitiveEffect(), BasicPrimitiveVertexShader(), BasicPrimitivePixelShader(), resTable);
 }
 
-void BasicPrimitiveRenderer::DefinePipelineStateResource(DrawingResourceTable& resTable)
+void ForwardRenderer::DefinePipelineStateResource(DrawingResourceTable& resTable)
 {
     DefinePipelineState(DefaultVertexFormat(),
                         BasicPrimitivePipelineState(),
                         DefaultPrimitive(),
-                        BasicPrimitiveVertexShader(),
-                        BasicPrimitivePixelShader(),
+                        BasicPrimitiveEffect(),
                         DefaultBlendState(),
                         DefaultRasterState(),
                         DefaultDepthState(),
@@ -98,10 +97,9 @@ void BasicPrimitiveRenderer::DefinePipelineStateResource(DrawingResourceTable& r
                         resTable);
 }
 
-std::shared_ptr<DrawingPass> BasicPrimitiveRenderer::CreateDefaultPass(
+std::shared_ptr<DrawingPass> ForwardRenderer::CreateDefaultPass(
     std::shared_ptr<std::string> pPassName,
-    std::shared_ptr<std::string> pEffectName,
-    std::shared_ptr<std::string> pIndexName)
+    std::shared_ptr<std::string> pEffectName)
 {
     auto pPass = CreatePass(pPassName);
 
@@ -112,6 +110,8 @@ std::shared_ptr<DrawingPass> BasicPrimitiveRenderer::CreateDefaultPass(
     BindOutput(*pPass);
     BindPrimitive(*pPass, DefaultPrimitive());
     BindVaringStates(*pPass, DefaultVaringStates());
+
+    BindConstants(*pPass);
 
     return pPass;
 }

@@ -108,7 +108,7 @@ bool DrawingDevice_D3D11::CreateVertexFormat(const DrawingVertexFormatDesc& desc
 
 bool DrawingDevice_D3D11::CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData, uint32_t size)
 {
-    if ((pData != nullptr) && (size < desc.mSizeInBytes))
+    if ((pData != nullptr) && (size > desc.mSizeInBytes))
         return false;
 
     D3D11_BUFFER_DESC bufferDesc;
@@ -135,7 +135,7 @@ bool DrawingDevice_D3D11::CreateVertexBuffer(const DrawingVertexBufferDesc& desc
 
 bool DrawingDevice_D3D11::CreateIndexBuffer(const DrawingIndexBufferDesc& desc, std::shared_ptr<DrawingIndexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData, uint32_t size)
 {
-    if ((pData != nullptr) && (size < desc.mSizeInBytes))
+    if ((pData != nullptr) && (size > desc.mSizeInBytes))
         return false;
 
     D3D11_BUFFER_DESC bufferDesc;
@@ -160,8 +160,70 @@ bool DrawingDevice_D3D11::CreateIndexBuffer(const DrawingIndexBufferDesc& desc, 
     return true;
 }
 
-bool DrawingDevice_D3D11::CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData, uint32_t size)
+bool DrawingDevice_D3D11::CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData[], uint32_t size[], uint32_t slices)
 {
+    auto pTexture = std::make_shared<DrawingTexture>(shared_from_this());
+    std::shared_ptr<DrawingRawTexture> pRawTexture = nullptr;
+
+    std::vector<D3D11_SUBRESOURCE_DATA> subResData(slices);
+    switch (desc.mType)
+    {
+        case eTexture_1D:
+        case eTexture_1DArray:
+        {
+            break;
+        }
+        case eTexture_2D:
+        case eTexture_2DArray:
+        case eTexture_Cube:
+        {
+            D3D11_TEXTURE2D_DESC texture2DDesc;
+            texture2DDesc.Width = desc.mWidth;
+            texture2DDesc.Height = desc.mHeight;
+            texture2DDesc.MipLevels = desc.mMipLevels;
+            texture2DDesc.ArraySize = desc.mArraySize;
+            texture2DDesc.Format = D3D11Enum(desc.mFormat);
+            texture2DDesc.SampleDesc.Count = desc.mSampleCount;
+            texture2DDesc.SampleDesc.Quality = desc.mSampleQuality;
+            texture2DDesc.Usage = D3D11Enum(desc.mUsage);
+            texture2DDesc.BindFlags = (texture2DDesc.Usage == D3D11_USAGE_STAGING) ? 0 : D3D11_BIND_SHADER_RESOURCE;
+            texture2DDesc.CPUAccessFlags = D3D11Enum(desc.mAccess);
+            texture2DDesc.MiscFlags = (texture2DDesc.Usage == D3D11_USAGE_STAGING) ? 0 : D3D11ResourceMiscFlag(desc.mFlags);
+
+            if ((desc.mUsage != eUsage_Staging) && (desc.mFlags & eResource_Gen_Mips))
+                texture2DDesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
+
+            if (desc.mType == eTexture_Cube)
+            {
+                texture2DDesc.ArraySize = 6;
+                texture2DDesc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+            }
+
+            if (!subResData.empty())
+            {
+                auto mipLevels = slices / desc.mArraySize;
+                for (uint32_t index = 0; index < desc.mArraySize; ++index)
+                {
+                    auto bytesPerRow = desc.mBytesPerRow;
+                    for (uint32_t level = 0; level < mipLevels; ++level)
+                    {
+                        auto LOD = index * level + level;
+                        ZeroMemory(&subResData[LOD], sizeof(D3D11_SUBRESOURCE_DATA));
+                        subResData[LOD].pSysMem = *(pData++);
+                        subResData[LOD].SysMemPitch = bytesPerRow;
+                        bytesPerRow = bytesPerRow > 1U ? bytesPerRow >> 1 : 1U;
+                    }
+                }
+            }
+            pRawTexture = std::make_shared<DrawingRawTexture2D_D3D11>(std::static_pointer_cast<DrawingDevice_D3D11>(shared_from_this()), texture2DDesc, subResData);
+        }
+    }
+
+    pTexture->SetDesc(std::shared_ptr<DrawingResourceDesc>(desc.Clone()));
+    pTexture->SetResource(pRawTexture);
+
+    pRes = pTexture;
+
     return true;
 }
 
@@ -857,6 +919,11 @@ void DrawingDevice_D3D11::Flush()
     m_pDeviceContext->Flush();
 }
 
+uint32_t DrawingDevice_D3D11::FormatBytes(EDrawingFormatType type)
+{
+    return D3D11FormatBytes(type);
+}
+
 std::shared_ptr<ID3D11Device> DrawingDevice_D3D11::GetDevice() const
 {
     return m_pDevice;
@@ -871,205 +938,6 @@ std::shared_ptr<IDXGIFactory> DrawingDevice_D3D11::GetDXGIFactory() const
 {
     return m_pDXGIFactory;
 }
-
-template <typename DescType>
-static bool GetBasicTypeInfo(const DescType& descType, uint32_t& dataSetType, uint32_t& rowSize, uint32_t& colSize, uint32_t& arraySize, uint32_t& structSize)
-{
-    bool isValid = true;
-    switch (descType.Class)
-    {
-        case D3D_SVC_SCALAR:
-        {
-            dataSetType = eDataSet_Scalar;
-            arraySize = descType.Elements;
-            break;
-        }
-        case D3D_SVC_VECTOR:
-        {
-            dataSetType = eDataSet_Vector;
-            rowSize = descType.Columns;
-            arraySize = descType.Elements;
-            break;
-        }
-        case D3D_SVC_MATRIX_COLUMNS:
-        {
-            dataSetType = eDataSet_Matrix;
-            rowSize = descType.Columns;
-            colSize = descType.Rows;
-            arraySize = descType.Elements;
-            break;
-        }
-        case D3D_SVC_MATRIX_ROWS:
-        {
-            dataSetType = eDataSet_Matrix;
-            rowSize = descType.Rows;
-            colSize = descType.Columns;
-            arraySize = descType.Elements;
-            break;
-        }
-        case D3D_SVC_OBJECT:
-        {
-            dataSetType = eDataSet_Object;
-            arraySize = descType.Elements;
-            break;
-        }
-        case D3D_SVC_STRUCT:
-        {
-            GetStructInfo(descType, dataSetType, structSize, arraySize);
-            break;
-        }
-        default:
-        {
-            dataSetType = 0xffffffff;
-            rowSize = 0;
-            colSize = 0;
-            arraySize = 0;
-            structSize = 0;
-
-            isValid = false;
-
-        }
-    }
-
-    return isValid;
-}
-
-static void GetStructInfo(const D3DX11_EFFECT_TYPE_DESC& descType, uint32_t& dataSetType, uint32_t& arraySize, uint32_t& structSize)
-{
-    dataSetType = eDataSet_Struct;
-
-    structSize = descType.Stride;
-    arraySize = descType.Elements;
-}
-
-static void GetStructInfo(const D3D11_SHADER_TYPE_DESC& descType, uint32_t& dataSetType, uint32_t& arraySize, uint32_t& structSize)
-{
-    dataSetType = eDataSet_Struct;
-
-    structSize = 0;
-    arraySize = descType.Elements;
-}
-
-template <class DescType>
-static uint32_t GenerateParamType(const DescType& descType, uint32_t dataSetType, uint32_t rowSize, uint32_t colSize, uint32_t arraySize, uint32_t structSize, uint32_t& dataSize)
-{
-    uint32_t paramType = (uint32_t)EParam_Invalid;
-
-    if (dataSetType == eDataSet_Object)
-    {
-        switch (descType.Type)
-        {
-            case D3D_SVT_TEXTURE:
-            case D3D_SVT_TEXTURE1D:
-            case D3D_SVT_TEXTURE2D:
-            case D3D_SVT_TEXTURE2DARRAY:
-            case D3D_SVT_TEXTURE2DMS:
-            case D3D_SVT_TEXTURE3D:
-            case D3D_SVT_TEXTURECUBE:
-            {
-                paramType = COMPOSE_TYPE(eObject_Texture, eDataSet_Object, eBasic_FP32, 0, 0, 0);
-                break;
-            }
-            case D3D_SVT_BYTEADDRESS_BUFFER:
-            case D3D_SVT_STRUCTURED_BUFFER:
-            {
-                paramType = COMPOSE_TYPE(eObject_TexBuffer, eDataSet_Object, eBasic_FP32, 0, 0, 0);
-                break;
-            }
-            case D3D_SVT_BUFFER:
-            {
-                paramType = COMPOSE_TYPE(eObject_Buffer, eDataSet_Object, eBasic_FP32, 0, 0, 0);
-                break;
-            }
-            case D3D_SVT_RWBYTEADDRESS_BUFFER:
-            case D3D_SVT_RWSTRUCTURED_BUFFER:
-            {
-                paramType = COMPOSE_TYPE(eObject_RWBuffer, eDataSet_Object, eBasic_FP32, 0, 0, 0);
-                break;
-            }
-            case D3D_SVT_SAMPLER:
-            case D3D_SVT_SAMPLER1D:
-            case D3D_SVT_SAMPLER2D:
-            case D3D_SVT_SAMPLER3D:
-            case D3D_SVT_SAMPLERCUBE:
-            {
-                paramType = COMPOSE_TYPE(eObject_Sampler, eDataSet_Object, eBasic_FP32, 0, 0, 0);
-                break;
-            }
-            default:
-            {
-                return (uint32_t)EParam_Invalid;
-            }
-        }
-        dataSize = sizeof(void *);
-
-    }
-    else if (dataSetType == eDataSet_Struct)
-    {
-        paramType = COMPOSE_STRUCT_TYPE(eObject_Value, eDataSet_Struct, eBasic_FP32, 0, structSize);
-        dataSize = structSize * arraySize;
-    }
-    else
-    {
-        uint32_t basicType = eBasic_FP32;
-        switch (descType.Type)
-        {
-            case D3D_SVT_BOOL:
-                basicType = eBasic_Bool;
-                break;
-            case D3D_SVT_INT:
-                basicType = eBasic_Int32;
-                break;
-            case D3D_SVT_UINT:
-                basicType = eBasic_UInt32;
-                break;
-            case D3D_SVT_FLOAT:
-                basicType = eBasic_FP32;
-                break;
-            case D3D_SVT_DOUBLE:
-                basicType = eBasic_FP64;
-                break;
-            default:
-            {
-                return (uint32_t)EParam_Invalid;
-            }
-
-        }
-
-        paramType = COMPOSE_TYPE(eObject_Value, dataSetType, basicType, arraySize, colSize, rowSize);
-
-        uint32_t t_array_size = arraySize == 0 ? 1 : arraySize;
-        uint32_t t_row_size = rowSize == 0 ? 1 : rowSize;
-        uint32_t t_col_size = colSize == 0 ? 1 : colSize;
-
-        dataSize = BasicTypeSize[basicType] * t_row_size * t_col_size * t_array_size;
-    }
-
-    return paramType;
-}
-
-template<typename DescType>
-uint32_t DrawingDevice_D3D11::GetParamType(const DescType& type, uint32_t& size)
-{
-    uint32_t dataSetType = eDataSet_Scalar;
-    uint32_t rowSize = 0;
-    uint32_t colSize = 0;
-    uint32_t arraySize = 0;
-    uint32_t structSize = 0;
-
-    bool isValidType = GetBasicTypeInfo(type, dataSetType, rowSize, colSize, arraySize, structSize);
-
-    if (!isValidType)
-        return (uint32_t)EParam_Invalid;
-
-    return GenerateParamType(type, dataSetType, rowSize, colSize, arraySize, structSize, size);
-}
-
-template
-uint32_t DrawingDevice_D3D11::GetParamType(const D3DX11_EFFECT_TYPE_DESC& type, uint32_t& size);
-
-template
-uint32_t DrawingDevice_D3D11::GetParamType(const D3D11_SHADER_TYPE_DESC& type, uint32_t& size);
 
 bool DrawingDevice_D3D11::DoCreateEffect(const DrawingEffectDesc& desc, const void* pData, uint32_t size, std::shared_ptr<DrawingEffect>& pRes)
 {
@@ -1219,7 +1087,7 @@ std::shared_ptr<DrawingRawVertexShader_D3D11> DrawingDevice_D3D11::CreateVertexS
     if (!SUCCEEDED(hr))
     {
         auto err = pErrorBlob->GetBufferPointer();
-        return false;
+        return nullptr;
     }
 
     return CreateVertexShaderFromBlob(pName, pShaderBlob->GetBufferPointer(), (uint32_t)pShaderBlob->GetBufferSize());
@@ -1236,7 +1104,10 @@ std::shared_ptr<DrawingRawPixelShader_D3D11> DrawingDevice_D3D11::CreatePixelSha
 
     HRESULT hr = D3DCompile(pSrc, size, pSourceName.get()->c_str(), nullptr, pInclude, pEntryName.get()->c_str(), "ps_5_0", flags, 0, &pShaderBlob, &pErrorBlob);
     if (!SUCCEEDED(hr))
+    {
+        auto err = pErrorBlob->GetBufferPointer();
         return nullptr;
+    }
 
     return CreatePixelShaderFromBlob(pName, pShaderBlob->GetBufferPointer(), (uint32_t)pShaderBlob->GetBufferSize());
 }
