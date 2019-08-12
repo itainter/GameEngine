@@ -758,6 +758,16 @@ void DrawingDevice_D3D12::UnMap(std::shared_ptr<DrawingResource> pRes, uint32_t 
     }
 }
 
+bool DrawingDevice_D3D12::CopyBuffer(std::shared_ptr<DrawingResource> pDstRes, std::shared_ptr<DrawingResource> pSrcRes, uint32_t dstSubID, uint32_t srcSubID, uint32_t dstStartInBytes, uint32_t srcStartInBytes, uint32_t sizeInBytes)
+{
+    return true;
+}
+
+bool DrawingDevice_D3D12::CopyTexture(std::shared_ptr<DrawingResource> pDstRes, std::shared_ptr<DrawingResource> pSrcRes, uint32_t dstSubID, uint32_t srcSubID, const int3& srcMin, const int3& srcMax, const int3& dstOrigin)
+{
+    return true;
+}
+
 void DrawingDevice_D3D12::Flush()
 {
     auto fenceValue = m_pDirectCommandManager->ExecuteAllCommandLists();

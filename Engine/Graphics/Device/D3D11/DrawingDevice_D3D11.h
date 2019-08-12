@@ -115,6 +115,9 @@ namespace Engine
         void* Map(std::shared_ptr<DrawingResource> pRes, uint32_t subID, EDrawingAccessType flag, uint32_t& rowPitch, uint32_t& slicePitch, uint32_t offset = 0, uint32_t sizeInBytes = 0) override;
         void UnMap(std::shared_ptr<DrawingResource> pRes, uint32_t subID) override;
 
+        bool CopyBuffer(std::shared_ptr<DrawingResource> pDstRes, std::shared_ptr<DrawingResource> pSrcRes, uint32_t dstSubID, uint32_t srcSubID, uint32_t dstStartInBytes, uint32_t srcStartInBytes, uint32_t sizeInBytes) override;
+        bool CopyTexture(std::shared_ptr<DrawingResource> pDstRes, std::shared_ptr<DrawingResource> pSrcRes, uint32_t dstSubID = -1, uint32_t srcSubID = -1, const int3& srcMin = int3(), const int3& srcMax = int3(), const int3& dstOrigin = int3()) override;
+
         void Flush() override;
 
         uint32_t FormatBytes(EDrawingFormatType type) override;
@@ -139,6 +142,9 @@ namespace Engine
 
         std::shared_ptr<DrawingRawVertexShader_D3D11> CreateVertexShaderFromString(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEntryName, std::shared_ptr<std::string> pSourceName, const char* pSrc, uint32_t size);
         std::shared_ptr<DrawingRawPixelShader_D3D11> CreatePixelShaderFromString(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEntryName, std::shared_ptr<std::string> pSourceName, const char* pSrc, uint32_t size);
+
+        template <typename T, typename U, typename SubT, typename SubU>
+        bool CopyTextureData(DrawingResourceWrapper<T>* pDstRes, uint32_t dstSubID, DrawingResourceWrapper<U>* pSrcRes, uint32_t scSubID, const int3& srcMin, const int3& srcMax, const int3& dstOrigin);
 
         template<typename T, typename U>
         void* MapResource(std::shared_ptr<DrawingResource> pRes, uint32_t subID, EDrawingAccessType flag, uint32_t& rowPitch, uint32_t& slicePitch);

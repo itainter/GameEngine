@@ -51,7 +51,7 @@ void DrawingSystem::Tick(float elapsedTime)
         if (pFrameGraph == nullptr)
             continue;
 
-        pFrameGraph->EnqueuePasses(*m_pContext);
+        pFrameGraph->EnqueuePasses();
     }
 
     m_pDevice->Present(m_pContext->GetSwapChain(), 0);
@@ -235,21 +235,29 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
 
     pRenderer->CreateDataResources(*m_pResourceTable);
 
+    auto pCameraComponent = pCamera->GetComponent<CameraComponent>();
+    auto pTransformComponent = pCamera->GetComponent<TransformComponent>();
+    assert(pCameraComponent != nullptr && pTransformComponent != nullptr);
+
     auto pMainPass = pRenderer->GetPass(ForwardRenderer::BasicPrimitiveDefaultPass());
     assert(pMainPass != nullptr);
-
     auto& mainPassNode = pFrameGraph->AddPass(pMainPass, GraphicsBit);
 
     mainPassNode.SetInitializeFunc([&](void) -> bool {
         return true;
-    }); 
+    });
 
-    mainPassNode.SetExecuteFunc([&, pCamera, pRenderer, pMainPass](void) -> void {
-        auto pCameraComponent = pCamera->GetComponent<CameraComponent>();
-        auto pTransformComponent = pCamera->GetComponent<TransformComponent>();
+    mainPassNode.SetClearColorFunc(0, [&, pCameraComponent](float4& color) -> void {
+        color = pCameraComponent->GetBackground();
+    });
 
-        assert(pCameraComponent != nullptr && pTransformComponent != nullptr);
-    
+    mainPassNode.SetClearDepthStencilFunc([&](float& depth, uint8_t& stencil, uint32_t& flag) -> void {
+        depth = 1.0f;
+        stencil = 0;
+        flag = eClear_Depth;
+    });
+
+    mainPassNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pRenderer, pMainPass](void) -> void {
         auto proj = UpdateProjectionMatrix(pCameraComponent);
         auto view = UpdateViewMatrix(pTransformComponent);
 
@@ -265,6 +273,28 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         pRenderer->Begin();
         pRenderer->AddRenderables(items);
         pRenderer->Flush(*m_pResourceTable, pMainPass);
+    });
+
+    auto pCopyPass = pRenderer->GetPass(ForwardRenderer::CopyPass());
+    assert(pCopyPass != nullptr);
+    auto& copyPassNode = pFrameGraph->AddPass(pCopyPass, GraphicsBit);
+
+    copyPassNode.SetInitializeFunc([&](void) -> bool {
+        return true;
+    });
+
+    copyPassNode.SetExecuteFunc([&, pCopyPass](void) -> void {
+        auto pEntry = m_pResourceTable->GetResourceEntry(ForwardRenderer::DefaultTarget());
+        if (pEntry == nullptr)
+            return;
+
+        auto pResource = pEntry->GetResource();
+        if (pResource == nullptr)
+            return;
+
+        auto pSwapChain = std::dynamic_pointer_cast<DrawingResource>(m_pContext->GetSwapChain());
+
+        m_pDevice->CopyTexture(pSwapChain, pResource);
     });
 
     pFrameGraph->FetchResources(*m_pResourceTable);

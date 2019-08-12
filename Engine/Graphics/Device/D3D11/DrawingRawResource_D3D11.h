@@ -930,7 +930,7 @@ namespace Engine
 
         virtual ~DrawingRawTarget_D3D11() = default;
 
-        std::shared_ptr<ID3D11Texture2D> GetTarget() const
+        std::shared_ptr<ID3D11Texture2D> GetBuffer() const
         {
             return m_pTarget;
         }

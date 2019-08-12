@@ -23,6 +23,8 @@ namespace Engine
 
         void Begin() override;
         void AddRenderables(RenderQueueItemListType renderables) override;
+
+        void Clear(DrawingResourceTable& resTable, std::shared_ptr<DrawingPass> pPass) override;
         void Flush(DrawingResourceTable& resTable, std::shared_ptr<DrawingPass> pPass) override;
 
         void AttachDevice(const std::shared_ptr<DrawingDevice>& pDevice, const std::shared_ptr<DrawingContext>& pContext) override;
@@ -58,6 +60,8 @@ namespace Engine
         FuncResourceName(DefaultViewMatrix);
         FuncResourceName(DefaultProjectionMatrix);
         // render target
+        FuncResourceName(DefaultTarget);
+        FuncResourceName(DefaultDepthBuffer);
         FuncResourceName(ScreenTarget);
         FuncResourceName(ScreenDepthBuffer);
         // render state
@@ -104,6 +108,9 @@ namespace Engine
         void DefineDefaultDepthState(DrawingResourceTable& resTable);
         void DefineDefaultBlendState(DrawingResourceTable& resTable);
         void DefineDefaultRasterState(DrawingResourceTable& resTable);
+
+        void DefineTarget(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable);
+        void DefineDepthBuffer(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable);
 
         void DefineExternalTarget(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable);
         void DefineExternalDepthBuffer(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable);

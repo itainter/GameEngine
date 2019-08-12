@@ -978,6 +978,61 @@ void DrawingDevice_D3D11::UnMap(std::shared_ptr<DrawingResource> pRes, uint32_t 
     }
 }
 
+bool DrawingDevice_D3D11::CopyBuffer(std::shared_ptr<DrawingResource> pDstRes, std::shared_ptr<DrawingResource> pSrcRes, uint32_t dstSubID, uint32_t srcSubID, uint32_t dstStartInBytes, uint32_t srcStartInBytes, uint32_t sizeInBytes)
+{
+    return true;
+}
+
+bool DrawingDevice_D3D11::CopyTexture(std::shared_ptr<DrawingResource> pDstRes, std::shared_ptr<DrawingResource> pSrcRes, uint32_t dstSubID, uint32_t srcSubID, const int3& srcMin, const int3& srcMax, const int3& dstOrigin)
+{
+    assert(pDstRes != nullptr && pSrcRes != nullptr);
+    assert(pDstRes != pSrcRes);
+
+    switch(pDstRes->GetType())
+    {
+        case eResource_Target:
+        {
+            auto pDstTarget = std::dynamic_pointer_cast<DrawingTarget>(pDstRes);
+            switch(pSrcRes->GetType())
+            {
+                case eResource_Target:
+                {
+                    auto pSrcTarget = std::dynamic_pointer_cast<DrawingTarget>(pSrcRes);
+                    return CopyTextureData<DrawingRawTarget, DrawingRawTarget, DrawingRawTarget_D3D11, DrawingRawTarget_D3D11>(pDstTarget.get(), dstSubID, pSrcTarget.get(), srcSubID, srcMin, srcMax, dstOrigin);
+                }
+                case eResource_Texture:
+                {
+                    auto pSrcTex = std::dynamic_pointer_cast<DrawingTexture>(pSrcRes);
+                    return CopyTextureData<DrawingRawTarget, DrawingRawTexture, DrawingRawTarget_D3D11, DrawingRawTexture_D3D11>(pDstTarget.get(), dstSubID, pSrcTex.get(), srcSubID, srcMin, srcMax, dstOrigin);
+                }
+                default:
+                    return false;
+            }
+        }
+        case eResource_Texture:
+        {
+            auto pDstTex = std::dynamic_pointer_cast<DrawingTexture>(pDstRes);
+            switch(pSrcRes->GetType())
+            {
+                case eResource_Target:
+                {
+                    auto pSrcTarget = std::dynamic_pointer_cast<DrawingTarget>(pSrcRes);
+                    return CopyTextureData<DrawingRawTexture, DrawingRawTarget, DrawingRawTexture_D3D11, DrawingRawTarget_D3D11>(pDstTex.get(), dstSubID, pSrcTarget.get(), srcSubID, srcMin, srcMax, dstOrigin);
+                }
+                case eResource_Texture:
+                {
+                    auto pSrcTex = std::dynamic_pointer_cast<DrawingTexture>(pSrcRes);
+                    return CopyTextureData<DrawingRawTexture, DrawingRawTexture, DrawingRawTexture_D3D11, DrawingRawTexture_D3D11>(pDstTex.get(), dstSubID, pSrcTex.get(), srcSubID, srcMin, srcMax, dstOrigin);
+                }
+                default:
+                    return false;
+            }
+        }
+        default:
+            return false;
+    }
+}
+
 void DrawingDevice_D3D11::Flush()
 {
     m_pDeviceContext->Flush();
@@ -1174,6 +1229,40 @@ std::shared_ptr<DrawingRawPixelShader_D3D11> DrawingDevice_D3D11::CreatePixelSha
     }
 
     return CreatePixelShaderFromBlob(pName, pShaderBlob->GetBufferPointer(), (uint32_t)pShaderBlob->GetBufferSize());
+}
+
+template <typename T, typename U, typename SubT, typename SubU>
+bool DrawingDevice_D3D11::CopyTextureData(DrawingResourceWrapper<T>* pDstRes, uint32_t dstSubID, DrawingResourceWrapper<U>* pSrcRes, uint32_t srcSubID, const int3& srcMin, const int3& srcMax, const int3& dstOrigin)
+{
+    assert(pDstRes != nullptr && pSrcRes != nullptr);
+
+    T* pDstRawRes = static_cast<T*>(pDstRes->GetResource().get());
+    assert(pDstRawRes != nullptr);
+    SubT* pDstBuffer = static_cast<SubT*>(pDstRawRes);
+    assert(pDstBuffer != nullptr);
+
+    U* pSrcRawRes = static_cast<U*>(pSrcRes->GetResource().get());
+    assert(pSrcRawRes != nullptr);
+    SubU* pSrcBuffer = static_cast<SubU*>(pSrcRawRes);
+    assert(pSrcBuffer != nullptr);
+
+    if ((dstSubID == -1) && (srcSubID == -1))
+    {
+        m_pDeviceContext->CopyResource(pDstBuffer->GetBuffer().get(), pSrcBuffer->GetBuffer().get());
+        return true;
+    }
+    assert((dstSubID != -1) && (srcSubID != -1));
+
+    D3D11_BOX srcBox;
+    srcBox.left    = srcMin.x;
+    srcBox.right   = srcMax.x;
+    srcBox.top     = srcMin.y;
+    srcBox.bottom  = srcMax.y;
+    srcBox.front   = srcMin.z;
+    srcBox.back    = srcMax.z;
+
+    m_pDeviceContext->CopySubresourceRegion(pDstBuffer->GetBuffer().get(), dstSubID, dstOrigin.x, dstOrigin.y, dstOrigin.z, pSrcBuffer->GetBuffer().get(), srcSubID, &srcBox);
+    return true;
 }
 
 template<typename T, typename U>

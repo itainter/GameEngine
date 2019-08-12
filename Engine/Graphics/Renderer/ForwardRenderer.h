@@ -33,14 +33,14 @@ namespace Engine
         FuncResourceName(BasicPrimitiveEffect);
         // Define effect resource names
         FuncResourceName(BasicPrimitiveDefaultPass);
+        FuncResourceName(CopyPass);
 
     protected:
         void DefineShaderResource(DrawingResourceTable& resTable);
         void DefinePipelineStateResource(DrawingResourceTable& resTable);
 
     private:
-        std::shared_ptr<DrawingPass> CreateForwardBasePass(
-            std::shared_ptr<std::string> pPassName,
-            std::shared_ptr<std::string> pEffectName);
+        std::shared_ptr<DrawingPass> CreateForwardBasePass(std::shared_ptr<std::string> pPassName, std::shared_ptr<std::string> pEffectName);
+        std::shared_ptr<DrawingPass> CreateCopyPass(std::shared_ptr<std::string> pPassName);
     };
 }

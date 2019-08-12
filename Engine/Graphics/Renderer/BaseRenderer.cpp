@@ -37,6 +37,11 @@ void BaseRenderer::AddRenderables(RenderQueueItemListType renderables)
         item.pRenderable->GetRenderable(m_renderQueue, item.pTransformComp);
 }
 
+void BaseRenderer::Clear(DrawingResourceTable& resTable, std::shared_ptr<DrawingPass> pPass)
+{
+    
+}
+
 void BaseRenderer::Flush(DrawingResourceTable& resTable, std::shared_ptr<DrawingPass> pPass)
 {
     m_renderQueue.Dispatch(ERenderQueueType::Opaque, [&](const RenderQueueItem& item) -> void {
@@ -101,6 +106,9 @@ void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
     DefineWorldMatrixConstantBuffer(resTable);
     DefineViewMatrixConstantBuffer(resTable);
     DefineProjectionMatrixConstantBuffer(resTable);
+
+    DefineTarget(DefaultTarget(), resTable);
+    DefineDepthBuffer(DefaultDepthBuffer(), resTable);
 
     DefineExternalTarget(ScreenTarget(), resTable);
     DefineExternalDepthBuffer(ScreenDepthBuffer(), resTable);
@@ -383,6 +391,32 @@ void BaseRenderer::DefineDefaultRasterState(DrawingResourceTable& resTable)
     resTable.AddResourceEntry(DefaultRasterState(), pDesc);
 }
 
+void BaseRenderer::DefineTarget(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingTargetDesc>();
+
+    pDesc->mWidth = gpGlobal->GetConfiguration<AppConfiguration>().GetWidth();
+    pDesc->mHeight = gpGlobal->GetConfiguration<AppConfiguration>().GetHeight();
+    pDesc->mFormat = eFormat_R8G8B8A8_UNORM;
+    pDesc->mMultiSampleCount = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA();
+    pDesc->mMultiSampleQuality = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA() == eMSAA_Disable ? 0 : 1;
+
+    resTable.AddResourceEntry(pName, pDesc);
+}
+
+void BaseRenderer::DefineDepthBuffer(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingDepthBufferDesc>();
+
+    pDesc->mWidth = gpGlobal->GetConfiguration<AppConfiguration>().GetWidth();
+    pDesc->mHeight = gpGlobal->GetConfiguration<AppConfiguration>().GetHeight();
+    pDesc->mFormat = eFormat_D24S8;
+    pDesc->mMultiSampleCount = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA();
+    pDesc->mMultiSampleQuality = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA() == eMSAA_Disable ? 0 : 1;
+
+    resTable.AddResourceEntry(pName, pDesc);
+}
+
 void BaseRenderer::DefineExternalTarget(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable)
 {
     auto pDesc = std::make_shared<DrawingTargetDesc>();
@@ -567,8 +601,8 @@ void BaseRenderer::BindStates(DrawingPass& pass)
 
 void BaseRenderer::BindOutput(DrawingPass& pass)
 {
-    BindTarget(pass, 0, ScreenTarget());
-    BindDepthBuffer(pass, ScreenDepthBuffer());
+    BindTarget(pass, 0, DefaultTarget());
+    BindDepthBuffer(pass, DefaultDepthBuffer());
 }
 
 void BaseRenderer::BindConstants(DrawingPass& pass)

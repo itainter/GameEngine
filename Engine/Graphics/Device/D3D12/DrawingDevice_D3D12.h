@@ -101,6 +101,9 @@ namespace Engine
         void* Map(std::shared_ptr<DrawingResource> pRes, uint32_t subID, EDrawingAccessType flag, uint32_t& rowPitch, uint32_t& slicePitch, uint32_t offset = 0, uint32_t sizeInBytes = 0) override;
         void UnMap(std::shared_ptr<DrawingResource> pRes, uint32_t subID) override;
 
+        bool CopyBuffer(std::shared_ptr<DrawingResource> pDstRes, std::shared_ptr<DrawingResource> pSrcRes, uint32_t dstSubID, uint32_t srcSubID, uint32_t dstStartInBytes, uint32_t srcStartInBytes, uint32_t sizeInBytes) override;
+        bool CopyTexture(std::shared_ptr<DrawingResource> pDstRes, std::shared_ptr<DrawingResource> pSrcRes, uint32_t dstSubID = -1, uint32_t srcSubID = -1, const int3& srcMin = int3(), const int3& srcMax = int3(), const int3& dstOrigin = int3()) override;
+
         void Flush() override;
 
         uint32_t FormatBytes(EDrawingFormatType type) override;

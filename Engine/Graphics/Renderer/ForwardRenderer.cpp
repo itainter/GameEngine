@@ -70,6 +70,9 @@ void ForwardRenderer::BuildPass()
 {
     auto& pMainPass = CreateForwardBasePass(BasicPrimitiveDefaultPass(), BasicPrimitiveEffect());
     m_passTable[BasicPrimitiveDefaultPass()] = pMainPass;
+
+    auto& pCopyPass = CreateCopyPass(CopyPass());
+    m_passTable[CopyPass()] = pCopyPass;
 }
 
 void ForwardRenderer::DefineShaderResource(DrawingResourceTable& resTable)
@@ -89,13 +92,11 @@ void ForwardRenderer::DefinePipelineStateResource(DrawingResourceTable& resTable
                         DefaultBlendState(),
                         DefaultRasterState(),
                         DefaultDepthState(),
-                        ScreenTarget(),
+                        DefaultTarget(),
                         resTable);
 }
 
-std::shared_ptr<DrawingPass> ForwardRenderer::CreateForwardBasePass(
-    std::shared_ptr<std::string> pPassName,
-    std::shared_ptr<std::string> pEffectName)
+std::shared_ptr<DrawingPass> ForwardRenderer::CreateForwardBasePass(std::shared_ptr<std::string> pPassName, std::shared_ptr<std::string> pEffectName)
 {
     auto pPass = CreatePass(pPassName);
 
@@ -109,5 +110,11 @@ std::shared_ptr<DrawingPass> ForwardRenderer::CreateForwardBasePass(
 
     BindConstants(*pPass);
 
+    return pPass;
+}
+
+std::shared_ptr<DrawingPass> ForwardRenderer::CreateCopyPass(std::shared_ptr<std::string> pPassName)
+{
+    auto pPass = CreatePass(pPassName);
     return pPass;
 }
