@@ -10,7 +10,7 @@ void WindowsApplication::Initialize()
 {
     CreateMainWindow();
     m_hDc = GetDC(m_hWnd);
-    gpGlobal->GetConfiguration().hWnd = (void*)m_hWnd;
+    gpGlobal->GetConfiguration<AppConfiguration>().SetAppHandle((void*)m_hWnd);
 
     BaseApplication::Initialize();
 }
@@ -53,12 +53,12 @@ void WindowsApplication::CreateMainWindow()
 
     m_hWnd = CreateWindowEx(0,
                             "GameEngineApplication",
-                            gpGlobal->GetConfiguration().appName,
+                            gpGlobal->GetConfiguration<AppConfiguration>().GetAppName(),
                             WS_OVERLAPPEDWINDOW,
                             CW_USEDEFAULT,
                             CW_USEDEFAULT,
-                            gpGlobal->GetConfiguration().width + width_adjust,
-                            gpGlobal->GetConfiguration().height + height_adjust,
+                            gpGlobal->GetConfiguration<AppConfiguration>().GetWidth() + width_adjust,
+                            gpGlobal->GetConfiguration<AppConfiguration>().GetHeight() + height_adjust,
                             NULL,
                             NULL,
                             hInstance,

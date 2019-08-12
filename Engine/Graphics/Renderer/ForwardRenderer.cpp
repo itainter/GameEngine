@@ -7,18 +7,6 @@ ForwardRenderer::ForwardRenderer() : BaseRenderer()
 {
 }
 
-void ForwardRenderer::Initialize()
-{
-}
-
-void ForwardRenderer::Shutdown()
-{
-}
-
-void ForwardRenderer::Tick(float elapsedTime)
-{
-}
-
 void ForwardRenderer::DefineResources(DrawingResourceTable& resTable)
 {
     DefineDefaultResources(resTable);
@@ -26,28 +14,36 @@ void ForwardRenderer::DefineResources(DrawingResourceTable& resTable)
     DefinePipelineStateResource(resTable);
 }
 
-void ForwardRenderer::SetupStages()
-{
-    auto pStage = CreateStage(BasicPrimitiveStage());
-    pStage->AppendDrawingPass(CreateDefaultPass(BasicPrimitiveDefaultPass(), BasicPrimitiveEffect()));
-
-    m_stageTable.AddDrawingStage(pStage->GetName(), pStage);
-}
-
 void ForwardRenderer::SetupBuffers(DrawingResourceTable& resTable)
 {
 }
 
-void ForwardRenderer::Cleanup()
+void ForwardRenderer::BeginDrawPass()
 {
+    m_pTransientPositionBuffer->Open();
+    m_pTransientNormalBuffer->Open();
+    m_pTransientIndexBuffer->Open();
 }
 
-void ForwardRenderer::BeginFrame()
+void ForwardRenderer::EndDrawPass()
 {
+    m_pTransientPositionBuffer->Close();
+    m_pTransientNormalBuffer->Close();
+    m_pTransientIndexBuffer->Close();
 }
 
-void ForwardRenderer::EndFrame()
+void ForwardRenderer::FlushData()
 {
+    m_pTransientPositionBuffer->FlushData();
+    m_pTransientNormalBuffer->FlushData();
+    m_pTransientIndexBuffer->FlushData();
+}
+
+void ForwardRenderer::ResetData()
+{
+    m_pTransientPositionBuffer->ResetData();
+    m_pTransientNormalBuffer->ResetData();
+    m_pTransientIndexBuffer->ResetData();
 }
 
 void ForwardRenderer::UpdatePrimitive(DrawingResourceTable& resTable)
@@ -61,8 +57,8 @@ void ForwardRenderer::UpdatePrimitive(DrawingResourceTable& resTable)
         return;
 
     pPrimitive->SetPrimitiveType(ePrimitive_TriangleList);
-    pPrimitive->SetVertexCount(m_vertexCount);
-    pPrimitive->SetIndexCount(m_indexCount);
+    pPrimitive->SetVertexCount(m_pTransientPositionBuffer->GetFlushOffset());
+    pPrimitive->SetIndexCount(m_pTransientIndexBuffer->GetFlushOffset());
     pPrimitive->SetInstanceCount(0);
 
     pPrimitive->SetVertexOffset(0);
@@ -70,10 +66,10 @@ void ForwardRenderer::UpdatePrimitive(DrawingResourceTable& resTable)
     pPrimitive->SetInstanceOffset(0);
 }
 
-void ForwardRenderer::Draw(DrawingResourceTable& resTable)
+void ForwardRenderer::BuildPass()
 {
-    UpdatePrimitive(resTable);
-    FlushStage(BasicPrimitiveStage());
+    auto& pMainPass = CreateForwardBasePass(BasicPrimitiveDefaultPass(), BasicPrimitiveEffect());
+    m_passTable[BasicPrimitiveDefaultPass()] = pMainPass;
 }
 
 void ForwardRenderer::DefineShaderResource(DrawingResourceTable& resTable)
@@ -97,7 +93,7 @@ void ForwardRenderer::DefinePipelineStateResource(DrawingResourceTable& resTable
                         resTable);
 }
 
-std::shared_ptr<DrawingPass> ForwardRenderer::CreateDefaultPass(
+std::shared_ptr<DrawingPass> ForwardRenderer::CreateForwardBasePass(
     std::shared_ptr<std::string> pPassName,
     std::shared_ptr<std::string> pEffectName)
 {
@@ -105,7 +101,7 @@ std::shared_ptr<DrawingPass> ForwardRenderer::CreateDefaultPass(
 
     BindEffect(*pPass, pEffectName);
     BindPipelineState(*pPass, BasicPrimitivePipelineState());
-    BindInputs(*pPass);
+    BindDynamicInputs(*pPass);
     BindStates(*pPass);
     BindOutput(*pPass);
     BindPrimitive(*pPass, DefaultPrimitive());

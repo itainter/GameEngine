@@ -7,13 +7,10 @@
 #include <unordered_map>
 
 #include "SafeQueue.h"
+#include "Vector.h"
 #include "DrawingConstants.h"
-#include "DrawingType.h"
 #include "DrawingDevice.h"
 #include "DrawingCommandManager_D3D12.h"
-#include "DrawingUploadAllocator_D3D12.h"
-#include "DrawingDescriptorAllocator_D3D12.h"
-#include "DrawingDynamicDescriptorHeap_D3D12.h"
 #include "DrawingResourceStateTracker_D3D12.h"
 #include "DrawingUtil_D3D12.h"
 
@@ -36,8 +33,8 @@ namespace Engine
         void Shutdown() override;
 
         bool CreateVertexFormat(const DrawingVertexFormatDesc& desc, std::shared_ptr<DrawingVertexFormat>& pRes) override;
-        bool CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData = nullptr, uint32_t size = 0) override;
-        bool CreateIndexBuffer(const DrawingIndexBufferDesc& desc, std::shared_ptr<DrawingIndexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData = nullptr, uint32_t size = 0) override;
+        bool CreateVertexBuffer(const DrawingVertexBufferDesc& desc, std::shared_ptr<DrawingVertexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes = nullptr, const void* pData = nullptr, uint32_t size = 0) override;
+        bool CreateIndexBuffer(const DrawingIndexBufferDesc& desc, std::shared_ptr<DrawingIndexBuffer>& pRes, std::shared_ptr<DrawingResource> pRefRes = nullptr, const void* pData = nullptr, uint32_t size = 0) override;
         bool CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData[] = nullptr, uint32_t size[] = nullptr, uint32_t slices = 0) override;
         bool CreateTarget(const DrawingTargetDesc& desc, std::shared_ptr<DrawingTarget>& pRes) override;
         bool CreateDepthBuffer(const DrawingDepthBufferDesc& desc, std::shared_ptr<DrawingDepthBuffer>& pRes) override;
@@ -73,6 +70,7 @@ namespace Engine
         void SetRasterState(std::shared_ptr<DrawingRasterState> pRaster) override;
 
         void SetPipelineState(std::shared_ptr<DrawingPipelineState> pPipelineState) override;
+        void SetDescriptorHeap(EDrawingDescriptorHeapType type, std::shared_ptr<ID3D12DescriptorHeap> pHeap);
 
         void PushBlendState() override;
         void PopBlendState() override;
@@ -100,19 +98,17 @@ namespace Engine
         bool DrawPrimitive(std::shared_ptr<DrawingPrimitive> pRes) override;
         bool Present(const std::shared_ptr<DrawingTarget> pTarget, uint32_t syncInterval) override;
 
+        void* Map(std::shared_ptr<DrawingResource> pRes, uint32_t subID, EDrawingAccessType flag, uint32_t& rowPitch, uint32_t& slicePitch, uint32_t offset = 0, uint32_t sizeInBytes = 0) override;
+        void UnMap(std::shared_ptr<DrawingResource> pRes, uint32_t subID) override;
+
         void Flush() override;
 
         uint32_t FormatBytes(EDrawingFormatType type) override;
-
-        DrawingDescriptorAllocator_D3D12::Allocation AllocationDescriptors(EDrawingDescriptorHeapType type, uint32_t numDescriptors = 1);
 
         std::shared_ptr<ID3D12Device2> GetDevice() const;
         std::shared_ptr<IDXGIFactory4> GetDXGIFactory() const;
 
         std::shared_ptr<DrawingCommandManager_D3D12> GetCommandManager(EDrawingCommandListType type) const;
-        std::shared_ptr<DrawingUploadAllocator_D3D12> GetUploadAllocator() const;
-        std::shared_ptr<DrawingDescriptorAllocator_D3D12> GetDescriptorAllocator(EDrawingDescriptorHeapType type) const;
-        std::shared_ptr<DrawingDynamicDescriptorHeap_D3D12> GetDynamicDescriptorHeap(EDrawingDescriptorHeapType type) const;
 
     private:
         bool DoCreateEffect(const DrawingEffectDesc& desc, const void* pData, uint32_t size, std::shared_ptr<DrawingEffect>& pRes);
@@ -131,6 +127,12 @@ namespace Engine
         std::shared_ptr<DrawingRawVertexShader_D3D12> CreateVertexShaderFromString(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEntryName, std::shared_ptr<std::string> pSourceName, const char* pSrc, uint32_t size);
         std::shared_ptr<DrawingRawPixelShader_D3D12> CreatePixelShaderFromString(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEntryName, std::shared_ptr<std::string> pSourceName, const char* pSrc, uint32_t size);
 
+        template<typename T, typename U>
+        void* MapResource(std::shared_ptr<DrawingResource> pRes, uint32_t subID);
+
+        template<typename T, typename U>
+        void UnMapResource(std::shared_ptr<DrawingResource> pRes, uint32_t aSubID);
+
     private:
         std::shared_ptr<ID3D12Device2> m_pDevice;
         std::shared_ptr<IDXGIFactory4> m_pDXGIFactory;
@@ -139,11 +141,7 @@ namespace Engine
         std::shared_ptr<DrawingCommandManager_D3D12> m_pComputeCommandManager;
         std::shared_ptr<DrawingCommandManager_D3D12> m_pCopyCommandManager;
 
-        std::shared_ptr<DrawingUploadAllocator_D3D12> m_pUploadAllocator;
-
-        std::shared_ptr<DrawingDescriptorAllocator_D3D12> m_pDescriptorAllocators[eDescriptorHeap_Count];
-        std::shared_ptr<DrawingDynamicDescriptorHeap_D3D12> m_pDynamicDescriptorHeaps[eDescriptorHeap_Count];
-        ID3D12DescriptorHeap* m_pDescriptorHeaps[eDescriptorHeap_Count];
+        std::shared_ptr<ID3D12DescriptorHeap> m_pDescriptorHeaps[eDescriptorHeap_Count] = { nullptr };
 
         uint64_t m_fenceValues[BUFFER_COUNT] = {};
     };

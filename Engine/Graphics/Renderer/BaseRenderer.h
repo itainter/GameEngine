@@ -4,8 +4,11 @@
 #include <string>
 
 #include "IRenderer.h"
-#include "DrawingStage.h"
 #include "DrawingPass.h"
+#include "FrameGraph.h"
+
+#include "RenderQueue.h"
+#include "DrawingStreamedResource.h"
 
 namespace Engine
 {
@@ -15,35 +18,41 @@ namespace Engine
         BaseRenderer();
         virtual ~BaseRenderer() {}
 
-        virtual void Initialize() override = 0;
-        virtual void Shutdown() override = 0;
-
-        virtual void Tick(float elapsedTime) override = 0;
-
         virtual void DefineResources(DrawingResourceTable& resTable) override = 0;
-        virtual void SetupStages() override = 0;
         virtual void SetupBuffers(DrawingResourceTable& resTable) override = 0;
-        virtual void Cleanup() override = 0;
 
-        virtual void BeginFrame() override = 0;
-        virtual void EndFrame() override = 0;
-
-        virtual void UpdatePrimitive(DrawingResourceTable& resTable) override = 0;
-        virtual void Draw(DrawingResourceTable& resTable) override = 0;
+        void Begin() override;
+        void AddRenderables(RenderQueueItemListType renderables) override;
+        void Flush(DrawingResourceTable& resTable, std::shared_ptr<DrawingPass> pPass) override;
 
         void AttachDevice(const std::shared_ptr<DrawingDevice>& pDevice, const std::shared_ptr<DrawingContext>& pContext) override;
-        void AttachMesh(std::shared_ptr<IMesh> pMesh) override;
+        void AttachMesh(const IMesh* pMesh) override;
 
-        void MapResources(DrawingResourceTable& resTable) override;
+        void CreateDataResources(DrawingResourceTable& resTable) override;
+        virtual void BuildPass() = 0;
+        std::shared_ptr<DrawingPass> GetPass(std::shared_ptr<std::string> pName) override;
+
+    private:
+        virtual void BeginDrawPass() = 0;
+        virtual void EndDrawPass() = 0;
+
+        virtual void FlushData() = 0;
+        virtual void ResetData() = 0;
+        virtual void UpdatePrimitive(DrawingResourceTable& resTable) = 0;
+
+        float4x4 UpdateWorldMatrix(const TransformComponent* pTransform);
 
     public:
         // vertex format
         FuncResourceName(DefaultVertexFormat);
         // vertex buffer
-        FuncResourceName(DefaultPositionBuffer);
-        FuncResourceName(DefaultNormalBuffer);
+        FuncResourceName(DefaultStaticPositionBuffer);
+        FuncResourceName(DefaultStaticNormalBuffer);
+        FuncResourceName(DefaultDynamicPositionBuffer);
+        FuncResourceName(DefaultDynamicNormalBuffer);
         // index buffer
-        FuncResourceName(DefaultIndexBuffer);
+        FuncResourceName(DefaultStaticIndexBuffer);
+        FuncResourceName(DefaultDynamicIndexBuffer);
         // constant buffer
         FuncResourceName(DefaultWorldMatrix);
         FuncResourceName(DefaultViewMatrix);
@@ -61,31 +70,6 @@ namespace Engine
         FuncResourceName(DefaultPrimitive);
 
     protected:
-        static const uint32_t DYNAMIC_TEX_ROW_SIZE = 1024;
-
-        static const uint32_t MAX_VERTEX_COUNT = 65536 * 4;
-        static const uint32_t MAX_INDEX_COUNT = 65536 * 4;
-
-        static const uint32_t PositionOffset = sizeof(Vec3<float>);
-        static const uint32_t NormalOffset = sizeof(Vec3<float>);
-
-        static char* m_sVertexID[Attribute::ESemanticType::Count][MAX_VERTEX_COUNT];
-        static char* m_sIndexID[MAX_INDEX_COUNT];
-
-        static void InitVertexID();
-        static void InitInstanceID();
-
-        uint32_t m_vertexOffset[Attribute::ESemanticType::Count];
-        uint32_t m_indexOffset;
-
-        uint32_t m_vertexCount;
-        uint32_t m_indexCount;
-
-        std::shared_ptr<DrawingDevice> m_pDevice;
-        std::shared_ptr<DrawingContext> m_pDeviceContext;
-
-        DrawingStageTable m_stageTable;
-
         void DefineDefaultResources(DrawingResourceTable& resTable);
 
         void DefineGeneralEffect(std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pSourceName, std::shared_ptr<std::string> pTechName, DrawingResourceTable& resTable);
@@ -109,6 +93,9 @@ namespace Engine
         void DefineDefaultVertexFormat(DrawingResourceTable& resTable);
         void DefineStaticVertexBuffer(std::shared_ptr<std::string> pName, uint32_t stride, uint32_t count, const void* data, uint32_t size, DrawingResourceTable& resTable);
         void DefineStaticIndexBuffer(std::shared_ptr<std::string> pName, uint32_t count, const void* data, uint32_t size, DrawingResourceTable& resTable);
+
+        void DefineDynamicVertexBuffer(std::shared_ptr<std::string> pName, uint32_t stride, uint32_t count, DrawingResourceTable& resTable);
+        void DefineDynamicIndexBuffer(std::shared_ptr<std::string> pName, uint32_t count, DrawingResourceTable& resTable);
 
         void DefineWorldMatrixConstantBuffer(DrawingResourceTable& resTable);
         void DefineViewMatrixConstantBuffer(DrawingResourceTable& resTable);
@@ -143,16 +130,23 @@ namespace Engine
         void AddConstantSlot(DrawingPass& pass, std::shared_ptr<std::string> pName);
         void AddTextureSlot(DrawingPass& pass, std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pParamName);
 
-        void BindInputs(DrawingPass& pass);
+        void BindStaticInputs(DrawingPass& pass);
+        void BindDynamicInputs(DrawingPass& pass);
         void BindStates(DrawingPass& pass);
         void BindOutput(DrawingPass& pass);
 
         void BindConstants(DrawingPass& pass);
 
-        std::shared_ptr<DrawingStage> CreateStage(std::shared_ptr<std::string> pName);
-        std::shared_ptr<DrawingPass> CreatePass(std::shared_ptr<std::string> pName);
+        std::shared_ptr<DrawingTransientTexture> CreateTransientTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+        std::shared_ptr<DrawingPersistTexture> CreatePersistTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
 
-        void FlushStage(std::shared_ptr<std::string> pStageName);
+        std::shared_ptr<DrawingTransientVertexBuffer> CreateTransientVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+        std::shared_ptr<DrawingPersistVertexBuffer> CreatePersistVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+
+        std::shared_ptr<DrawingTransientIndexBuffer> CreateTransientIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+        std::shared_ptr<DrawingPersistIndexBuffer> CreatePersistIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+
+        std::shared_ptr<DrawingPass> CreatePass(std::shared_ptr<std::string> pName);
 
     private:
         template<typename T>
@@ -160,6 +154,27 @@ namespace Engine
 
         template<typename T>
         void DoDefineShader(std::shared_ptr<std::string> pShaderName, std::shared_ptr<std::string> pFileName, std::shared_ptr<std::string> pEntryName, DrawingResourceTable& resTable);
+
+    protected:
+        static const uint32_t DYNAMIC_TEX_ROW_SIZE = 1024;
+
+        static const uint32_t MAX_VERTEX_COUNT = 65536 * 4;
+        static const uint32_t MAX_INDEX_COUNT = 65536 * 4;
+
+        static const uint32_t PositionOffset = sizeof(float3);
+        static const uint32_t NormalOffset = sizeof(float3);
+
+        std::shared_ptr<DrawingTransientVertexBuffer> m_pTransientPositionBuffer;
+        std::shared_ptr<DrawingTransientVertexBuffer> m_pTransientNormalBuffer;
+        std::shared_ptr<DrawingTransientIndexBuffer> m_pTransientIndexBuffer;
+
+        std::shared_ptr<DrawingDevice> m_pDevice;
+        std::shared_ptr<DrawingContext> m_pDeviceContext;
+
+        typedef std::unordered_map<std::shared_ptr<std::string>, std::shared_ptr<DrawingPass>> DrawingPassTable;
+
+        DrawingPassTable m_passTable;
+        RenderQueue m_renderQueue;
     };
 
     template<typename T>

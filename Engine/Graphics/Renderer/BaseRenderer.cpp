@@ -3,29 +3,60 @@
 
 using namespace Engine;
 
-char* BaseRenderer::m_sVertexID[Attribute::ESemanticType::Count][MAX_VERTEX_COUNT] = {};
-char* BaseRenderer::m_sIndexID[MAX_INDEX_COUNT] = {};
-
 const uint32_t DrawingLinkedEffectDesc::VERTEX_SHADER_ID;
 const uint32_t DrawingLinkedEffectDesc::PIXEL_SHADER_ID;
 
 BaseRenderer::BaseRenderer()
 {
-    InitVertexID();
-    InitInstanceID();
-
-    m_vertexCount = 0;
-    m_indexCount = 0;
-
-    for (uint32_t i = 0; i < (uint32_t)Attribute::ESemanticType::Count; i++)
-        m_vertexOffset[i] = 0;
-
-    m_indexOffset = 0;
 }
 
-void BaseRenderer::MapResources(DrawingResourceTable& resTable)
+void BaseRenderer::CreateDataResources(DrawingResourceTable& resTable)
 {
-    m_stageTable.FetchResources(resTable);
+    m_pTransientPositionBuffer = CreateTransientVertexBuffer(resTable, DefaultDynamicPositionBuffer());
+    m_pTransientNormalBuffer = CreateTransientVertexBuffer(resTable, DefaultDynamicNormalBuffer());
+    m_pTransientIndexBuffer = CreateTransientIndexBuffer(resTable, DefaultDynamicIndexBuffer());
+}
+
+std::shared_ptr<DrawingPass> BaseRenderer::GetPass(std::shared_ptr<std::string> pName)
+{
+    auto iter = m_passTable.find(pName);
+    if (iter == m_passTable.end())
+        return nullptr;
+
+    return iter->second;
+}
+
+void BaseRenderer::Begin()
+{
+    m_renderQueue.Reset();
+}
+
+void BaseRenderer::AddRenderables(RenderQueueItemListType renderables)
+{
+    for (auto& item : renderables)
+        item.pRenderable->GetRenderable(m_renderQueue, item.pTransformComp);
+}
+
+void BaseRenderer::Flush(DrawingResourceTable& resTable, std::shared_ptr<DrawingPass> pPass)
+{
+    m_renderQueue.Dispatch(ERenderQueueType::Opaque, [&](const RenderQueueItem& item) -> void {
+        auto pMesh = dynamic_cast<const IMesh*>(item.pRenderable);
+        if (pMesh == nullptr)
+            return;
+
+        auto trans = UpdateWorldMatrix(item.pTransformComp);
+        m_pDeviceContext->UpdateTransform(resTable, trans);
+
+        BeginDrawPass();
+        AttachMesh(pMesh);
+        FlushData();
+        UpdatePrimitive(resTable);
+
+        pPass->Flush(*m_pDeviceContext);
+
+        ResetData();
+        EndDrawPass();
+    });
 }
 
 void BaseRenderer::AttachDevice(const std::shared_ptr<DrawingDevice>& pDevice, const std::shared_ptr<DrawingContext>& pContext)
@@ -34,35 +65,38 @@ void BaseRenderer::AttachDevice(const std::shared_ptr<DrawingDevice>& pDevice, c
     m_pDeviceContext = pContext;
 }
 
-void BaseRenderer::AttachMesh(std::shared_ptr<IMesh> pMesh)
+void BaseRenderer::AttachMesh(const IMesh* pMesh)
 {
     auto vertexCount = pMesh->VertexCount();
     auto indexCount = pMesh->IndexCount();
 
+    assert(m_pTransientPositionBuffer->CheckCapacity(vertexCount));
+    assert(m_pTransientNormalBuffer->CheckCapacity(vertexCount));
+    assert(m_pTransientIndexBuffer->CheckCapacity(indexCount));
+
     auto pAttributes = pMesh->GetAttributes();
 
-    std::for_each(pAttributes.cbegin(), pAttributes.cend(), [this](std::shared_ptr<Attribute> pElem)
+    std::for_each(pAttributes.cbegin(), pAttributes.cend(), [&](std::shared_ptr<Attribute> pElem)
     {
         auto type = (uint32_t)pElem->semanticType;
-        assert(type < (uint32_t)Attribute::ESemanticType::Count);
-        memcpy(m_sVertexID[type] + m_vertexOffset[type], pElem->pData.get(), pElem->size);
-        m_vertexOffset[type] += pElem->size;
+        
+        if (type == (uint32_t)Attribute::ESemanticType::Position)
+            m_pTransientPositionBuffer->FillData(pElem->pData.get(), vertexCount);
+
+        if (type == (uint32_t)Attribute::ESemanticType::Normal)
+            m_pTransientNormalBuffer->FillData(pElem->pData.get(), vertexCount);
     });
 
-    memcpy(m_sIndexID + m_indexOffset, pMesh->GetIndexData().get(), pMesh->IndexSize());
-    m_indexOffset += pMesh->IndexSize();
-
-    m_vertexCount += vertexCount;
-    m_indexCount += indexCount;
+    m_pTransientIndexBuffer->FillData(pMesh->GetIndexData().get(), indexCount);
 }
 
 void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
 {
     DefineDefaultVertexFormat(resTable);
-    DefineStaticVertexBuffer(DefaultPositionBuffer(), PositionOffset, MAX_VERTEX_COUNT, &m_sVertexID[(uint32_t)Attribute::ESemanticType::Position], m_vertexOffset[(uint32_t)Attribute::ESemanticType::Position], resTable);
-    DefineStaticVertexBuffer(DefaultNormalBuffer(), NormalOffset, MAX_VERTEX_COUNT, &m_sVertexID[(uint32_t)Attribute::ESemanticType::Normal], m_vertexOffset[(uint32_t)Attribute::ESemanticType::Normal], resTable);
 
-    DefineStaticIndexBuffer(DefaultIndexBuffer(), MAX_INDEX_COUNT, &m_sIndexID, m_indexOffset, resTable);
+    DefineDynamicVertexBuffer(DefaultDynamicPositionBuffer(), PositionOffset, MAX_VERTEX_COUNT, resTable);
+    DefineDynamicVertexBuffer(DefaultDynamicNormalBuffer(), NormalOffset, MAX_VERTEX_COUNT, resTable);
+    DefineDynamicIndexBuffer(DefaultDynamicIndexBuffer(), MAX_INDEX_COUNT, resTable);
 
     DefineWorldMatrixConstantBuffer(resTable);
     DefineViewMatrixConstantBuffer(resTable);
@@ -216,6 +250,32 @@ void BaseRenderer::DefineStaticIndexBuffer(std::shared_ptr<std::string> pName, u
     }
 }
 
+void BaseRenderer::DefineDynamicVertexBuffer(std::shared_ptr<std::string> pName, uint32_t stride, uint32_t count, DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingVertexBufferDesc>();
+
+    pDesc->mSizeInBytes = stride * count;
+    pDesc->mStrideInBytes = stride;
+    pDesc->mUsage = eUsage_Dynamic;
+    pDesc->mAccess = eAccess_Write; 
+    pDesc->mFlags = 0;
+
+    resTable.AddResourceEntry(pName, pDesc);
+}
+
+void BaseRenderer::DefineDynamicIndexBuffer(std::shared_ptr<std::string> pName, uint32_t count, DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingIndexBufferDesc>();
+
+    pDesc->mSizeInBytes = 2 * count;
+    pDesc->mStrideInBytes = 2;
+    pDesc->mUsage = eUsage_Dynamic;
+    pDesc->mAccess = eAccess_Write;
+    pDesc->mFlags = 0;
+
+    resTable.AddResourceEntry(pName, pDesc);
+}
+
 void BaseRenderer::DefineWorldMatrixConstantBuffer(DrawingResourceTable& resTable)
 {
     auto pDesc = std::make_shared<DrawingConstantBufferDesc>();
@@ -260,17 +320,17 @@ void BaseRenderer::DefineDefaultDepthState(DrawingResourceTable& resTable)
     pDesc->mDepthState.mDepthWriteEnable = true;
     pDesc->mDepthState.mDepthFunc = eComparison_Less;
 
-    pDesc->mStencilState.mStencilEnable = true;
+    pDesc->mStencilState.mStencilEnable = false;
     pDesc->mStencilState.mStencilReadMask = 0;
     pDesc->mStencilState.mStencilWriteMask = 0;
 
     pDesc->mStencilState.mFrontFace.mStencilPassOp = eStencilOp_Keep;
-    pDesc->mStencilState.mFrontFace.mStencilFailOp = eStencilOp_Incr;
+    pDesc->mStencilState.mFrontFace.mStencilFailOp = eStencilOp_Keep;
     pDesc->mStencilState.mFrontFace.mStencilDepthFailOp = eStencilOp_Keep;
     pDesc->mStencilState.mFrontFace.mStencilFunc = eComparison_Always;
 
     pDesc->mStencilState.mBackFace.mStencilPassOp = eStencilOp_Keep;
-    pDesc->mStencilState.mBackFace.mStencilFailOp = eStencilOp_Decr;
+    pDesc->mStencilState.mBackFace.mStencilFailOp = eStencilOp_Keep;
     pDesc->mStencilState.mBackFace.mStencilDepthFailOp = eStencilOp_Keep;
     pDesc->mStencilState.mBackFace.mStencilFunc = eComparison_Always;
 
@@ -306,7 +366,8 @@ void BaseRenderer::DefineDefaultRasterState(DrawingResourceTable& resTable)
 {
     auto pDesc = std::make_shared<DrawingRasterStateDesc>();
 
-    pDesc->mAntialiasedLineEnable = true;
+    pDesc->mAntialiasedLineEnable = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA() != eMSAA_Disable;
+    pDesc->mMultisampleEnable = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA() != eMSAA_Disable;
     pDesc->mDepthClipEnable = true;
 
     pDesc->mDepthBiasClamp = 0.0f;
@@ -317,7 +378,6 @@ void BaseRenderer::DefineDefaultRasterState(DrawingResourceTable& resTable)
     pDesc->mFillMode = eFillMode_Solid;
 
     pDesc->mFrontCounterClockwise = false;
-    pDesc->mMultisampleEnable = true;
     pDesc->mScissorEnable = false;
 
     resTable.AddResourceEntry(DefaultRasterState(), pDesc);
@@ -480,15 +540,22 @@ void BaseRenderer::AddConstantSlot(DrawingPass& pass, std::shared_ptr<std::strin
 void BaseRenderer::AddTextureSlot(DrawingPass& pass, std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pParamName)
 {
     pass.AddResourceSlot(pName, ResourceSlot_Texture, pParamName);
-    
 }
 
-void BaseRenderer::BindInputs(DrawingPass& pass)
+void BaseRenderer::BindStaticInputs(DrawingPass& pass)
 {
     BindVertexFormat(pass, DefaultVertexFormat());
-    BindVertexBuffer(pass, 0, DefaultPositionBuffer());
-    BindVertexBuffer(pass, 1, DefaultNormalBuffer());
-    BindIndexBuffer(pass, DefaultIndexBuffer());
+    BindVertexBuffer(pass, 0, DefaultStaticPositionBuffer());
+    BindVertexBuffer(pass, 1, DefaultStaticNormalBuffer());
+    BindIndexBuffer(pass, DefaultStaticIndexBuffer());
+}
+
+void BaseRenderer::BindDynamicInputs(DrawingPass& pass)
+{
+    BindVertexFormat(pass, DefaultVertexFormat());
+    BindVertexBuffer(pass, 0, DefaultDynamicPositionBuffer());
+    BindVertexBuffer(pass, 1, DefaultDynamicNormalBuffer());
+    BindIndexBuffer(pass, DefaultDynamicIndexBuffer());
 }
 
 void BaseRenderer::BindStates(DrawingPass& pass)
@@ -511,9 +578,58 @@ void BaseRenderer::BindConstants(DrawingPass& pass)
     AddConstantSlot(pass, DefaultProjectionMatrix());
 }
 
-std::shared_ptr<DrawingStage> BaseRenderer::CreateStage(std::shared_ptr<std::string> pName)
+std::shared_ptr<DrawingTransientTexture> BaseRenderer::CreateTransientTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
 {
-    return std::make_shared<DrawingStage>(pName);
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingTexture>(pEntry->GetResource());
+    return std::make_shared<DrawingTransientTexture>(pTex);
+}
+
+std::shared_ptr<DrawingPersistTexture> BaseRenderer::CreatePersistTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
+{
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingTexture>(pEntry->GetResource());
+    return std::make_shared<DrawingPersistTexture>(pTex);
+}
+
+std::shared_ptr<DrawingTransientVertexBuffer> BaseRenderer::CreateTransientVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
+{
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingVertexBuffer>(pEntry->GetResource());
+    return std::make_shared<DrawingTransientVertexBuffer>(pTex);
+}
+
+std::shared_ptr<DrawingPersistVertexBuffer> BaseRenderer::CreatePersistVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
+{
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingVertexBuffer>(pEntry->GetResource());
+    return std::make_shared<DrawingPersistVertexBuffer>(pTex);
+}
+
+std::shared_ptr<DrawingTransientIndexBuffer> BaseRenderer::CreateTransientIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
+{
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingIndexBuffer>(pEntry->GetResource());
+    return std::make_shared<DrawingTransientIndexBuffer>(pTex);
+}
+
+std::shared_ptr<DrawingPersistIndexBuffer> BaseRenderer::CreatePersistIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
+{
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingIndexBuffer>(pEntry->GetResource());
+    return std::make_shared<DrawingPersistIndexBuffer>(pTex);
 }
 
 std::shared_ptr<DrawingPass> BaseRenderer::CreatePass(std::shared_ptr<std::string> pName)
@@ -521,17 +637,35 @@ std::shared_ptr<DrawingPass> BaseRenderer::CreatePass(std::shared_ptr<std::strin
     return std::make_shared<DrawingPass>(pName, m_pDevice);
 }
 
-void BaseRenderer::FlushStage(std::shared_ptr<std::string> pStageName)
+float4x4 BaseRenderer::UpdateWorldMatrix(const TransformComponent* pTransform)
 {
-    auto stage = m_stageTable.GetDrawingStage(pStageName);
-    if (stage != nullptr)
-        stage->Flush(*m_pDeviceContext);
-}
+    float3 position = pTransform->GetPosition();
+    float3 rotate = pTransform->GetRotate();
+    float3 scale = pTransform->GetScale();
 
-void BaseRenderer::InitVertexID()
-{
-}
+    float cosR = std::cosf(rotate.y);
+    float sinR = std::sinf(rotate.y);
 
-void BaseRenderer::InitInstanceID()
-{
+    float4x4 posMatrix = {
+        1.f, 0.f, 0.f, 0.f,
+        0.f, 1.f, 0.f, 0.f,
+        0.f, 0.f, 1.f, 0.f,
+        position.x, position.y, position.z, 1.f
+    };
+
+    float4x4 rotMatrix = {
+        cosR, 0.f, sinR, 0.f,
+        0.f, 1.f, 0.f, 0.f,
+        -sinR, 0.f, cosR, 0.f,
+        0.f, 0.f, 0.f, 1.f
+    };
+
+    float4x4 scaleMatrix = {
+        scale.x, 0.f, 0.f, 0.f,
+        0.f, scale.y, 0.f, 0.f,
+        0.f, 0.f, scale.z, 0.f,
+        0.f, 0.f, 0.f, 1.f
+    };
+
+    return Mat::Mul(scaleMatrix, Mat::Mul(rotMatrix, posMatrix));
 }

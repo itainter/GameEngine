@@ -3,11 +3,6 @@ file(GLOB SRC_ENTITY
     "*.h"
 )
 
-file(GLOB SRC_COMPONENT
-    "Component/*.cpp"
-    "Component/*.h"
-)
-
 file(GLOB SRC_MESH
     "Mesh/*.cpp"
     "Mesh/*.h"
@@ -18,13 +13,11 @@ file(GLOB SRC_SCENE
     "Scene/*.h"
 )
 
-source_group(Component FILES ${SRC_COMPONENT})
 source_group(Scene FILES ${SRC_SCENE})
 
 add_library(
     Entity
     ${SRC_ENTITY}
-    ${SRC_COMPONENT}
     ${SRC_MESH}
     ${SRC_SCENE}
     ${SRC_SYSTEM}

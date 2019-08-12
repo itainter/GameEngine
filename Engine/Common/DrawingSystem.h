@@ -8,11 +8,13 @@
 #include "Global.h"
 #include "ECSSystem.h"
 
+#include "Vector.h"
+#include "Matrix.h"
 #include "DrawingDevice.h"
 #include "DrawingEffectPool.h"
 #include "DrawingResourceTable.h"
-#include "DrawingType.h"
 #include "ForwardRenderer.h"
+#include "FrameGraph.h"
 
 namespace Engine
 {
@@ -31,11 +33,8 @@ namespace Engine
 
         void FlushEntity(std::shared_ptr<IEntity> pEntity) override;
 
-        void BeginFrame() override;
-        void EndFrame() override;
-
-        EDeviceType GetDeviceType() const override;
-        void SetDeviceType(EDeviceType type) override;
+        EConfigurationDeviceType GetDeviceType() const override;
+        void SetDeviceType(EConfigurationDeviceType type) override;
 
     private:
         bool EstablishConfiguration();
@@ -45,17 +44,21 @@ namespace Engine
         bool RegisterRenderer();
         bool PostConfiguration();
 
+        void BuildFrameGraph();
+        bool BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGraph, std::shared_ptr<IEntity> pCamera);
+
+        void GetVisableRenderable(RenderQueueItemListType& items);
+
         std::shared_ptr<DrawingTarget> CreateSwapChain();
         std::shared_ptr<DrawingDepthBuffer> CreateDepthBuffer();
 
-        float4x4 UpdateWorldMatrix(TransformComponent* pTransform);
         float4x4 UpdateViewMatrix(TransformComponent* pTransform);
         float4x4 UpdateProjectionMatrix(CameraComponent* pCamera);
 
     private:
         void* m_window;
         uint2 m_deviceSize;
-        EDeviceType m_deviceType;
+        EConfigurationDeviceType m_deviceType;
 
         std::shared_ptr<DrawingDevice> m_pDevice;
         std::shared_ptr<DrawingContext> m_pContext;
@@ -66,8 +69,5 @@ namespace Engine
 
         std::vector<std::shared_ptr<IEntity>> m_pCameraList;
         std::vector<std::shared_ptr<IEntity>> m_pMeshList;
-
-        typedef std::unordered_map<ERendererType, std::shared_ptr<IRenderer>> RendererTable;
-        RendererTable m_rendererTable;
     };
 }

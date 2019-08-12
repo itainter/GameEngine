@@ -1,5 +1,6 @@
 #include <d3dx12.h>
 
+#include "Algorithm.h"
 #include "DrawingDevice_D3D12.h"
 #include "DrawingDynamicDescriptorHeap_D3D12.h"
 
@@ -133,13 +134,13 @@ const D3D12_ROOT_SIGNATURE_DESC1& DrawingRootSignature_D3D12::GetRootSignatureDe
     return m_rootSignatureDesc;
 }
 
-uint32_t DrawingRootSignature_D3D12::GetDescriptorTableBitMask(D3D12_DESCRIPTOR_HEAP_TYPE type) const
+uint32_t DrawingRootSignature_D3D12::GetDescriptorTableBitMask(EDrawingDescriptorHeapType type) const
 {
     switch (type)
     {
-        case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
+        case eDescriptorHeap_CBV_SRV_UVA:
             return m_descriptorTableBitMask;
-        case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:
+        case eDescriptorHeap_Sampler:
             return m_samplerTableBitMask;
     }
     return 0;
@@ -151,15 +152,14 @@ uint32_t DrawingRootSignature_D3D12::GetNumDescriptors(uint32_t index) const
     return m_numDescriptorsPerTable[index];
 }
 
-
-DrawingDynamicDescriptorHeap_D3D12::DrawingDynamicDescriptorHeap_D3D12(const std::shared_ptr<DrawingDevice_D3D12> pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptorsPerPage) :
+DrawingDynamicDescriptorHeap_D3D12::DrawingDynamicDescriptorHeap_D3D12(const std::shared_ptr<DrawingDevice_D3D12> pDevice, EDrawingDescriptorHeapType type, uint32_t numDescriptorsPerPage) :
     m_pDevice(pDevice),
     m_type(type),
     m_numDescriptorsPerPage(numDescriptorsPerPage),
     m_descriptorTableBitMask(0),
     m_staleDescriptorTableBitMask(0)
 {
-    m_descriptorHandleIncrementSize = pDevice->GetDevice()->GetDescriptorHandleIncrementSize(m_type);
+    m_descriptorHandleIncrementSize = pDevice->GetDevice()->GetDescriptorHandleIncrementSize(D3D12Enum(m_type));
     m_currentGPUDescriptorHandle.ptr = 0;
     m_currentCPUDescriptorHandle.ptr = 0;
 
@@ -201,12 +201,12 @@ void DrawingDynamicDescriptorHeap_D3D12::CommitStagedDescriptors(std::function<v
             m_currentGPUDescriptorHandle = m_pCurrentDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
             m_numFreeHandles = m_numDescriptorsPerPage;
 
-            //commandList.SetDescriptorHeap(m_DescriptorHeapType, m_CurrentDescriptorHeap.Get());
+            m_pDevice->SetDescriptorHeap(m_type, m_pCurrentDescriptorHeap);
             m_staleDescriptorTableBitMask = m_descriptorTableBitMask;
         }
 
-        DWORD rootIndex;
-        while (_BitScanForward(&rootIndex, m_staleDescriptorTableBitMask))
+        uint32_t rootIndex = 0;
+        while (BitScan(rootIndex, m_staleDescriptorTableBitMask))
         {
             UINT numSrcDescriptors = m_descriptorTableCaches[rootIndex].m_numDescriptors;
             D3D12_CPU_DESCRIPTOR_HANDLE* pSrcDescriptorHandles = m_descriptorTableCaches[rootIndex].m_pBaseDescriptor;
@@ -221,8 +221,8 @@ void DrawingDynamicDescriptorHeap_D3D12::CommitStagedDescriptors(std::function<v
                 numSrcDescriptors
             };
 
-            m_pDevice->GetDevice()->CopyDescriptors(1, pDestDescriptorRangeStarts, pDestDescriptorRangeSizes, numSrcDescriptors, pSrcDescriptorHandles, nullptr, m_type);
-            setFunc(pCommandList.get(), rootIndex, m_currentGPUDescriptorHandle);
+            m_pDevice->GetDevice()->CopyDescriptors(1, pDestDescriptorRangeStarts, pDestDescriptorRangeSizes, numSrcDescriptors, pSrcDescriptorHandles, nullptr, D3D12Enum(m_type));
+            setFunc(pCommandList->GetCommandList().get(), rootIndex, m_currentGPUDescriptorHandle);
 
             m_currentCPUDescriptorHandle.ptr += numSrcDescriptors * m_descriptorHandleIncrementSize;
             m_currentGPUDescriptorHandle.ptr += numSrcDescriptors * m_descriptorHandleIncrementSize;
@@ -252,8 +252,8 @@ void DrawingDynamicDescriptorHeap_D3D12::ParseRootSignature(const DrawingRootSig
     uint32_t descriptorTableBitMask = m_descriptorTableBitMask;
 
     uint32_t currentOffset = 0;
-    DWORD rootIndex;
-    while (_BitScanForward(&rootIndex, descriptorTableBitMask) && rootIndex < rootSignatureDesc.NumParameters)
+    uint32_t rootIndex;
+    while (BitScan(rootIndex, descriptorTableBitMask) && rootIndex < rootSignatureDesc.NumParameters)
     {
         uint32_t numDescriptors = rootSignature.GetNumDescriptors(rootIndex);
 
@@ -264,6 +264,20 @@ void DrawingDynamicDescriptorHeap_D3D12::ParseRootSignature(const DrawingRootSig
         currentOffset += numDescriptors;
         descriptorTableBitMask ^= (1 << rootIndex);
     }
+}
+
+void DrawingDynamicDescriptorHeap_D3D12::Reset()
+{
+    m_availableDescriptorHeaps = m_descriptorHeapPool;
+    m_pCurrentDescriptorHeap = nullptr;
+    m_currentCPUDescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(D3D12_DEFAULT);
+    m_currentGPUDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(D3D12_DEFAULT);
+    m_numFreeHandles = 0;
+    m_descriptorTableBitMask = 0;
+    m_staleDescriptorTableBitMask = 0;
+
+    for (int i = 0; i < MAX_DESCRIPTOR_TABLES; ++i)
+        m_descriptorTableCaches[i].Reset();
 }
 
 std::shared_ptr<ID3D12DescriptorHeap> DrawingDynamicDescriptorHeap_D3D12::RequestDescriptorHeap()
@@ -286,7 +300,7 @@ std::shared_ptr<ID3D12DescriptorHeap> DrawingDynamicDescriptorHeap_D3D12::Reques
 std::shared_ptr<ID3D12DescriptorHeap> DrawingDynamicDescriptorHeap_D3D12::CreateDescriptorHeap()
 {
     D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
-    descriptorHeapDesc.Type = m_type;
+    descriptorHeapDesc.Type = D3D12Enum(m_type);
     descriptorHeapDesc.NumDescriptors = m_numDescriptorsPerPage;
     descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
@@ -301,13 +315,13 @@ std::shared_ptr<ID3D12DescriptorHeap> DrawingDynamicDescriptorHeap_D3D12::Create
 uint32_t DrawingDynamicDescriptorHeap_D3D12::ComputeStaleDescriptorCount() const
 {
     uint32_t numStaleDescriptors = 0;
-    DWORD i;
-    DWORD staleDescriptorsBitMask = m_staleDescriptorTableBitMask;
+    uint32_t index;
+    uint32_t staleDescriptorsBitMask = m_staleDescriptorTableBitMask;
 
-    while ( _BitScanForward( &i, staleDescriptorsBitMask ) )
+    while (BitScan(index, staleDescriptorsBitMask))
     {
-        numStaleDescriptors += m_descriptorTableCaches[i].m_numDescriptors;
-        staleDescriptorsBitMask ^= ( 1 << i );
+        numStaleDescriptors += m_descriptorTableCaches[index].m_numDescriptors;
+        staleDescriptorsBitMask ^= (1 << index);
     }
 
     return numStaleDescriptors;
