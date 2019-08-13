@@ -34,7 +34,7 @@ public:
         gpGlobal->GetConfiguration<AppConfiguration>().SetWidth(1080);
         gpGlobal->GetConfiguration<AppConfiguration>().SetHeight(1080);
         gpGlobal->GetConfiguration<GraphicsConfiguration>().SetDeviceType(eDevice_D3D11);
-        gpGlobal->GetConfiguration<GraphicsConfiguration>().SetMSAA(eMSAA_4);
+        gpGlobal->GetConfiguration<GraphicsConfiguration>().SetMSAA(eMSAA_Disable);
 
         gpGlobal->RegisterApp<WindowsApplication>();
 

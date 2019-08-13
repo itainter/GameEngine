@@ -25,6 +25,7 @@ namespace Engine
 
     public:
         // Define shader resource names
+        FuncResourceName()
         FuncResourceName(BasicPrimitiveVertexShader);
         FuncResourceName(BasicPrimitivePixelShader);
         // Define pipeline state names
