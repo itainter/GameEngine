@@ -10,6 +10,7 @@
 
 #include "AnimationComponent.h"
 #include "CameraComponent.h"
+#include "LightComponent.h"
 #include "MeshFilterComponent.h"
 #include "MeshRendererComponent.h"
 #include "TransformComponent.h"
@@ -18,12 +19,14 @@
 #include "PlaneMesh.h"
 #include "GLTF2Mesh.h"
 
+#include "DirectionalLight.h"
+
 #include "ForwardRenderer.h"
 
 using namespace Engine;
 using namespace Platform;
 
-IComponent::CompTableType IComponent::m_compTable;
+PRE_DEFINE_SETUP
 
 class GameSetup : public Setup
 {
@@ -74,7 +77,7 @@ public:
         auto pMesh = std::make_shared<GLTF2Mesh>("Asset/Scene/Test/DamagedHelmet.gltf");
         cubeMeshFilterComp1.SetMesh(pMesh);
         auto pCube1 = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent, AnimationComponent>(cubeTransformComp1, cubeMeshFilterComp1, cubeMeshRendererComp1, cubeAnimationComp1);
-        AnimationComponent::AnimationFunc func = [pCube1](float elapsedTime) -> void
+        AnimationFunc func = [pCube1](float elapsedTime) -> void
         {
             float second = elapsedTime / 1000;
 
@@ -98,11 +101,31 @@ public:
         auto pCube2 = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(cubeTransformComp2, cubeMeshFilterComp2, cubeMeshRendererComp2);
 
         // Camera
-        TransformComponent cameraPosComp;
+        TransformComponent cameraTransformComp;
         CameraComponent cameraComp;
-        cameraPosComp.SetPosition(float3(0.0f, 2.0f, -5.0f));
+        cameraTransformComp.SetPosition(float3(0.0f, 4.0f, -10.0f));
+        cameraTransformComp.SetRotate(float3(0.0f, -90.0f, -20.0f));
         cameraComp.SetBackground(float4(33.f / 255.f, 40.f / 255.f, 48.f / 255.f, 1.0f));
-        auto pCamera = pWorld->CreateEntity<TransformComponent, CameraComponent>(cameraPosComp, cameraComp);
+        auto pCamera = pWorld->CreateEntity<TransformComponent, CameraComponent>(cameraTransformComp, cameraComp);
+
+        // Directional Light
+        TransformComponent lightTransformComp;
+        LightComponent lightComp;
+        AnimationComponent lightAnimationComp;
+        lightTransformComp.SetRotate(float3(0.0f, -135.0f, -45.0f));
+        auto pDirectionalLight = std::make_shared<DirectionalLight>();
+        lightComp.SetLight(pDirectionalLight);
+        auto pLight = pWorld->CreateEntity<TransformComponent, LightComponent, AnimationComponent>(lightTransformComp, lightComp, lightAnimationComp);
+        AnimationFunc func2 = [pLight](float elapsedTime) -> void
+        {
+            float second = elapsedTime / 1000;
+
+            auto pTrans = pLight->GetComponent<TransformComponent>();
+            auto rotate = pTrans->GetRotate();
+            //rotate.z -= second * 20.f;
+            pTrans->SetRotate(rotate);
+        };
+        pLight->GetComponent<AnimationComponent>()->SetAnimationFunc(func2);
     }
 };
 

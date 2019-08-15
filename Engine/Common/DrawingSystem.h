@@ -52,8 +52,16 @@ namespace Engine
         std::shared_ptr<DrawingTarget> CreateSwapChain();
         std::shared_ptr<DrawingDepthBuffer> CreateDepthBuffer();
 
-        float4x4 UpdateViewMatrix(TransformComponent* pTransform);
-        float4x4 UpdateProjectionMatrix(CameraComponent* pCamera);
+        void GetViewMatrix(TransformComponent* pTransform, float4x4& view);
+        void GetProjectionMatrix(CameraComponent* pCamera, float4x4& proj);
+
+        void GetLightViewMatrix(TransformComponent* pTransform, float4x4& view, float3& dir = float3());
+        void GetLightOrthoMatrix(float4x4& ortho);
+        void GetLightProjectionMatrix(float4x4& proj);
+
+        void UpdateLightDir(float3 dir);
+        void UpdateLightViewMatrix(float4x4 view);
+        void UpdateLightOrthoMatrix(float4x4 ortho);
 
     private:
         void* m_window;
@@ -68,6 +76,7 @@ namespace Engine
         std::shared_ptr<DrawingResourceTable> m_pResourceTable;
 
         std::vector<std::shared_ptr<IEntity>> m_pCameraList;
+        std::vector<std::shared_ptr<IEntity>> m_pLightList;
         std::vector<std::shared_ptr<IEntity>> m_pMeshList;
     };
 }

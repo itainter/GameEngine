@@ -133,7 +133,7 @@ bool DrawingResourceFactory::CreateTexture(const std::shared_ptr<DrawingResource
         return false;
 
     std::shared_ptr<DrawingTexture> pTexture;
-    bool result = m_pDevice->CreateTexture(*pTextureDesc, pTexture, pData, size, slices);
+    bool result = m_pDevice->CreateTexture(*pTextureDesc, pTexture, nullptr, pData, size, slices);
     pRes = pTexture;
 
     return result;

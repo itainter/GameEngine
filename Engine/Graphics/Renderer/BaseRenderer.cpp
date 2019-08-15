@@ -97,7 +97,8 @@ void BaseRenderer::AttachMesh(const IMesh* pMesh)
 
 void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
 {
-    DefineDefaultVertexFormat(resTable);
+    DefineVertexFormatP(resTable);
+    DefineVertexFormatPN(resTable);
 
     DefineDynamicVertexBuffer(DefaultDynamicPositionBuffer(), PositionOffset, MAX_VERTEX_COUNT, resTable);
     DefineDynamicVertexBuffer(DefaultDynamicNormalBuffer(), NormalOffset, MAX_VERTEX_COUNT, resTable);
@@ -110,6 +111,7 @@ void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
     DefineTarget(DefaultTarget(), resTable);
     DefineDepthBuffer(DefaultDepthBuffer(), resTable);
 
+    DefineExternalTarget(ShadowMapTarget(), resTable);
     DefineExternalTarget(ScreenTarget(), resTable);
     DefineExternalDepthBuffer(ScreenDepthBuffer(), resTable);
 
@@ -148,8 +150,8 @@ void BaseRenderer::DefineLinkedEffect(std::shared_ptr<std::string> pEffectName, 
     resTable.AddResourceEntry(pEffectName, pDesc);
 }
 
-void BaseRenderer::DefinePipelineState(std::shared_ptr<std::string> pVertexFormatName,
-                                       std::shared_ptr<std::string> pPipelineStateName, 
+void BaseRenderer::DefinePipelineState(std::shared_ptr<std::string> pPipelineStateName,
+                                       std::shared_ptr<std::string> pVertexFormatName,
                                        std::shared_ptr<std::string> pPrimitiveName,
                                        std::shared_ptr<std::string> pEffectName,
                                        std::shared_ptr<std::string> pBlendStateName,
@@ -191,7 +193,24 @@ void BaseRenderer::DefinePixelShader(std::shared_ptr<std::string> pShaderName, s
     DoDefineShader<DrawingPixelShaderDesc>(pShaderName, pFileName, pEntryName, resTable);
 }
 
-void BaseRenderer::DefineDefaultVertexFormat(DrawingResourceTable& resTable)
+void BaseRenderer::DefineVertexFormatP(DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingVertexFormatDesc>();
+
+    DrawingVertexFormatDesc::VertexInputElement inputElem;
+
+    inputElem.mFormat = eFormat_R32G32B32_FLOAT;
+    inputElem.mpName = strPtr("POSITION");
+    inputElem.mIndex = 0;
+    inputElem.mSlot = 0;
+    inputElem.mOffset = 0;
+    inputElem.mInstanceStepRate = 0;
+    pDesc->m_inputElements.emplace_back(inputElem);
+
+    resTable.AddResourceEntry(VertexFormatP(), pDesc);
+}
+
+void BaseRenderer::DefineVertexFormatPN(DrawingResourceTable& resTable)
 {
     auto pDesc = std::make_shared<DrawingVertexFormatDesc>();
 
@@ -213,7 +232,7 @@ void BaseRenderer::DefineDefaultVertexFormat(DrawingResourceTable& resTable)
     inputElem.mInstanceStepRate = 0;
     pDesc->m_inputElements.emplace_back(inputElem);
 
-    resTable.AddResourceEntry(DefaultVertexFormat(), pDesc);
+    resTable.AddResourceEntry(VertexFormatPN(), pDesc);
 }
 
 void BaseRenderer::DefineStaticVertexBuffer(std::shared_ptr<std::string> pName, uint32_t stride, uint32_t count, const void* data, uint32_t size, DrawingResourceTable& resTable)
@@ -435,6 +454,15 @@ void BaseRenderer::DefineExternalDepthBuffer(std::shared_ptr<std::string> pName,
     resTable.AddResourceEntry(pName, pDesc);
 }
 
+void BaseRenderer::DefineExternalTexture(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingTextureDesc>();
+
+    pDesc->SetIsExternalResource(true);
+
+    resTable.AddResourceEntry(pName, pDesc);
+}
+
 bool BaseRenderer::DefineDynamicTexture(std::shared_ptr<std::string> pName, EDrawingFormatType format, uint32_t elementCount, DrawingResourceTable& resTable)
 {
     auto pDesc = std::make_shared<DrawingTextureDesc>();
@@ -576,17 +604,31 @@ void BaseRenderer::AddTextureSlot(DrawingPass& pass, std::shared_ptr<std::string
     pass.AddResourceSlot(pName, ResourceSlot_Texture, pParamName);
 }
 
-void BaseRenderer::BindStaticInputs(DrawingPass& pass)
+void BaseRenderer::BindStaticInputsP(DrawingPass& pass)
 {
-    BindVertexFormat(pass, DefaultVertexFormat());
+    BindVertexFormat(pass, VertexFormatP());
+    BindVertexBuffer(pass, 0, DefaultStaticPositionBuffer());
+    BindIndexBuffer(pass, DefaultStaticIndexBuffer());
+}
+
+void BaseRenderer::BindDynamicInputsP(DrawingPass& pass)
+{
+    BindVertexFormat(pass, VertexFormatP());
+    BindVertexBuffer(pass, 0, DefaultDynamicPositionBuffer());
+    BindIndexBuffer(pass, DefaultDynamicIndexBuffer());
+}
+
+void BaseRenderer::BindStaticInputsPN(DrawingPass& pass)
+{
+    BindVertexFormat(pass, VertexFormatPN());
     BindVertexBuffer(pass, 0, DefaultStaticPositionBuffer());
     BindVertexBuffer(pass, 1, DefaultStaticNormalBuffer());
     BindIndexBuffer(pass, DefaultStaticIndexBuffer());
 }
 
-void BaseRenderer::BindDynamicInputs(DrawingPass& pass)
+void BaseRenderer::BindDynamicInputsPN(DrawingPass& pass)
 {
-    BindVertexFormat(pass, DefaultVertexFormat());
+    BindVertexFormat(pass, VertexFormatPN());
     BindVertexBuffer(pass, 0, DefaultDynamicPositionBuffer());
     BindVertexBuffer(pass, 1, DefaultDynamicNormalBuffer());
     BindIndexBuffer(pass, DefaultDynamicIndexBuffer());

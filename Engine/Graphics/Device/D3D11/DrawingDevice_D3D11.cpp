@@ -160,62 +160,73 @@ bool DrawingDevice_D3D11::CreateIndexBuffer(const DrawingIndexBufferDesc& desc, 
     return true;
 }
 
-bool DrawingDevice_D3D11::CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData[], uint32_t size[], uint32_t slices)
+bool DrawingDevice_D3D11::CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData[], uint32_t size[], uint32_t slices)
 {
     auto pTexture = std::make_shared<DrawingTexture>(shared_from_this());
     std::shared_ptr<DrawingRawTexture> pRawTexture = nullptr;
 
-    std::vector<D3D11_SUBRESOURCE_DATA> subResData(slices);
-    switch (desc.mType)
+    auto pTarget = std::static_pointer_cast<DrawingTarget>(pRefRes);
+    if (pTarget != nullptr)
     {
-        case eTexture_1D:
-        case eTexture_1DArray:
-        {
-            break;
-        }
-        case eTexture_2D:
-        case eTexture_2DArray:
-        case eTexture_Cube:
-        {
-            D3D11_TEXTURE2D_DESC texture2DDesc;
-            texture2DDesc.Width = desc.mWidth;
-            texture2DDesc.Height = desc.mHeight;
-            texture2DDesc.MipLevels = desc.mMipLevels;
-            texture2DDesc.ArraySize = desc.mArraySize;
-            texture2DDesc.Format = D3D11Enum(desc.mFormat);
-            texture2DDesc.SampleDesc.Count = desc.mSampleCount;
-            texture2DDesc.SampleDesc.Quality = desc.mSampleQuality;
-            texture2DDesc.Usage = D3D11Enum(desc.mUsage);
-            texture2DDesc.BindFlags = (texture2DDesc.Usage == D3D11_USAGE_STAGING) ? 0 : D3D11_BIND_SHADER_RESOURCE;
-            texture2DDesc.CPUAccessFlags = D3D11Enum(desc.mAccess);
-            texture2DDesc.MiscFlags = (texture2DDesc.Usage == D3D11_USAGE_STAGING) ? 0 : D3D11ResourceMiscFlag(desc.mFlags);
+        auto pRawTarget = std::static_pointer_cast<DrawingRawRenderTarget_D3D11>(pTarget->GetResource());
+        assert(pRawTarget != nullptr);
 
-            if ((desc.mUsage != eUsage_Staging) && (desc.mFlags & eResource_Gen_Mips))
-                texture2DDesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
-
-            if (desc.mType == eTexture_Cube)
+        pRawTexture = std::make_shared<DrawingRawTexture2D_D3D11>(*pRawTarget);
+    }
+    else
+    {
+        std::vector<D3D11_SUBRESOURCE_DATA> subResData(slices);
+        switch (desc.mType)
+        {
+            case eTexture_1D:
+            case eTexture_1DArray:
             {
-                texture2DDesc.ArraySize = 6;
-                texture2DDesc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+                break;
             }
-
-            if (!subResData.empty())
+            case eTexture_2D:
+            case eTexture_2DArray:
+            case eTexture_Cube:
             {
-                auto mipLevels = slices / desc.mArraySize;
-                for (uint32_t index = 0; index < desc.mArraySize; ++index)
+                D3D11_TEXTURE2D_DESC texture2DDesc;
+                texture2DDesc.Width = desc.mWidth;
+                texture2DDesc.Height = desc.mHeight;
+                texture2DDesc.MipLevels = desc.mMipLevels;
+                texture2DDesc.ArraySize = desc.mArraySize;
+                texture2DDesc.Format = D3D11Enum(desc.mFormat);
+                texture2DDesc.SampleDesc.Count = desc.mSampleCount;
+                texture2DDesc.SampleDesc.Quality = desc.mSampleQuality;
+                texture2DDesc.Usage = D3D11Enum(desc.mUsage);
+                texture2DDesc.BindFlags = (texture2DDesc.Usage == D3D11_USAGE_STAGING) ? 0 : D3D11_BIND_SHADER_RESOURCE;
+                texture2DDesc.CPUAccessFlags = D3D11Enum(desc.mAccess);
+                texture2DDesc.MiscFlags = (texture2DDesc.Usage == D3D11_USAGE_STAGING) ? 0 : D3D11ResourceMiscFlag(desc.mFlags);
+    
+                if ((desc.mUsage != eUsage_Staging) && (desc.mFlags & eResource_Gen_Mips))
+                    texture2DDesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
+    
+                if (desc.mType == eTexture_Cube)
                 {
-                    auto bytesPerRow = desc.mBytesPerRow;
-                    for (uint32_t level = 0; level < mipLevels; ++level)
+                    texture2DDesc.ArraySize = 6;
+                    texture2DDesc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+                }
+    
+                if (!subResData.empty())
+                {
+                    auto mipLevels = slices / desc.mArraySize;
+                    for (uint32_t index = 0; index < desc.mArraySize; ++index)
                     {
-                        auto LOD = index * level + level;
-                        ZeroMemory(&subResData[LOD], sizeof(D3D11_SUBRESOURCE_DATA));
-                        subResData[LOD].pSysMem = *(pData++);
-                        subResData[LOD].SysMemPitch = bytesPerRow;
-                        bytesPerRow = bytesPerRow > 1U ? bytesPerRow >> 1 : 1U;
+                        auto bytesPerRow = desc.mBytesPerRow;
+                        for (uint32_t level = 0; level < mipLevels; ++level)
+                        {
+                            auto LOD = index * level + level;
+                            ZeroMemory(&subResData[LOD], sizeof(D3D11_SUBRESOURCE_DATA));
+                            subResData[LOD].pSysMem = *(pData++);
+                            subResData[LOD].SysMemPitch = bytesPerRow;
+                            bytesPerRow = bytesPerRow > 1U ? bytesPerRow >> 1 : 1U;
+                        }
                     }
                 }
+                pRawTexture = std::make_shared<DrawingRawTexture2D_D3D11>(std::static_pointer_cast<DrawingDevice_D3D11>(shared_from_this()), texture2DDesc, subResData);
             }
-            pRawTexture = std::make_shared<DrawingRawTexture2D_D3D11>(std::static_pointer_cast<DrawingDevice_D3D11>(shared_from_this()), texture2DDesc, subResData);
         }
     }
 

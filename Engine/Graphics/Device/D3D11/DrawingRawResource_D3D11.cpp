@@ -269,8 +269,8 @@ void DrawingRawShader_D3D11::ProcessVariables(std::shared_ptr<std::string> pName
         D3D11_SHADER_VARIABLE_DESC varDesc;
         pD3D11Var->GetDesc(&varDesc);
 
-        if (0 == (varDesc.uFlags & D3D_SVF_USED))
-            continue;
+        //if (0 == (varDesc.uFlags & D3D_SVF_USED))
+        //    continue;
 
         VariableDesc imp;
         imp.mpName = strPtr(varDesc.Name);
@@ -416,7 +416,7 @@ DrawingRawShaderEffect_D3D11::DrawingRawShaderEffect_D3D11(std::shared_ptr<Drawi
     {
         m_shaderBlocks[DrawingRawShader::RawShader_PS] = std::make_shared<ShaderBlock>();
         m_shaderBlocks[DrawingRawShader::RawShader_PS]->mpShader = pPixelShader;
-        LoadShaderInfo(vsShaderImpl, DrawingRawShader::RawShader_PS);
+        LoadShaderInfo(psShaderImpl, DrawingRawShader::RawShader_PS);
     }
 }
 

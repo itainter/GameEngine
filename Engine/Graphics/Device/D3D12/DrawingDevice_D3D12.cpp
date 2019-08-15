@@ -118,7 +118,7 @@ bool DrawingDevice_D3D12::CreateIndexBuffer(const DrawingIndexBufferDesc& desc, 
     return true;
 }
 
-bool DrawingDevice_D3D12::CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, const void* pData[], uint32_t size[], uint32_t slices)
+bool DrawingDevice_D3D12::CreateTexture(const DrawingTextureDesc& desc, std::shared_ptr<DrawingTexture>& pRes, std::shared_ptr<DrawingResource> pRefRes, const void* pData[], uint32_t size[], uint32_t slices)
 {
     auto pTexture = std::make_shared<DrawingTexture>(shared_from_this());
     std::shared_ptr<DrawingRawTexture> pRawTexture = nullptr;
