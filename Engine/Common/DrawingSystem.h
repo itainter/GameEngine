@@ -55,13 +55,11 @@ namespace Engine
         void GetViewMatrix(TransformComponent* pTransform, float4x4& view);
         void GetProjectionMatrix(CameraComponent* pCamera, float4x4& proj);
 
-        void GetLightViewMatrix(TransformComponent* pTransform, float4x4& view, float3& dir = float3());
-        void GetLightOrthoMatrix(float4x4& ortho);
-        void GetLightProjectionMatrix(float4x4& proj);
+        void GetLightViewProjectionMatrix(TransformComponent* pTransform, float4x4& view, float4x4& proj, float3& dir = float3());
 
         void UpdateLightDir(float3 dir);
         void UpdateLightViewMatrix(float4x4 view);
-        void UpdateLightOrthoMatrix(float4x4 ortho);
+        void UpdateLightProjMatrix(float4x4 proj);
 
     private:
         void* m_window;

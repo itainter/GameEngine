@@ -608,7 +608,7 @@ void DrawingDevice_D3D11::SetBlendState(std::shared_ptr<DrawingBlendState> pBlen
     {
         auto pBlendState = std::dynamic_pointer_cast<DrawingRawBlendState_D3D11>(pBlend->GetResource()); 
         assert(pBlendState != nullptr);
-        m_pDeviceContext->OMSetBlendState(pBlendState->Get().get(), blendFactor.mData, sampleMask);
+        m_pDeviceContext->OMSetBlendState(pBlendState->GetState().get(), blendFactor.mData, sampleMask);
     }
     else
         m_pDeviceContext->OMSetBlendState(nullptr, float4(1.0f).mData, 0xffffffff);
@@ -620,7 +620,7 @@ void DrawingDevice_D3D11::SetDepthState(std::shared_ptr<DrawingDepthState> pDept
     {
         auto pDepthState = std::dynamic_pointer_cast<DrawingRawDepthState_D3D11>(pDepth->GetResource()); 
         assert(pDepthState != nullptr);
-        m_pDeviceContext->OMSetDepthStencilState(pDepthState->Get().get(), stencilRef);
+        m_pDeviceContext->OMSetDepthStencilState(pDepthState->GetState().get(), stencilRef);
     }
     else
         m_pDeviceContext->OMSetDepthStencilState(nullptr, 1U);
@@ -632,7 +632,7 @@ void DrawingDevice_D3D11::SetRasterState(std::shared_ptr<DrawingRasterState> pRa
     {
         auto pRasterState = std::dynamic_pointer_cast<DrawingRawRasterState_D3D11>(pRaster->GetResource()); 
         assert(pRasterState != nullptr);
-        m_pDeviceContext->RSSetState(pRasterState->Get().get());
+        m_pDeviceContext->RSSetState(pRasterState->GetState().get());
     }
     else
         m_pDeviceContext->RSSetState(nullptr);
@@ -698,19 +698,19 @@ void DrawingDevice_D3D11::SetViewport(Box2* vp)
 
 void DrawingDevice_D3D11::SetBlendState(const std::shared_ptr<DrawingRawBlendState_D3D11> pBlendState, const float4& blendFactor, uint32_t sampleMask)
 {
-    ID3D11BlendState* pRaw = pBlendState != nullptr ? pBlendState->Get().get() : nullptr;
+    ID3D11BlendState* pRaw = pBlendState != nullptr ? pBlendState->GetState().get() : nullptr;
     m_pDeviceContext->OMSetBlendState(pRaw, blendFactor.mData, sampleMask);
 }
 
 void DrawingDevice_D3D11::SetDepthState(const std::shared_ptr<DrawingRawDepthState_D3D11> pDepthState, uint32_t stencilRef)
 {
-    ID3D11DepthStencilState* pRaw = pDepthState != nullptr ? pDepthState->Get().get() : nullptr;
+    ID3D11DepthStencilState* pRaw = pDepthState != nullptr ? pDepthState->GetState().get() : nullptr;
     m_pDeviceContext->OMSetDepthStencilState(pRaw, stencilRef);
 }
 
 void DrawingDevice_D3D11::SetRasterState(const std::shared_ptr<DrawingRawRasterState_D3D11> pRasterState)
 {
-    ID3D11RasterizerState* pRaw = pRasterState != nullptr ? pRasterState->Get().get() : nullptr;
+    ID3D11RasterizerState* pRaw = pRasterState != nullptr ? pRasterState->GetState().get() : nullptr;
     m_pDeviceContext->RSSetState(pRaw);
 }
 
@@ -864,6 +864,28 @@ bool DrawingDevice_D3D11::UpdateEffectBuffer(std::shared_ptr<DrawingTexBuffer> p
 
 bool DrawingDevice_D3D11::UpdateEffectSampler(std::shared_ptr<DrawingSamplerState> pSampler, std::shared_ptr<std::string> pName, std::shared_ptr<DrawingEffect> pEffect)
 {
+    assert(pEffect != nullptr);
+    assert(pSampler != nullptr);
+    assert(pName != nullptr);
+
+    auto pRawEffect = std::dynamic_pointer_cast<DrawingRawEffect_D3D11>(pEffect->GetResource());
+    assert(pRawEffect != nullptr);
+
+    auto pRawSampler = std::dynamic_pointer_cast<DrawingRawSamplerState_D3D11>(pSampler->GetResource());
+    assert(pRawSampler != nullptr);
+
+    auto pParamSet = pRawEffect->GetParameterSet();
+
+    int32_t index = pParamSet.IndexOfName(pName);
+    if (index < 0)
+        return false;
+
+    auto pParam = pParamSet[index];
+    if (pParam == nullptr)
+        return false;
+
+    pParam->AsSampler(pRawSampler.get());
+
     return true;
 }
 

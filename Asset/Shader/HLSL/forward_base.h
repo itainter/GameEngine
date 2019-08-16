@@ -9,9 +9,9 @@ struct ForwardBase_Input
 
 struct ForwardBase_VertexAttr
 {
-    noperspective float4 position : SV_Position;
-    noperspective float3 normal : NORMAL;
-    noperspective float4 lightViewPosition : TEXCOORD0;
+    float4 position : SV_Position;
+    float3 normal : NORMAL;
+    float4 lightViewPosition : Position;
 };
 
 #endif

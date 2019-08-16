@@ -10,7 +10,7 @@ cbuffer TransformCB : register(b0)
 cbuffer TransformLight : register(b1)
 {
     row_major float4x4 gLightViewMatrix : LIGHT_VIEW;
-    row_major float4x4 gLightOrthoMatrix : LIGHT_ORTHO;
+    row_major float4x4 gLightProjMatrix : LIGHT_PROJ;
 };
 
 ForwardBase_VertexAttr ForwardBase_VS(ForwardBase_Input input)
@@ -29,7 +29,7 @@ ForwardBase_VertexAttr ForwardBase_VS(ForwardBase_Input input)
     output.lightViewPosition.w = 1.0f;
     output.lightViewPosition = mul(output.lightViewPosition, gWorldMatrix);
     output.lightViewPosition = mul(output.lightViewPosition, gLightViewMatrix);
-    output.lightViewPosition = mul(output.lightViewPosition, gLightOrthoMatrix);
+    output.lightViewPosition = mul(output.lightViewPosition, gLightProjMatrix);
 
     return output;
 }

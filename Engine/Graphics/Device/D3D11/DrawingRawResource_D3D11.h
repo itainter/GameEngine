@@ -31,7 +31,7 @@ namespace Engine
         {
         }
 
-        std::shared_ptr<ID3D11BlendState> Get() const
+        std::shared_ptr<ID3D11BlendState> GetState() const
         {
             return m_pBlendState;
         }
@@ -57,7 +57,7 @@ namespace Engine
         {
         }
 
-        std::shared_ptr<ID3D11DepthStencilState> Get() const
+        std::shared_ptr<ID3D11DepthStencilState> GetState() const
         {
             return m_pDepthState;
         }
@@ -83,7 +83,7 @@ namespace Engine
         {
         }
 
-        std::shared_ptr<ID3D11RasterizerState> Get() const
+        std::shared_ptr<ID3D11RasterizerState> GetState() const
         {
             return m_pRasterState;
         }
@@ -105,7 +105,7 @@ namespace Engine
             m_pSamplerState = std::shared_ptr<ID3D11SamplerState>(pRaw, D3D11Releaser<ID3D11SamplerState>);
         }
 
-        std::shared_ptr<ID3D11SamplerState> Get() const
+        std::shared_ptr<ID3D11SamplerState> GetState() const
         {
             return m_pSamplerState;
         }
@@ -475,6 +475,7 @@ namespace Engine
 
         void LoadConstantBufferFromShader(const DrawingRawShader_D3D11* pShader, const DrawingRawShader::DrawingRawShaderType shaderType);
         void LoadTexturesFromShader(const DrawingRawShader_D3D11* pShader, const DrawingRawShader::DrawingRawShaderType shaderType);
+        void LoadSamplersFromShader(const DrawingRawShader_D3D11* pShader, const DrawingRawShader::DrawingRawShaderType shaderType);
 
         void UpdateParameterValues();
         void UpdateConstantBuffers();

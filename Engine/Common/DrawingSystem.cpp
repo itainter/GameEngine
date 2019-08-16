@@ -271,13 +271,12 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
 
     shadowPassNode.SetExecuteFunc([&, pCameraComponent, pLightTransformComponent, pRenderer, pShadowPass](void) -> void {
         float4x4 lightView;
-        float4x4 lightOrtho;
-        GetLightViewMatrix(pLightTransformComponent, lightView);
-        GetLightOrthoMatrix(lightOrtho);
+        float4x4 lightProj;
+        GetLightViewProjectionMatrix(pLightTransformComponent, lightView, lightProj);
 
         m_pContext->UpdateContext(*m_pResourceTable);
         UpdateLightViewMatrix(lightView);
-        UpdateLightOrthoMatrix(lightOrtho);
+        UpdateLightProjMatrix(lightProj);
 
         RenderQueueItemListType items;
         GetVisableRenderable(items);
@@ -321,14 +320,13 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         m_pContext->UpdateCamera(*m_pResourceTable, proj, view);
 
         float4x4 lightView;
-        float4x4 lightOrtho;
+        float4x4 lightProj;
         float3 lightDir;
-        GetLightViewMatrix(pLightTransformComponent, lightView, lightDir);
-        GetLightOrthoMatrix(lightOrtho);
+        GetLightViewProjectionMatrix(pLightTransformComponent, lightView, lightProj, lightDir);
 
         UpdateLightDir(lightDir);
         UpdateLightViewMatrix(lightView);
-        UpdateLightOrthoMatrix(lightOrtho);
+        UpdateLightProjMatrix(lightProj);
 
         RenderQueueItemListType items;
         GetVisableRenderable(items);
@@ -406,27 +404,18 @@ void DrawingSystem::GetProjectionMatrix(CameraComponent* pCamera, float4x4& proj
     proj = Mat::PerspectiveFovLH(fovy, aspect, zn, zf);
 }
 
-void DrawingSystem::GetLightViewMatrix(TransformComponent* pTransform, float4x4& view, float3& dir)
+void DrawingSystem::GetLightViewProjectionMatrix(TransformComponent* pTransform, float4x4& view, float4x4& proj, float3& dir)
 {
     float3 rotate = pTransform->GetRotate();
 
     float3 at = float3(0.0f, 0.0f, 0.0f);
     float3 up = float3(0.0f, 1.0f, 0.0f);
     dir = float3(1.0f, 0.0f, 0.0f);
-    dir = Mat::Mul(dir, Mat::RotateLH(rotate.x, rotate.y, rotate.z));
-    float3 pos = at - dir;
+    dir = Vec::Normalize(Mat::Mul(dir, Mat::RotateLH(rotate.x, rotate.y, rotate.z)));
+    float3 pos = (at - dir) * 5.0f;
 
     view = Mat::LookAtLH(pos, at, up);
-}
-
-void DrawingSystem::GetLightOrthoMatrix(float4x4& ortho)
-{
-    ortho = Mat::OrthoLH(15.f, 15.f, -20.f, 20.f);
-}
-
-void DrawingSystem::GetLightProjectionMatrix(float4x4& proj)
-{
-    proj = Mat::PerspectiveFovLH(90.0f, 1.0f, 0.1f, 1000.0f);
+    proj = Mat::OrthoLH(50.f, 50.f, -50.f, 50.f);
 }
 
 void DrawingSystem::UpdateLightDir(float3 dir)
@@ -453,14 +442,14 @@ void DrawingSystem::UpdateLightViewMatrix(float4x4 view)
         pParam->AsFloat4x4(view);
 }
 
-void DrawingSystem::UpdateLightOrthoMatrix(float4x4 ortho)
+void DrawingSystem::UpdateLightProjMatrix(float4x4 proj)
 {
-    auto pEntry = m_pResourceTable->GetResourceEntry(ForwardRenderer::LightOrthoMatrix());
+    auto pEntry = m_pResourceTable->GetResourceEntry(ForwardRenderer::LightProjMatrix());
     assert(pEntry != nullptr);
     auto pCB = std::dynamic_pointer_cast<DrawingConstantBuffer>(pEntry->GetResource());
     if (pCB == nullptr)
         return;
-    auto pParam = pCB->GetParameter(strPtr("gLightOrthoMatrix"));
+    auto pParam = pCB->GetParameter(strPtr("gLightProjMatrix"));
     if (pParam != nullptr)
-        pParam->AsFloat4x4(ortho);
+        pParam->AsFloat4x4(proj);
 }

@@ -8,7 +8,7 @@ struct ShadowCaster_Input
 
 struct ShadowCaster_VertexAttr
 {
-    noperspective float4 position : SV_Position;
+    float4 position : SV_Position;
 };
 
 #endif

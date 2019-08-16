@@ -73,6 +73,7 @@ public:
         MeshFilterComponent cubeMeshFilterComp1;
         MeshRendererComponent cubeMeshRendererComp1;
         AnimationComponent cubeAnimationComp1;
+        cubeTransformComp1.SetPosition(float3(2.0f, 4.0f, -1.0f));
         // auto pCubeMesh1 = std::make_shared<CubeMesh>();
         auto pMesh = std::make_shared<GLTF2Mesh>("Asset/Scene/Test/DamagedHelmet.gltf");
         cubeMeshFilterComp1.SetMesh(pMesh);
@@ -93,7 +94,7 @@ public:
         MeshFilterComponent cubeMeshFilterComp2;
         MeshRendererComponent cubeMeshRendererComp2;
         AnimationComponent cubeAnimationComp;
-        cubeTransformComp2.SetPosition(float3(0.0f, 0.5f, 1.0f));
+        cubeTransformComp2.SetPosition(float3(0.0f, 2.0f, 1.0f));
         cubeTransformComp2.SetRotate(float3(0.0f, -1.0f, 0.0f));
         cubeTransformComp2.SetScale(float3(2.0f, 2.0f, 2.0f));
         auto pCubeMesh2 = std::make_shared<CubeMesh>();
@@ -103,7 +104,7 @@ public:
         // Camera
         TransformComponent cameraTransformComp;
         CameraComponent cameraComp;
-        cameraTransformComp.SetPosition(float3(0.0f, 4.0f, -10.0f));
+        cameraTransformComp.SetPosition(float3(0.0f, 6.0f, -10.0f));
         cameraTransformComp.SetRotate(float3(0.0f, -90.0f, -20.0f));
         cameraComp.SetBackground(float4(33.f / 255.f, 40.f / 255.f, 48.f / 255.f, 1.0f));
         auto pCamera = pWorld->CreateEntity<TransformComponent, CameraComponent>(cameraTransformComp, cameraComp);
@@ -122,7 +123,7 @@ public:
 
             auto pTrans = pLight->GetComponent<TransformComponent>();
             auto rotate = pTrans->GetRotate();
-            //rotate.z -= second * 20.f;
+            rotate.z -= second * 20.f;
             pTrans->SetRotate(rotate);
         };
         pLight->GetComponent<AnimationComponent>()->SetAnimationFunc(func2);

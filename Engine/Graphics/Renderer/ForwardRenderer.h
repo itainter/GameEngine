@@ -29,7 +29,10 @@ namespace Engine
         void DefineShadowCasterBlendState(DrawingResourceTable& resTable);
         void DefineLightDirVectorConstantBuffer(DrawingResourceTable& resTable);
         void DefineLightViewMatrixConstantBuffer(DrawingResourceTable& resTable);
-        void DefineLightOrthoMatrixConstantBuffer(DrawingResourceTable& resTable);
+        void DefineLightProjMatrixConstantBuffer(DrawingResourceTable& resTable);
+        void DefineShaderResource(DrawingResourceTable& resTable);
+        void DefinePipelineStateResource(DrawingResourceTable& resTable);
+        void DefineShadowMapSampler(DrawingResourceTable& resTable);
 
         void BindLightConstants(DrawingPass& pass);
         void BindShadowMapTexture(DrawingPass& pass);
@@ -53,15 +56,13 @@ namespace Engine
         // Constant buffer names
         FuncResourceName(LightDirVector)
         FuncResourceName(LightViewMatrix)
-        FuncResourceName(LightOrthoMatrix)
+        FuncResourceName(LightProjMatrix)
         // Define state names
         FuncResourceName(ShadowCasterBlendState)
         // Define texture names
         FuncResourceName(ShadowMapTexture)
-
-    protected:
-        void DefineShaderResource(DrawingResourceTable& resTable);
-        void DefinePipelineStateResource(DrawingResourceTable& resTable);
+        // Define texture sampler names
+        FuncResourceName(ShadowMapSampler)
 
     private:
         std::shared_ptr<DrawingPass> CreateShadowCasterPass();

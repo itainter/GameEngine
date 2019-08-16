@@ -531,6 +531,18 @@ void DrawingPass::DynamicResourceSlotTable::UpdateBuffers(std::shared_ptr<Drawin
 
 void DrawingPass::DynamicResourceSlotTable::UpdateSamplers(std::shared_ptr<DrawingEffect> pEffect)
 {
+    std::for_each(mSlotTable.cbegin(), mSlotTable.cend(), [&pEffect](const ResourceSlotTableType::value_type& aElem)
+    {
+        if (aElem.second.mType == ResourceSlot_Sampler)
+        {
+            auto pSampler = std::dynamic_pointer_cast<DrawingSamplerState>(GetSlotDeviceResource(&aElem.second));
+            if (pSampler != nullptr)
+            {
+                auto pDevice = pSampler->GetDevice();
+                pDevice->UpdateEffectSampler(pSampler, aElem.second.mpKey, pEffect);
+            }
+        }
+    });
 }
 
 DrawingPass::StaticResourceSlotTable::StaticResourceSlotTable()

@@ -2,8 +2,9 @@
 
 Texture2D<float> gShadowMapTexture : register(t0);
 
-SamplerState gSampleTypeClamp : SampleTypeClamp
+SamplerState gShadowMapSampler : ShadowMapSampler
 {
+    Texture = <gShadowMapTexture>;
     Filter = MIN_MAG_MIP_POINT;
     AddressU = Clamp;
     AddressV = Clamp;
@@ -26,27 +27,20 @@ float4 ForwardBase_PS(ForwardBase_VertexAttr input) : SV_Target
     orthoTexCoord.y = -input.lightViewPosition.y / input.lightViewPosition.w / 2.0f + 0.5f;
     float lightDepthValue = input.lightViewPosition.z;
 
-    float depthValue = gShadowMapTexture.Sample(gSampleTypeClamp, orthoTexCoord).x;
+    float depthValue = gShadowMapTexture.Sample(gShadowMapSampler, orthoTexCoord).x;
 
-    if((saturate(orthoTexCoord.x) == orthoTexCoord.x) && (saturate(orthoTexCoord.y) == orthoTexCoord.y) && (lightDepthValue > 0))
+    if((saturate(orthoTexCoord.x) == orthoTexCoord.x) && (saturate(orthoTexCoord.y) == orthoTexCoord.y))
     {
-        if (lightDepthValue < depthValue + bias)
+        if (lightDepthValue <= depthValue + bias)
         {
             lightIntensity = saturate(dot(input.normal, -gLightDir));
             if(lightIntensity > 0.0f)
             {
-                color += (float4(1.0f, 1.0f, 1.0f, 1.0f) * lightIntensity);
+                color += (float4(0.5f, 0.5f, 0.5f, 1.0f) * lightIntensity);
                 color = saturate(color);
             }
-            //color = float4(1.0f, 0.0f, 0.0f, 1.0f);
-        }
-        else
-        {
-            color = float4(0.0f, 1.0f, 0.0f, 1.0f);
         }
     }
-    else
-        color = float4(0.0f, 0.0f, 1.0f, 1.0f);
 
     return color;
 }
