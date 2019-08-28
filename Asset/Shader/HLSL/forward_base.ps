@@ -1,5 +1,7 @@
 #include "forward_base.h"
 
+#define PCF_LEVEL 3
+
 Texture2D<float> gShadowMapTexture : register(t0);
 
 SamplerState gShadowMapSampler : ShadowMapSampler
@@ -15,9 +17,29 @@ cbuffer LightBuffer : register(b0)
     float3 gLightDir : LIGHT_DIR;
 };
 
+float PCF(float2 coord, uint level, float bias, float lightDepthValue)
+{
+    uint width, height;
+    gShadowMapTexture.GetDimensions(width, height);
+
+    float texelWidth = 1.0f / width;
+    float texelHeight = 1.0f / height;
+
+    float shadowValue = 0.0f;
+    for (int x = -level; x < level; ++x)
+    {
+        for (int y = -level; y < level; ++y)
+        {
+            float pcfDepth = gShadowMapTexture.Sample(gShadowMapSampler, coord + float2(x, y) * float2(texelWidth, texelHeight)).x;
+            shadowValue += (lightDepthValue - bias) > pcfDepth ? 1.0f : 0.0f;
+        }
+    }
+    shadowValue /= (level * 2 + 1) * (level * 2 + 1);
+    return shadowValue;
+}
+
 float4 ForwardBase_PS(ForwardBase_VertexAttr input) : SV_Target
 {
-    float bias = 0.001f;
     float lightIntensity;
     float ambientStrength = 0.7f;
     float4 color = float4(0.3f, 0.3f, 0.3f, 1.0f);
@@ -25,20 +47,18 @@ float4 ForwardBase_PS(ForwardBase_VertexAttr input) : SV_Target
     float2 orthoTexCoord;
     orthoTexCoord.x =  input.lightViewPosition.x / input.lightViewPosition.w / 2.0f + 0.5f;
     orthoTexCoord.y = -input.lightViewPosition.y / input.lightViewPosition.w / 2.0f + 0.5f;
-    float lightDepthValue = input.lightViewPosition.z;
-
-    float depthValue = gShadowMapTexture.Sample(gShadowMapSampler, orthoTexCoord).x;
 
     if((saturate(orthoTexCoord.x) == orthoTexCoord.x) && (saturate(orthoTexCoord.y) == orthoTexCoord.y))
     {
-        if (lightDepthValue <= depthValue + bias)
+        lightIntensity = saturate(dot(input.normal, -gLightDir));
+        float bias = max(0.05 * (1.0f - lightIntensity), 0.005f);
+        float lightDepthValue = input.lightViewPosition.z;
+
+        if(lightIntensity > 0.0f)
         {
-            lightIntensity = saturate(dot(input.normal, -gLightDir));
-            if(lightIntensity > 0.0f)
-            {
-                color += (float4(0.5f, 0.5f, 0.5f, 1.0f) * lightIntensity);
-                color = saturate(color);
-            }
+            float shadowValue = PCF(orthoTexCoord, PCF_LEVEL, bias, lightDepthValue);
+            color += (float4(0.5f, 0.5f, 0.5f, 1.0f) * lightIntensity * (1.0f - shadowValue));
+            color = saturate(color);
         }
     }
 
