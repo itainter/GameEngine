@@ -1,4 +1,4 @@
-#include "forward_base.h"
+#include "screen_space_shadow.h"
 
 cbuffer TransformCB : register(b0)
 {
@@ -13,9 +13,9 @@ cbuffer TransformLight : register(b1)
     row_major float4x4 gLightProjMatrix : LIGHT_PROJ;
 };
 
-ForwardBase_VertexAttr ForwardBase_VS(ForwardBase_Input input)
+ScreenSpaceShadow_VertexAttr ScreenSpaceShadow_VS(ScreenSpaceShadow_Input input)
 {
-    ForwardBase_VertexAttr output = (ForwardBase_VertexAttr)0;
+    ScreenSpaceShadow_VertexAttr output = (ScreenSpaceShadow_VertexAttr)0;
 
     output.position.xyz = input.Position.xyz;
     output.position.w = 1.0f;

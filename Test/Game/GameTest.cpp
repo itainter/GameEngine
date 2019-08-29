@@ -37,7 +37,7 @@ public:
         gpGlobal->GetConfiguration<AppConfiguration>().SetWidth(1080);
         gpGlobal->GetConfiguration<AppConfiguration>().SetHeight(1080);
         gpGlobal->GetConfiguration<GraphicsConfiguration>().SetDeviceType(eDevice_D3D11);
-        gpGlobal->GetConfiguration<GraphicsConfiguration>().SetMSAA(eMSAA_Disable);
+        gpGlobal->GetConfiguration<GraphicsConfiguration>().SetMSAA(eMSAA_4);
 
         gpGlobal->RegisterApp<WindowsApplication>();
 
@@ -96,7 +96,7 @@ public:
         AnimationComponent cubeAnimationComp;
         cubeTransformComp2.SetPosition(float3(0.0f, 2.0f, 1.0f));
         cubeTransformComp2.SetRotate(float3(0.0f, -1.0f, 0.0f));
-        cubeTransformComp2.SetScale(float3(2.0f, 2.0f, 2.0f));
+        cubeTransformComp2.SetScale(float3(2.0f, 4.0f, 2.0f));
         auto pCubeMesh2 = std::make_shared<CubeMesh>();
         cubeMeshFilterComp2.SetMesh(pCubeMesh2);
         auto pCube2 = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(cubeTransformComp2, cubeMeshFilterComp2, cubeMeshRendererComp2);

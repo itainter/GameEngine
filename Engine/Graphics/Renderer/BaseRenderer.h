@@ -62,12 +62,13 @@ namespace Engine
         FuncResourceName(DefaultProjectionMatrix)
         // Render target names
         FuncResourceName(ShadowMapTarget)
-        FuncResourceName(DefaultTarget)
-        FuncResourceName(DefaultDepthBuffer)
+        FuncResourceName(ScreenSpaceShadowTarget)
         FuncResourceName(ScreenTarget)
         FuncResourceName(ScreenDepthBuffer)
         // Render state names
         FuncResourceName(DefaultDepthState)
+        FuncResourceName(DefaultDepthStateNoWrite)
+        FuncResourceName(DefaultDepthStateDisable)
         FuncResourceName(DefaultBlendState)
         FuncResourceName(DefaultRasterState)
         // Varing states names
