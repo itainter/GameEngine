@@ -16,6 +16,7 @@
 using namespace Engine;
 
 DrawingSystem::DrawingSystem() : m_window(nullptr),
+    m_bDebug(false),
     m_deviceSize(0),
     m_deviceType(gpGlobal->GetConfiguration<GraphicsConfiguration>().GetDeviceType()),
     m_pDevice(nullptr),
@@ -54,7 +55,7 @@ void DrawingSystem::Tick(float elapsedTime)
         if (pFrameGraph == nullptr)
             continue;
 
-        pFrameGraph->EnqueuePasses();
+        pFrameGraph->EnqueuePasses(*m_pResourceTable);
     }
 
     m_pDevice->Present(m_pContext->GetSwapChain(), 0);
@@ -80,6 +81,11 @@ EConfigurationDeviceType DrawingSystem::GetDeviceType() const
 void DrawingSystem::SetDeviceType(EConfigurationDeviceType type)
 {
     m_deviceType = type;
+}
+
+void DrawingSystem::FlipDebugState()
+{
+    m_bDebug = !m_bDebug;
 }
 
 bool DrawingSystem::EstablishConfiguration()
@@ -226,6 +232,11 @@ void DrawingSystem::BuildFrameGraph()
 
         if (pCameraComponent->GetRendererType() == eRenderer_Forward)
             BuildForwardFrameGraph(pFrameGraph, pCamera);
+
+        else if (pCameraComponent->GetRendererType() == eRenderer_Deferred)
+            BuildDeferredFrameGraph(pFrameGraph, pCamera);
+
+        pFrameGraph->InitializePasses();
     }
 }
 
@@ -253,7 +264,7 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
     assert(pDepthPass != nullptr);
     auto& depthPassNode = pFrameGraph->AddPass(pDepthPass, GraphicsBit);
 
-    depthPassNode.SetInitializeFunc([&](void) -> bool {
+    depthPassNode.SetInitializeFunc([&](DrawingResourceTable&) -> bool {
         return true;
     });
 
@@ -263,7 +274,7 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         flag = eClear_Depth;
     });
 
-    depthPassNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pRenderer, pDepthPass](void) -> void {
+    depthPassNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pRenderer, pDepthPass](DrawingResourceTable&) -> void {
         float4x4 view;
         float4x4 proj;
         GetProjectionMatrix(pCameraComponent, proj);
@@ -283,7 +294,7 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
     assert(pShadowPass != nullptr);
     auto& shadowPassNode = pFrameGraph->AddPass(pShadowPass, GraphicsBit);
 
-    shadowPassNode.SetInitializeFunc([&](void) -> bool {
+    shadowPassNode.SetInitializeFunc([&](DrawingResourceTable&) -> bool {
         return true;
     });
 
@@ -297,7 +308,7 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         flag = eClear_Depth;
     });
 
-    shadowPassNode.SetExecuteFunc([&, pLightTransformComponent, pRenderer, pShadowPass](void) -> void {
+    shadowPassNode.SetExecuteFunc([&, pLightTransformComponent, pRenderer, pShadowPass](DrawingResourceTable&) -> void {
         float4x4 lightView;
         float4x4 lightProj;
         GetLightViewProjectionMatrix(pLightTransformComponent, lightView, lightProj);
@@ -321,7 +332,7 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
     assert(pSSSPass != nullptr);
     auto& sssNode = pFrameGraph->AddPass(pSSSPass, GraphicsBit);
 
-    sssNode.SetInitializeFunc([&](void) -> bool {
+    sssNode.SetInitializeFunc([&](DrawingResourceTable&) -> bool {
         return true;
     });
 
@@ -329,7 +340,7 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         color = float4(1.0f, 1.0f, 1.0f, 1.0f);
     });
 
-    sssNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pLightTransformComponent, pRenderer, pSSSPass](void) -> void {
+    sssNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pLightTransformComponent, pRenderer, pSSSPass](DrawingResourceTable&) -> void {
         float4x4 view;
         float4x4 proj;
         GetProjectionMatrix(pCameraComponent, proj);
@@ -363,7 +374,7 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
     assert(pForwardShadingPass != nullptr);
     auto& forwardShadingNode = pFrameGraph->AddPass(pForwardShadingPass, GraphicsBit);
 
-    forwardShadingNode.SetInitializeFunc([&](void) -> bool {
+    forwardShadingNode.SetInitializeFunc([&](DrawingResourceTable&) -> bool {
         return true;
     });
 
@@ -371,7 +382,7 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         color = pCameraComponent->GetBackground();
     });
 
-    forwardShadingNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pLightTransformComponent, pRenderer, pForwardShadingPass](void) -> void {
+    forwardShadingNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pLightTransformComponent, pRenderer, pForwardShadingPass](DrawingResourceTable&) -> void {
         float4x4 view;
         float4x4 proj;
         float3 dir;
@@ -399,8 +410,14 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         pRenderer->Flush(*m_pResourceTable, pForwardShadingPass);
     });
 
+    // Debug layer pass.
     pFrameGraph->FetchResources(*m_pResourceTable);
 
+    return true;
+}
+
+bool DrawingSystem::BuildDeferredFrameGraph(std::shared_ptr<FrameGraph> pFrameGraph, std::shared_ptr<IEntity> pCamera)
+{
     return true;
 }
 

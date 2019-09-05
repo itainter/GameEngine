@@ -39,9 +39,6 @@ namespace Engine
         eResource_Target,
         eResource_DepthBuffer,
         eResource_RWBuffer,
-
-        // This is used for Dx12 only.
-        eResource_Pipeline_State,
     };
 
     enum EDrawingClearFlag

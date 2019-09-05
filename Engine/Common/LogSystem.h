@@ -66,6 +66,8 @@ namespace Engine
                             gpGlobal->GetFPSCounter().GetFPSAvgSec() << ", " <<
                             "Cur FPS: " <<
                             gpGlobal->GetFPSCounter().GetFPSCurrent() << std::endl;
+            case 'g':
+                
             break;
         }
     };

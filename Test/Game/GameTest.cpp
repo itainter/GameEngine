@@ -74,6 +74,7 @@ public:
         MeshRendererComponent cubeMeshRendererComp1;
         AnimationComponent cubeAnimationComp1;
         cubeTransformComp1.SetPosition(float3(2.0f, 4.0f, -1.0f));
+        cubeTransformComp1.SetRotate(float3(0.0f, 0.0f, 90.0f));
         // auto pCubeMesh1 = std::make_shared<CubeMesh>();
         auto pMesh = std::make_shared<GLTF2Mesh>("Asset/Scene/Test/DamagedHelmet.gltf");
         cubeMeshFilterComp1.SetMesh(pMesh);
@@ -123,7 +124,8 @@ public:
 
             auto pTrans = pLight->GetComponent<TransformComponent>();
             auto rotate = pTrans->GetRotate();
-            rotate.z -= second * 20.f;
+            rotate.y -= second * 45.f;
+            rotate.z = (std::abs(std::sinf(rotate.y*PI_F/180.f * 0.3f)) + 0.15f) * -60.0f;
             pTrans->SetRotate(rotate);
         };
         pLight->GetComponent<AnimationComponent>()->SetAnimationFunc(func2);

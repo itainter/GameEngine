@@ -36,7 +36,6 @@ namespace Engine
         void DefineLightViewMatrixConstantBuffer(DrawingResourceTable& resTable);
         void DefineLightProjMatrixConstantBuffer(DrawingResourceTable& resTable);
         void DefineShaderResource(DrawingResourceTable& resTable);
-        void DefinePipelineStateResource(DrawingResourceTable& resTable);
         void DefineShadowMapSampler(DrawingResourceTable& resTable);
         void DefinePointSampler(DrawingResourceTable& resTable);
 
@@ -53,11 +52,6 @@ namespace Engine
         FuncResourceName(ScreenSpaceShadowPixelShader)
         FuncResourceName(ForwardShadingVertexShader)
         FuncResourceName(ForwardShadingPixelShader)
-        // Define pipeline state names
-        FuncResourceName(DepthPipelineState)
-        FuncResourceName(ShadowCasterPipelineState)
-        FuncResourceName(ScreenSpaceShadowPipelineState)
-        FuncResourceName(ForwardShadingPipelineState)
         // Define effect resource names
         FuncResourceName(BasicEffect)
         FuncResourceName(ScreenSpaceShadowEffect)

@@ -26,15 +26,15 @@ namespace Engine
         FrameGraphNode(FrameGraph& frameGraph, uint32_t index, std::shared_ptr<DrawingPass> pPass, FrameGraphFlagBits bits);
         virtual ~FrameGraphNode();
 
-        bool RunInitializeFunc() const;
+        bool RunInitializeFunc(DrawingResourceTable& resTable) const;
         bool IfNeedExecuteFunc() const;
-        void RunExecuteFunc() const;
+        void RunExecuteFunc(DrawingResourceTable& resTable) const;
         void RunClearColorFunc() const;
         void RunClearDepthStencilFunc() const;
 
-        void SetInitializeFunc(std::function<bool ()> func);
+        void SetInitializeFunc(std::function<bool (DrawingResourceTable&)> func);
         void SetNeedExecuteFunc(std::function<bool ()> func);
-        void SetExecuteFunc(std::function<void ()> func);
+        void SetExecuteFunc(std::function<void (DrawingResourceTable&)> func);
         void SetClearColorFunc(unsigned int index, std::function<void (float4&)> func);
         void SetClearDepthStencilFunc(std::function<void (float&, uint8_t&, uint32_t&)> func);
 
@@ -53,9 +53,9 @@ namespace Engine
         FrameGraphFlagBits m_bits;
         std::shared_ptr<DrawingPass> m_pPass;
 
-        std::function<bool ()> m_initializeFunc;
+        std::function<bool (DrawingResourceTable&)> m_initializeFunc;
         std::function<bool ()> m_needExecuteFunc;
-        std::function<void ()> m_executeFunc;
+        std::function<void (DrawingResourceTable&)> m_executeFunc;
         ClearColorFuncTable m_clearColorFuncs;
         std::function<void (float&, uint8_t&, uint32_t&)> m_clearDepthStencilFunc;
     };
@@ -65,8 +65,8 @@ namespace Engine
     public:
         FrameGraph();
         FrameGraphNode& AddPass(std::shared_ptr<DrawingPass> pPass, FrameGraphFlagBits bits);
-        bool InitializePasses();
-        void EnqueuePasses();
+        bool InitializePasses(DrawingResourceTable& resTable);
+        void EnqueuePasses(DrawingResourceTable& resTable);
         void FetchResources(DrawingResourceTable& resTable);
 
     private:

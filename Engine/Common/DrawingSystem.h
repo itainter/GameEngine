@@ -36,6 +36,8 @@ namespace Engine
         EConfigurationDeviceType GetDeviceType() const override;
         void SetDeviceType(EConfigurationDeviceType type) override;
 
+        void FlipDebugState() override;
+
     private:
         bool EstablishConfiguration();
         bool PreConfiguration();
@@ -46,6 +48,7 @@ namespace Engine
 
         void BuildFrameGraph();
         bool BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGraph, std::shared_ptr<IEntity> pCamera);
+        bool BuildDeferredFrameGraph(std::shared_ptr<FrameGraph> pFrameGraph, std::shared_ptr<IEntity> pCamera);
 
         void GetVisableRenderable(RenderQueueItemListType& items);
 
@@ -64,6 +67,7 @@ namespace Engine
 
     private:
         void* m_window;
+        bool m_bDebug;
         uint2 m_deviceSize;
         EConfigurationDeviceType m_deviceType;
 

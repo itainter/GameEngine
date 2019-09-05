@@ -521,11 +521,6 @@ bool DrawingDevice_D3D11::CreatePixelShaderFromBuffer(const void* pData, uint32_
     return DoCreatePixelShader(desc, pData, length, pRes);
 }
 
-bool DrawingDevice_D3D11::CreatePipelineState(const DrawingPipelineStateDesc& desc, const DrawingPipelineState::SubobjectResourceTable& subobjectResources, std::shared_ptr<DrawingPipelineState>& pRes)
-{
-    return true;
-}
-
 void DrawingDevice_D3D11::ClearTarget(std::shared_ptr<DrawingTarget> pTarget, const float4& color)
 {
     auto pTargetRaw = std::dynamic_pointer_cast<DrawingRawFragmentTarget_D3D11>(pTarget->GetResource());
@@ -636,10 +631,6 @@ void DrawingDevice_D3D11::SetRasterState(std::shared_ptr<DrawingRasterState> pRa
     }
     else
         m_pDeviceContext->RSSetState(nullptr);
-}
-
-void DrawingDevice_D3D11::SetPipelineState(std::shared_ptr<DrawingPipelineState> pPipelineState)
-{
 }
 
 void DrawingDevice_D3D11::PushBlendState()

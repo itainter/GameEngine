@@ -16,7 +16,6 @@ void ForwardRenderer::DefineResources(DrawingResourceTable& resTable)
 
     DefineDefaultResources(resTable);
     DefineShaderResource(resTable);
-    DefinePipelineStateResource(resTable);
     DefineShadowCasterBlendState(resTable);
 
     DefineCameraDirVectorConstantBuffer(resTable);
@@ -225,49 +224,6 @@ void ForwardRenderer::DefineShaderResource(DrawingResourceTable& resTable)
     DefineLinkedEffect(ForwardShadingEffect(), ForwardShadingVertexShader(), ForwardShadingPixelShader(), resTable);
 }
 
-void ForwardRenderer::DefinePipelineStateResource(DrawingResourceTable& resTable)
-{
-    DefinePipelineState(DepthPipelineState(),
-                        VertexFormatP(),
-                        DefaultPrimitive(),
-                        BasicEffect(),
-                        DefaultBlendState(),
-                        DefaultRasterState(),
-                        DefaultDepthState(),
-                        nullptr,
-                        resTable);
-
-    DefinePipelineState(ShadowCasterPipelineState(),
-                        VertexFormatP(),
-                        DefaultPrimitive(),
-                        BasicEffect(),
-                        ShadowCasterBlendState(),
-                        DefaultRasterState(),
-                        DefaultDepthStateDisable(),
-                        ShadowMapTarget(),
-                        resTable);
-
-    DefinePipelineState(ScreenSpaceShadowPipelineState(),
-                        VertexFormatPN(),
-                        DefaultPrimitive(),
-                        ScreenSpaceShadowEffect(),
-                        DefaultBlendState(),
-                        DefaultRasterState(),
-                        DefaultDepthStateNoWrite(),
-                        ScreenSpaceShadowTarget(),
-                        resTable);
-
-    DefinePipelineState(ForwardShadingPipelineState(),
-                        VertexFormatPN(),
-                        DefaultPrimitive(),
-                        ForwardShadingEffect(),
-                        DefaultBlendState(),
-                        DefaultRasterState(),
-                        DefaultDepthStateNoWrite(),
-                        ScreenTarget(),
-                        resTable);
-}
-
 void ForwardRenderer::DefineShadowMapSampler(DrawingResourceTable& resTable)
 {
     auto pDesc = std::make_shared<DrawingSamplerStateDesc>();
@@ -355,7 +311,6 @@ std::shared_ptr<DrawingPass> ForwardRenderer::CreateDepthPass()
     auto pPass = CreatePass(DepthPass());
 
     BindEffect(*pPass, BasicEffect());
-    BindPipelineState(*pPass, DepthPipelineState());
     BindDynamicInputsP(*pPass);
     BindStates(*pPass);
     BindDepthBuffer(*pPass, ScreenDepthBuffer());
@@ -372,9 +327,8 @@ std::shared_ptr<DrawingPass> ForwardRenderer::CreateShadowCasterPass()
     auto pPass = CreatePass(ShadowCasterPass());
 
     BindEffect(*pPass, BasicEffect());
-    BindPipelineState(*pPass, ShadowCasterPipelineState());
     BindDynamicInputsP(*pPass);
-    BindDepthState(*pPass, DefaultDepthStateDisable());
+    BindDepthState(*pPass, DepthStateDisable());
     BindBlendState(*pPass, ShadowCasterBlendState());
     BindRasterState(*pPass, DefaultRasterState());
     BindTarget(*pPass, 0, ShadowMapTarget());
@@ -391,9 +345,8 @@ std::shared_ptr<DrawingPass> ForwardRenderer::CreateScreenSpaceShadowPass()
     auto pPass = CreatePass(ScreenSpaceShadowPass());
 
     BindEffect(*pPass, ScreenSpaceShadowEffect());
-    BindPipelineState(*pPass, ScreenSpaceShadowPipelineState());
     BindDynamicInputsPN(*pPass);
-    BindDepthState(*pPass, DefaultDepthStateNoWrite());
+    BindDepthState(*pPass, DepthStateNoWrite());
     BindBlendState(*pPass, DefaultBlendState());
     BindRasterState(*pPass, DefaultRasterState());
     BindTarget(*pPass, 0, ScreenSpaceShadowTarget());
@@ -413,9 +366,8 @@ std::shared_ptr<DrawingPass> ForwardRenderer::CreateForwardShadingPass()
     auto pPass = CreatePass(ForwardShadingPass());
 
     BindEffect(*pPass, ForwardShadingEffect());
-    BindPipelineState(*pPass, ForwardShadingPipelineState());
     BindDynamicInputsPN(*pPass);
-    BindDepthState(*pPass, DefaultDepthStateNoWrite());
+    BindDepthState(*pPass, DepthStateNoWrite());
     BindBlendState(*pPass, DefaultBlendState());
     BindRasterState(*pPass, DefaultRasterState());
     BindOutput(*pPass);

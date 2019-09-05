@@ -119,6 +119,7 @@ float4 ScreenSpaceShadow_PS(ScreenSpaceShadow_VertexAttr input) : SV_Target
     float lightIntensity;
     float ambientStrength = 0.7f;
     float4 color = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    
     float shadowValue = 1.0f;
 
     float2 orthoTexCoord;
@@ -128,7 +129,10 @@ float4 ScreenSpaceShadow_PS(ScreenSpaceShadow_VertexAttr input) : SV_Target
     if((saturate(orthoTexCoord.x) == orthoTexCoord.x) && (saturate(orthoTexCoord.y) == orthoTexCoord.y))
     {
         lightIntensity = saturate(dot(input.normal, -gLightDir));
-        float bias = max(0.05 * (1.0f - lightIntensity), 0.0005f);
+
+        float bias = 0.005f * tan(acos(lightIntensity));
+        bias = clamp(bias, 0.0005f, 0.02f);
+        //float bias = max(0.02f * (1.0f - lightIntensity), 0.0005f);
         float z = input.lightViewPosition.z;
 
         if(lightIntensity > 0.0f)

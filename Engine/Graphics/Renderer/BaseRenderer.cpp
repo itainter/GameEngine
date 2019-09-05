@@ -148,29 +148,6 @@ void BaseRenderer::DefineLinkedEffect(std::shared_ptr<std::string> pEffectName, 
     resTable.AddResourceEntry(pEffectName, pDesc);
 }
 
-void BaseRenderer::DefinePipelineState(std::shared_ptr<std::string> pPipelineStateName,
-                                       std::shared_ptr<std::string> pVertexFormatName,
-                                       std::shared_ptr<std::string> pPrimitiveName,
-                                       std::shared_ptr<std::string> pEffectName,
-                                       std::shared_ptr<std::string> pBlendStateName,
-                                       std::shared_ptr<std::string> pRasterStateName,
-                                       std::shared_ptr<std::string> pDepthStencilStateName,
-                                       std::shared_ptr<std::string> pRenderTargetName,
-                                       DrawingResourceTable& resTable)
-{
-    auto pDesc = std::make_shared<DrawingPipelineStateDesc>();
-
-    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_InputLayout, pVertexFormatName);
-    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_PrimitiveTopology, pPrimitiveName);
-    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_Effect, pEffectName);
-    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_BlendState, pBlendStateName);
-    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_RasterState, pRasterStateName);
-    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_DepthStencilState, pDepthStencilStateName);
-    pDesc->AttachSubobject(DrawingPipelineStateDesc::ePipelineStateSubobjectType_RenderTarget, pRenderTargetName);
-
-    resTable.AddResourceEntry(pPipelineStateName, pDesc);
-}
-
 void BaseRenderer::DefineVertexShaderFromBlob(std::shared_ptr<std::string> pShaderName, std::shared_ptr<std::string> pSourceName, DrawingResourceTable& resTable)
 {
     DoDefineShaderFromBlob<DrawingVertexShaderDesc>(pShaderName, pSourceName, resTable);
@@ -379,7 +356,7 @@ void BaseRenderer::DefineDefaultDepthState(DrawingResourceTable& resTable)
     pDesc2->mStencilState.mBackFace.mStencilDepthFailOp = eStencilOp_Keep;
     pDesc2->mStencilState.mBackFace.mStencilFunc = eComparison_Always;
 
-    resTable.AddResourceEntry(DefaultDepthStateNoWrite(), pDesc2);
+    resTable.AddResourceEntry(DepthStateNoWrite(), pDesc2);
 
     auto pDesc3 = std::make_shared<DrawingDepthStateDesc>();
     pDesc3->mDepthState.mDepthEnable = false;
@@ -400,7 +377,7 @@ void BaseRenderer::DefineDefaultDepthState(DrawingResourceTable& resTable)
     pDesc3->mStencilState.mBackFace.mStencilDepthFailOp = eStencilOp_Keep;
     pDesc3->mStencilState.mBackFace.mStencilFunc = eComparison_Always;
 
-    resTable.AddResourceEntry(DefaultDepthStateDisable(), pDesc3);
+    resTable.AddResourceEntry(DepthStateDisable(), pDesc3);
 }
 
 void BaseRenderer::DefineDefaultBlendState(DrawingResourceTable& resTable)
@@ -430,23 +407,39 @@ void BaseRenderer::DefineDefaultBlendState(DrawingResourceTable& resTable)
 
 void BaseRenderer::DefineDefaultRasterState(DrawingResourceTable& resTable)
 {
-    auto pDesc = std::make_shared<DrawingRasterStateDesc>();
+    auto pDesc1 = std::make_shared<DrawingRasterStateDesc>();
+    pDesc1->mAntialiasedLineEnable = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA() != eMSAA_Disable;
+    pDesc1->mMultisampleEnable = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA() != eMSAA_Disable;
+    pDesc1->mDepthClipEnable = true;
 
-    pDesc->mAntialiasedLineEnable = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA() != eMSAA_Disable;
-    pDesc->mMultisampleEnable = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA() != eMSAA_Disable;
-    pDesc->mDepthClipEnable = true;
+    pDesc1->mDepthBiasClamp = 0.0f;
+    pDesc1->mSlopeScaledDepthBias = 0.0f;
+    pDesc1->mDepthBias = 0;
 
-    pDesc->mDepthBiasClamp = 0.0f;
-    pDesc->mSlopeScaledDepthBias = 0.0f;
-    pDesc->mDepthBias = 0;
+    pDesc1->mCullMode = eCullMode_Back;
+    pDesc1->mFillMode = eFillMode_Solid;
 
-    pDesc->mCullMode = eCullMode_Back;
-    pDesc->mFillMode = eFillMode_Solid;
+    pDesc1->mFrontCounterClockwise = false;
+    pDesc1->mScissorEnable = false;
 
-    pDesc->mFrontCounterClockwise = false;
-    pDesc->mScissorEnable = false;
+    resTable.AddResourceEntry(DefaultRasterState(), pDesc1);
 
-    resTable.AddResourceEntry(DefaultRasterState(), pDesc);
+    auto pDesc2 = std::make_shared<DrawingRasterStateDesc>();
+    pDesc2->mAntialiasedLineEnable = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA() != eMSAA_Disable;
+    pDesc2->mMultisampleEnable = gpGlobal->GetConfiguration<GraphicsConfiguration>().GetMSAA() != eMSAA_Disable;
+    pDesc2->mDepthClipEnable = true;
+
+    pDesc2->mDepthBiasClamp = 0.0f;
+    pDesc2->mSlopeScaledDepthBias = 0.0f;
+    pDesc2->mDepthBias = 0;
+
+    pDesc2->mCullMode = eCullMode_Front;
+    pDesc2->mFillMode = eFillMode_Solid;
+
+    pDesc2->mFrontCounterClockwise = false;
+    pDesc2->mScissorEnable = false;
+
+    resTable.AddResourceEntry(RasterStateFrontCull(), pDesc2);
 }
 
 void BaseRenderer::DefineTarget(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable)
@@ -568,11 +561,6 @@ void BaseRenderer::BindEffect(DrawingPass& pass, std::shared_ptr<std::string> pN
     pass.BindResource(DrawingPass::EffectSlotName(), pName);
 }
 
-void BindPipeline(DrawingPass& pass, std::shared_ptr<std::string> pName)
-{
-    pass.BindResource(DrawingPass::PipelineStateSlotName(), pName);
-}
-
 void BaseRenderer::BindVertexFormat(DrawingPass& pass, std::shared_ptr<std::string> pName)
 {
     pass.BindResource(DrawingPass::VertexFormatSlotName(), pName);
@@ -623,11 +611,6 @@ void BaseRenderer::BindVaringStates(DrawingPass& pass, std::shared_ptr<std::stri
     pass.BindResource(DrawingPass::VaringStatesSlotName(), pName);
 }
 
-void BaseRenderer::BindPipelineState(DrawingPass& pass, std::shared_ptr<std::string> pName)
-{
-    pass.BindResource(DrawingPass::PipelineStateSlotName(), pName);
-}
-
 void BaseRenderer::AddConstantSlot(DrawingPass& pass, std::shared_ptr<std::string> pName)
 {
     pass.AddResourceSlot(pName, ResourceSlot_ConstBuffer);
@@ -667,6 +650,17 @@ void BaseRenderer::BindDynamicInputsPN(DrawingPass& pass)
     BindVertexBuffer(pass, 0, DefaultDynamicPositionBuffer());
     BindVertexBuffer(pass, 1, DefaultDynamicNormalBuffer());
     BindIndexBuffer(pass, DefaultDynamicIndexBuffer());
+}
+
+void BaseRenderer::BindStaticInputsT(DrawingPass& pass)
+{
+    BindVertexFormat(pass, VertexFormatT());
+    BindVertexBuffer(pass, 0, DefaultStaticTexcoordBuffer());
+}
+
+void BaseRenderer::BindDynamicInputsT(DrawingPass& pass)
+{
+    BindVertexFormat(pass, VertexFormatT());
 }
 
 void BaseRenderer::BindStates(DrawingPass& pass)
@@ -746,6 +740,27 @@ std::shared_ptr<DrawingPersistIndexBuffer> BaseRenderer::CreatePersistIndexBuffe
 std::shared_ptr<DrawingPass> BaseRenderer::CreatePass(std::shared_ptr<std::string> pName)
 {
     return std::make_shared<DrawingPass>(pName, m_pDevice);
+}
+
+std::shared_ptr<DrawingPass> BaseRenderer::CreatePostProcessPass(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEffectName)
+{
+    auto pPass = CreatePass(pName);
+
+    BindEffect(*pPass, pEffectName);
+    BindStaticInputsT(*pPass);
+    BindStates(*pPass);
+    BindPrimitive(*pPass, DefaultPrimitive());
+    BindVaringStates(*pPass, DefaultVaringStates());
+
+    return pPass;
+}
+
+void BaseRenderer::DefineShaderResource(DrawingResourceTable& resTable)
+{
+    DefineVertexShader(PostProcessVertexShader(), strPtr("Asset\\Shader\\HLSL\\rect.vs"), strPtr("Rect_VS"), resTable);
+
+    DefinePixelShader(PostProcessSSAOPixelShader(), strPtr("Asset\\Shader\\HLSL\\ssao.ps"), strPtr("SSAO_PS"), resTable);
+    DefineLinkedEffect(PostProcessSSAOEffect(), PostProcessVertexShader(), PostProcessSSAOPixelShader(), resTable);
 }
 
 float4x4 BaseRenderer::UpdateWorldMatrix(const TransformComponent* pTransform)

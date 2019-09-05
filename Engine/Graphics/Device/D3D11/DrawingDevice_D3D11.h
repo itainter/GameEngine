@@ -59,8 +59,6 @@ namespace Engine
         bool CreatePixelShaderFromString(const std::string& str, const DrawingPixelShaderDesc& desc, std::shared_ptr<DrawingPixelShader>& pRes) override;
         bool CreatePixelShaderFromBuffer(const void* pData, uint32_t length, const DrawingPixelShaderDesc& desc, std::shared_ptr<DrawingPixelShader>& pRes) override;
 
-        bool CreatePipelineState(const DrawingPipelineStateDesc& desc, const DrawingPipelineState::SubobjectResourceTable& subobjectResources, std::shared_ptr<DrawingPipelineState>& pRes) override;
-
         void ClearTarget(std::shared_ptr<DrawingTarget> pTarget, const float4& color) override;
         void ClearDepthBuffer(std::shared_ptr<DrawingDepthBuffer> pDepthBuffer, float depth, uint8_t stencil, uint32_t flag) override;
 
@@ -71,8 +69,6 @@ namespace Engine
         void SetBlendState(std::shared_ptr<DrawingBlendState> pBlend, float4 blendFactor, uint32_t sampleMask) override;
         void SetDepthState(std::shared_ptr<DrawingDepthState> pDepth, uint32_t stencilRef) override;
         void SetRasterState(std::shared_ptr<DrawingRasterState> pRaster) override;
-
-        void SetPipelineState(std::shared_ptr<DrawingPipelineState> pPipelineState) override;
 
         void PushBlendState() override;
         void PopBlendState() override;

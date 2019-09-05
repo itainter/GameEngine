@@ -56,8 +56,6 @@ namespace Engine
         bool CreatePixelShaderFromString(const std::string& str, const DrawingPixelShaderDesc& desc, std::shared_ptr<DrawingPixelShader>& pRes) override;
         bool CreatePixelShaderFromBuffer(const void* pData, uint32_t length, const DrawingPixelShaderDesc& desc, std::shared_ptr<DrawingPixelShader>& pRes) override;
 
-        bool CreatePipelineState(const DrawingPipelineStateDesc& desc, const DrawingPipelineState::SubobjectResourceTable& subobjectResources, std::shared_ptr<DrawingPipelineState>& pRes) override;
-
         void ClearTarget(std::shared_ptr<DrawingTarget> pTarget, const float4& color) override;
         void ClearDepthBuffer(std::shared_ptr<DrawingDepthBuffer> pDepthBuffer, float depth, uint8_t stencil, uint32_t flag) override;
 
@@ -69,7 +67,6 @@ namespace Engine
         void SetDepthState(std::shared_ptr<DrawingDepthState> pDepth, uint32_t stencilRef) override;
         void SetRasterState(std::shared_ptr<DrawingRasterState> pRaster) override;
 
-        void SetPipelineState(std::shared_ptr<DrawingPipelineState> pPipelineState) override;
         void SetDescriptorHeap(EDrawingDescriptorHeapType type, std::shared_ptr<ID3D12DescriptorHeap> pHeap);
 
         void PushBlendState() override;

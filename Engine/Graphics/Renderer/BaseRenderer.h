@@ -45,14 +45,25 @@ namespace Engine
         float4x4 UpdateWorldMatrix(const TransformComponent* pTransform);
 
     public:
+        // Define shader resource names
+        FuncResourceName(PostProcessVertexShader)
+        FuncResourceName(PostProcessSSAOPixelShader)
+        // Define effect resource names
+        FuncResourceName(PostProcessSSAOEffect)
+        // Define pass names
+        FuncResourceName(PostProcessSSAOPass)
+
         // Vertex format names
         FuncResourceName(VertexFormatP)
         FuncResourceName(VertexFormatPN)
+        FuncResourceName(VertexFormatT)
         // Vertex buffer names
         FuncResourceName(DefaultStaticPositionBuffer)
         FuncResourceName(DefaultStaticNormalBuffer)
+        FuncResourceName(DefaultStaticTexcoordBuffer)
         FuncResourceName(DefaultDynamicPositionBuffer)
         FuncResourceName(DefaultDynamicNormalBuffer)
+        FuncResourceName(DefaultDynamicTexcoordBuffer)
         // Index buffer names
         FuncResourceName(DefaultStaticIndexBuffer)
         FuncResourceName(DefaultDynamicIndexBuffer)
@@ -65,12 +76,14 @@ namespace Engine
         FuncResourceName(ScreenSpaceShadowTarget)
         FuncResourceName(ScreenTarget)
         FuncResourceName(ScreenDepthBuffer)
+        FuncResourceName(SSAOTarget)
         // Render state names
         FuncResourceName(DefaultDepthState)
-        FuncResourceName(DefaultDepthStateNoWrite)
-        FuncResourceName(DefaultDepthStateDisable)
+        FuncResourceName(DepthStateNoWrite)
+        FuncResourceName(DepthStateDisable)
         FuncResourceName(DefaultBlendState)
         FuncResourceName(DefaultRasterState)
+        FuncResourceName(RasterStateFrontCull)
         // Varing states names
         FuncResourceName(DefaultVaringStates)
         // Primitive names
@@ -81,16 +94,6 @@ namespace Engine
 
         void DefineGeneralEffect(std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pSourceName, std::shared_ptr<std::string> pTechName, DrawingResourceTable& resTable);
         void DefineLinkedEffect(std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pVSName, std::shared_ptr<std::string> pPSName, DrawingResourceTable& resTable);
-
-        void DefinePipelineState(std::shared_ptr<std::string> pPipelineStateName,
-                                 std::shared_ptr<std::string> pVertexFormatName,
-                                 std::shared_ptr<std::string> pPrimitiveName,
-                                 std::shared_ptr<std::string> pEffectName,
-                                 std::shared_ptr<std::string> pBlendStateName,
-                                 std::shared_ptr<std::string> pRasterStateName,
-                                 std::shared_ptr<std::string> pDepthStencilStateName,
-                                 std::shared_ptr<std::string> pRenderTargetName,
-                                 DrawingResourceTable& resTable);
 
         void DefineVertexShaderFromBlob(std::shared_ptr<std::string> pShaderName, std::shared_ptr<std::string> pSourceName, DrawingResourceTable& resTable);
         void DefinePixelShaderFromBlob(std::shared_ptr<std::string> pShaderName, std::shared_ptr<std::string> pSourceName, DrawingResourceTable& resTable);
@@ -137,7 +140,6 @@ namespace Engine
         void BindRasterState(DrawingPass& pass, std::shared_ptr<std::string> pName);
         void BindPrimitive(DrawingPass& pass, std::shared_ptr<std::string> pName);
         void BindVaringStates(DrawingPass& pass, std::shared_ptr<std::string> pName);
-        void BindPipelineState(DrawingPass& pass, std::shared_ptr<std::string> pName);
 
         void AddConstantSlot(DrawingPass& pass, std::shared_ptr<std::string> pName);
         void AddTextureSlot(DrawingPass& pass, std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pParamName);
@@ -146,6 +148,8 @@ namespace Engine
         void BindDynamicInputsP(DrawingPass& pass);
         void BindStaticInputsPN(DrawingPass& pass);
         void BindDynamicInputsPN(DrawingPass& pass);
+        void BindStaticInputsT(DrawingPass& pass);
+        void BindDynamicInputsT(DrawingPass& pass);
         void BindStates(DrawingPass& pass);
         void BindOutput(DrawingPass& pass);
 
@@ -161,8 +165,11 @@ namespace Engine
         std::shared_ptr<DrawingPersistIndexBuffer> CreatePersistIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
 
         std::shared_ptr<DrawingPass> CreatePass(std::shared_ptr<std::string> pName);
+        std::shared_ptr<DrawingPass> CreatePostProcessPass(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEffectName);
 
     private:
+        void DefineShaderResource(DrawingResourceTable& resTable);
+
         template<typename T>
         void DoDefineShaderFromBlob(std::shared_ptr<std::string> pShaderName, std::shared_ptr<std::string> pSourceName, DrawingResourceTable& resTable);
 
