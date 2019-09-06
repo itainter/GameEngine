@@ -545,9 +545,15 @@ void DrawingDevice_D3D11::ClearDepthBuffer(std::shared_ptr<DrawingDepthBuffer> p
 
 void DrawingDevice_D3D11::SetVertexFormat(std::shared_ptr<DrawingVertexFormat> pFormat)
 {
-    assert(pFormat != nullptr);
-    auto pVertexFormatRaw = std::dynamic_pointer_cast<DrawingRawVertexFormat_D3D11>(pFormat->GetResource());
-    m_pDeviceContext->IASetInputLayout(pVertexFormatRaw->Get().get());
+    if (pFormat == nullptr)
+    {
+        m_pDeviceContext->IASetInputLayout(nullptr);
+    }
+    else
+    {
+        auto pVertexFormatRaw = std::dynamic_pointer_cast<DrawingRawVertexFormat_D3D11>(pFormat->GetResource());
+        m_pDeviceContext->IASetInputLayout(pVertexFormatRaw->Get().get());
+    }
 }
 
 void DrawingDevice_D3D11::SetVertexBuffer(std::shared_ptr<DrawingVertexBuffer> pVB[], uint32_t count)

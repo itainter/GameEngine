@@ -26,7 +26,6 @@ void ForwardRenderer::DefineResources(DrawingResourceTable& resTable)
     DefineExternalTexture(ShadowMapTexture(), resTable);
     DefineExternalTexture(ScreenSpaceShadowTexture(), resTable);
     DefineShadowMapSampler(resTable);
-    DefinePointSampler(resTable);
 }
 
 void ForwardRenderer::SetupBuffers(DrawingResourceTable& resTable)
@@ -46,6 +45,9 @@ void ForwardRenderer::BuildPass()
 
     auto& pForwardShadingPass = CreateForwardShadingPass();
     m_passTable[ForwardShadingPass()] = pForwardShadingPass;
+
+    auto& pDebugLayerPass = CreateDebugLayerPass();
+    m_passTable[DebugLayerPass()] = pDebugLayerPass;
 }
 
 void ForwardRenderer::UpdateShadowMapAsTarget(DrawingResourceTable& resTable)
@@ -102,26 +104,6 @@ void ForwardRenderer::ResetData()
     m_pTransientPositionBuffer->ResetData();
     m_pTransientNormalBuffer->ResetData();
     m_pTransientIndexBuffer->ResetData();
-}
-
-void ForwardRenderer::UpdatePrimitive(DrawingResourceTable& resTable)
-{
-    auto pEntry = resTable.GetResourceEntry(DefaultPrimitive());
-    if (pEntry == nullptr)
-        return;
-
-    auto pPrimitive = std::dynamic_pointer_cast<DrawingPrimitive>(pEntry->GetResource());
-    if (pPrimitive == nullptr)
-        return;
-
-    pPrimitive->SetPrimitiveType(ePrimitive_TriangleList);
-    pPrimitive->SetVertexCount(m_pTransientPositionBuffer->GetFlushOffset());
-    pPrimitive->SetIndexCount(m_pTransientIndexBuffer->GetFlushOffset());
-    pPrimitive->SetInstanceCount(0);
-
-    pPrimitive->SetVertexOffset(0);
-    pPrimitive->SetIndexOffset(0);
-    pPrimitive->SetInstanceOffset(0);
 }
 
 void ForwardRenderer::CreateShadowmapTextureTarget()
@@ -248,30 +230,6 @@ void ForwardRenderer::DefineShadowMapSampler(DrawingResourceTable& resTable)
     resTable.AddResourceEntry(ShadowMapSampler(), pDesc);
 }
 
-void ForwardRenderer::DefinePointSampler(DrawingResourceTable& resTable)
-{
-    auto pDesc = std::make_shared<DrawingSamplerStateDesc>();
-
-    pDesc->mSamplerMode = eSamplerMode_Compare;
-    pDesc->mAddressU = eAddressMode_Border;
-    pDesc->mAddressV = eAddressMode_Border;
-    pDesc->mAddressW = eAddressMode_Border;
-    pDesc->mBorderColor[0] = 0;
-    pDesc->mBorderColor[1] = 0;
-    pDesc->mBorderColor[2] = 0;
-    pDesc->mBorderColor[3] = 0;
-    pDesc->mComparisonFunc = eComparison_Always;
-    pDesc->mMinFilter = eFilterMode_Point;
-    pDesc->mMagFilter = eFilterMode_Point;
-    pDesc->mMipFilter = eFilterMode_Point;
-    pDesc->mMinLOD = 0;
-    pDesc->mMaxLOD = std::numeric_limits<float>::max();
-    pDesc->mMipLODBias = 0.0f;
-    pDesc->mMaxAnisotropy = 1;
-
-    resTable.AddResourceEntry(PointSampler(), pDesc);
-}
-
 void ForwardRenderer::BindCameraConstants(DrawingPass& pass)
 {
     AddConstantSlot(pass, CameraDirVector());
@@ -301,9 +259,9 @@ void ForwardRenderer::BindScreenSpaceShadowTexture(DrawingPass& pass)
     AddTextureSlot(pass, screenspaceshadow_tex_slot, strPtr("gScreenSpaceShadowTexture"));
     BindResource(pass, screenspaceshadow_tex_slot, ScreenSpaceShadowTexture());
 
-    auto point_sampler_slot = strPtr("PointSampler");
-    pass.AddResourceSlot(point_sampler_slot, ResourceSlot_Sampler, strPtr("gPointSampler"));
-    BindResource(pass, point_sampler_slot, PointSampler());
+    auto linear_sampler_slot = strPtr("LinearSampler");
+    pass.AddResourceSlot(linear_sampler_slot, ResourceSlot_Sampler, strPtr("gLinearSampler"));
+    BindResource(pass, linear_sampler_slot, LinearSampler());
 }
 
 std::shared_ptr<DrawingPass> ForwardRenderer::CreateDepthPass()

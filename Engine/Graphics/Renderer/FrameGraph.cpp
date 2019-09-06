@@ -11,12 +11,12 @@ FrameGraphNode::~FrameGraphNode()
 {
 }
 
-bool FrameGraphNode::RunInitializeFunc(DrawingResourceTable& resTable) const
+bool FrameGraphNode::RunInitializeFunc() const
 {
     if (m_initializeFunc)
-        return m_initializeFunc(resTable);
+        return m_initializeFunc();
 
-    return false;
+    return true;
 }
 
 bool FrameGraphNode::IfNeedExecuteFunc() const
@@ -27,12 +27,10 @@ bool FrameGraphNode::IfNeedExecuteFunc() const
     return true;
 }
 
-void FrameGraphNode::RunExecuteFunc(DrawingResourceTable& resTable) const
+void FrameGraphNode::RunExecuteFunc() const
 {
     if (m_executeFunc)
-    {
-        m_executeFunc(resTable);
-    }
+        m_executeFunc();
 }
 
 void FrameGraphNode::RunClearColorFunc() const
@@ -65,7 +63,7 @@ void FrameGraphNode::RunClearDepthStencilFunc() const
     m_pPass->ClearDepthBuffer(depth, stencil, flag);
 }
 
-void FrameGraphNode::SetInitializeFunc(std::function<bool (DrawingResourceTable&)> func)
+void FrameGraphNode::SetInitializeFunc(std::function<bool ()> func)
 {
     m_initializeFunc = std::move(func);
 }
@@ -75,7 +73,7 @@ void FrameGraphNode::SetNeedExecuteFunc(std::function<bool ()> func)
     m_needExecuteFunc = std::move(func);
 }
 
-void FrameGraphNode::SetExecuteFunc(std::function<void (DrawingResourceTable&)> func)
+void FrameGraphNode::SetExecuteFunc(std::function<void ()> func)
 {
     m_executeFunc = std::move(func);
 }
@@ -137,18 +135,18 @@ FrameGraphNode& FrameGraph::AddPass(std::shared_ptr<DrawingPass> pPass, FrameGra
     }
 }
 
-bool FrameGraph::InitializePasses(DrawingResourceTable& resTable)
+bool FrameGraph::InitializePasses()
 {
     for (auto& pNode : m_nodes)
     {
-        if (!pNode->RunInitializeFunc(resTable))
+        if (!pNode->RunInitializeFunc())
             return false;
     }
 
     return true;
 }
 
-void FrameGraph::EnqueuePasses(DrawingResourceTable& resTable)
+void FrameGraph::EnqueuePasses()
 {
     for (auto& pNode : m_nodes)
     {
@@ -161,7 +159,7 @@ void FrameGraph::EnqueuePasses(DrawingResourceTable& resTable)
         if (!pNode->IfNeedExecuteFunc())
             continue;
 
-        pNode->RunExecuteFunc(resTable);
+        pNode->RunExecuteFunc();
     }
 }
 

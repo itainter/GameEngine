@@ -16,7 +16,7 @@
 using namespace Engine;
 
 DrawingSystem::DrawingSystem() : m_window(nullptr),
-    m_bDebug(false),
+    m_bDebug(true),
     m_deviceSize(0),
     m_deviceType(gpGlobal->GetConfiguration<GraphicsConfiguration>().GetDeviceType()),
     m_pDevice(nullptr),
@@ -45,8 +45,6 @@ void DrawingSystem::Tick(float elapsedTime)
 {
     for (auto& pCamera : m_pCameraList)
     {
-        m_pContext->UpdateContext(*m_pResourceTable);
-
         auto pFrameGraphComponent = pCamera->GetComponent<FrameGraphComponent>();
         if (pFrameGraphComponent == nullptr)
             continue;
@@ -55,7 +53,7 @@ void DrawingSystem::Tick(float elapsedTime)
         if (pFrameGraph == nullptr)
             continue;
 
-        pFrameGraph->EnqueuePasses(*m_pResourceTable);
+        pFrameGraph->EnqueuePasses();
     }
 
     m_pDevice->Present(m_pContext->GetSwapChain(), 0);
@@ -204,7 +202,6 @@ bool DrawingSystem::PostConfiguration()
 
     m_pContext->SetSwapChain(pSwapChain);
     m_pContext->SetDepthBuffer(pDepthBuffer);
-    m_pContext->SetViewport(Box2(float2(0, 0), float2((float)gpGlobal->GetConfiguration<AppConfiguration>().GetWidth(), (float)gpGlobal->GetConfiguration<AppConfiguration>().GetHeight())));
 
     m_pContext->UpdateTargets(*m_pResourceTable);
 
@@ -264,39 +261,33 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
     assert(pDepthPass != nullptr);
     auto& depthPassNode = pFrameGraph->AddPass(pDepthPass, GraphicsBit);
 
-    depthPassNode.SetInitializeFunc([&](DrawingResourceTable&) -> bool {
-        return true;
-    });
-
     depthPassNode.SetClearDepthStencilFunc([&](float& depth, uint8_t& stencil, uint32_t& flag) -> void {
         depth = 1.0f;
         stencil = 0;
         flag = eClear_Depth;
     });
 
-    depthPassNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pRenderer, pDepthPass](DrawingResourceTable&) -> void {
+    depthPassNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pRenderer, pDepthPass](void) -> void {
         float4x4 view;
         float4x4 proj;
         GetProjectionMatrix(pCameraComponent, proj);
         GetViewMatrix(pTransformComponent, view);
+
+        m_pContext->SetViewport(Box2(float2(0, 0), float2((float)gpGlobal->GetConfiguration<AppConfiguration>().GetWidth(), (float)gpGlobal->GetConfiguration<AppConfiguration>().GetHeight())));
         m_pContext->UpdateCamera(*m_pResourceTable, proj, view);
+        m_pContext->UpdateContext(*m_pResourceTable);
 
         RenderQueueItemListType items;
         GetVisableRenderable(items);
 
-        pRenderer->Begin();
         pRenderer->AddRenderables(items);
-        pRenderer->Flush(*m_pResourceTable, pDepthPass);
+        pRenderer->Render(*m_pResourceTable, pDepthPass);
     });
 
     // Shadowmap pass.
     auto pShadowPass = pRenderer->GetPass(ForwardRenderer::ShadowCasterPass());
     assert(pShadowPass != nullptr);
     auto& shadowPassNode = pFrameGraph->AddPass(pShadowPass, GraphicsBit);
-
-    shadowPassNode.SetInitializeFunc([&](DrawingResourceTable&) -> bool {
-        return true;
-    });
 
     shadowPassNode.SetClearColorFunc(0, [&](float4& color) -> void {
         color.x = 1.0f;
@@ -308,11 +299,14 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         flag = eClear_Depth;
     });
 
-    shadowPassNode.SetExecuteFunc([&, pLightTransformComponent, pRenderer, pShadowPass](DrawingResourceTable&) -> void {
+    shadowPassNode.SetExecuteFunc([&, pLightTransformComponent, pRenderer, pShadowPass](void) -> void {
         float4x4 lightView;
         float4x4 lightProj;
         GetLightViewProjectionMatrix(pLightTransformComponent, lightView, lightProj);
+
+        m_pContext->SetViewport(Box2(float2(0, 0), float2((float)gpGlobal->GetConfiguration<AppConfiguration>().GetWidth(), (float)gpGlobal->GetConfiguration<AppConfiguration>().GetHeight())));
         m_pContext->UpdateCamera(*m_pResourceTable, lightProj, lightView);
+        m_pContext->UpdateContext(*m_pResourceTable);
 
         RenderQueueItemListType items;
         GetVisableRenderable(items);
@@ -322,9 +316,8 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
 
         pForwardRenderer->UpdateShadowMapAsTarget(*m_pResourceTable);
 
-        pRenderer->Begin();
         pRenderer->AddRenderables(items);
-        pRenderer->Flush(*m_pResourceTable, pShadowPass);
+        pRenderer->Render(*m_pResourceTable, pShadowPass);
     });
 
     // Screen space shadow pass.
@@ -332,20 +325,19 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
     assert(pSSSPass != nullptr);
     auto& sssNode = pFrameGraph->AddPass(pSSSPass, GraphicsBit);
 
-    sssNode.SetInitializeFunc([&](DrawingResourceTable&) -> bool {
-        return true;
-    });
-
     sssNode.SetClearColorFunc(0, [&, pCameraComponent](float4& color) -> void {
         color = float4(1.0f, 1.0f, 1.0f, 1.0f);
     });
 
-    sssNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pLightTransformComponent, pRenderer, pSSSPass](DrawingResourceTable&) -> void {
+    sssNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pLightTransformComponent, pRenderer, pSSSPass](void) -> void {
         float4x4 view;
         float4x4 proj;
         GetProjectionMatrix(pCameraComponent, proj);
         GetViewMatrix(pTransformComponent, view);
+
+        m_pContext->SetViewport(Box2(float2(0, 0), float2((float)gpGlobal->GetConfiguration<AppConfiguration>().GetWidth(), (float)gpGlobal->GetConfiguration<AppConfiguration>().GetHeight())));
         m_pContext->UpdateCamera(*m_pResourceTable, proj, view);
+        m_pContext->UpdateContext(*m_pResourceTable);
 
         float4x4 lightView;
         float4x4 lightProj;
@@ -364,9 +356,8 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         pForwardRenderer->UpdateShadowMapAsTexture(*m_pResourceTable);
         pForwardRenderer->UpdateScreenSpaceShadowAsTarget(*m_pResourceTable);
 
-        pRenderer->Begin();
         pRenderer->AddRenderables(items);
-        pRenderer->Flush(*m_pResourceTable, pSSSPass);
+        pRenderer->Render(*m_pResourceTable, pSSSPass);
     });
 
     // Forward shading pass.
@@ -374,21 +365,21 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
     assert(pForwardShadingPass != nullptr);
     auto& forwardShadingNode = pFrameGraph->AddPass(pForwardShadingPass, GraphicsBit);
 
-    forwardShadingNode.SetInitializeFunc([&](DrawingResourceTable&) -> bool {
-        return true;
-    });
-
     forwardShadingNode.SetClearColorFunc(0, [&, pCameraComponent](float4& color) -> void {
         color = pCameraComponent->GetBackground();
     });
 
-    forwardShadingNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pLightTransformComponent, pRenderer, pForwardShadingPass](DrawingResourceTable&) -> void {
+    forwardShadingNode.SetExecuteFunc([&, pCameraComponent, pTransformComponent, pLightTransformComponent, pRenderer, pForwardShadingPass](void) -> void {
         float4x4 view;
         float4x4 proj;
         float3 dir;
         GetProjectionMatrix(pCameraComponent, proj);
         GetViewMatrix(pTransformComponent, view, dir);
+
+        m_pContext->SetViewport(Box2(float2(0, 0), float2((float)gpGlobal->GetConfiguration<AppConfiguration>().GetWidth(), (float)gpGlobal->GetConfiguration<AppConfiguration>().GetHeight())));
         m_pContext->UpdateCamera(*m_pResourceTable, proj, view);
+        m_pContext->UpdateContext(*m_pResourceTable);
+
         UpdateCameraDir(dir);
 
         float4x4 lightView;
@@ -405,12 +396,39 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
 
         pForwardRenderer->UpdateScreenSpaceShadowAsTexture(*m_pResourceTable);
 
-        pRenderer->Begin();
         pRenderer->AddRenderables(items);
-        pRenderer->Flush(*m_pResourceTable, pForwardShadingPass);
+        pRenderer->Render(*m_pResourceTable, pForwardShadingPass);
     });
 
     // Debug layer pass.
+    auto pDebugLayerPass = pRenderer->GetPass(ForwardRenderer::DebugLayerPass());
+    assert(pDebugLayerPass != nullptr);
+    auto& debugLayerNode = pFrameGraph->AddPass(pDebugLayerPass, GraphicsBit);
+
+    debugLayerNode.SetClearColorFunc(0, [&](float4& color) -> void {
+        color = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    });
+
+    debugLayerNode.SetNeedExecuteFunc([&](void) -> bool {
+        return m_bDebug;
+    });
+
+    debugLayerNode.SetExecuteFunc([&, pRenderer, pDebugLayerPass](void) -> void {
+        m_pContext->SetViewport(Box2(float2(0, 0), float2((float)gpGlobal->GetConfiguration<DebugConfiguration>().GetWidth(), (float)gpGlobal->GetConfiguration<DebugConfiguration>().GetHeight())));
+        m_pContext->UpdateContext(*m_pResourceTable);
+
+        auto pForwardRenderer = std::static_pointer_cast<ForwardRenderer>(pRenderer);
+        assert(pForwardRenderer != nullptr);
+
+        pForwardRenderer->UpdateRectTexture(*m_pResourceTable, ForwardRenderer::ScreenSpaceShadowTexture());
+        pRenderer->RenderRect(*m_pResourceTable, pDebugLayerPass);
+        pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(0, 0));
+
+        pForwardRenderer->UpdateRectTexture(*m_pResourceTable, ForwardRenderer::ShadowMapTexture());
+        pRenderer->RenderRect(*m_pResourceTable, pDebugLayerPass);
+        pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(gpGlobal->GetConfiguration<DebugConfiguration>().GetWidth() + 5, 0));
+    });
+
     pFrameGraph->FetchResources(*m_pResourceTable);
 
     return true;

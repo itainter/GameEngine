@@ -3,6 +3,7 @@
 #include <functional>
 
 #include "ILogSystem.h"
+#include "IDrawingSystem.h"
 #include "IInputSystem.h"
 #include "Global.h"
 #include "BaseApplication.h"
@@ -66,9 +67,12 @@ namespace Engine
                             gpGlobal->GetFPSCounter().GetFPSAvgSec() << ", " <<
                             "Cur FPS: " <<
                             gpGlobal->GetFPSCounter().GetFPSCurrent() << std::endl;
+                break;
             case 'g':
-                
-            break;
+                gpGlobal->GetDrawingSystem()->FlipDebugState();
+                break;
+            default:
+                break;
         }
     };
 

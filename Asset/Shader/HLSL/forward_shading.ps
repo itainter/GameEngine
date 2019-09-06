@@ -2,10 +2,10 @@
 
 Texture2D<float> gScreenSpaceShadowTexture : register(t0);
 
-SamplerState gPointSampler : PointSampler
+SamplerState gLinearSampler : LinearSampler
 {
     Texture = <gScreenSpaceShadowTexture>;
-    Filter = MIN_MAG_MIP_POINT;
+    Filter = MIN_MAG_MIP_LINEAR;
     AddressU = Border;
     AddressV = Border;
 };
@@ -25,7 +25,7 @@ float4 ForwardShading_PS(ForwardShading_VertexAttr input) : SV_Target
     float4 color = float4(1.0f, 1.0f, 1.0f, 1.0f);
     float2 coord = 0.5f * float2(input.pos.x ,-input.pos.y) / input.pos.w + 0.5f;
 
-    float4 sssVal = gScreenSpaceShadowTexture.Sample(gPointSampler, coord);
+    float4 sssVal = gScreenSpaceShadowTexture.Sample(gLinearSampler, coord);
 
     float4 lightColor = float4(0.98039f, 0.94118f, 0.90196f, 1.0f);
     float matA = 0.3f;

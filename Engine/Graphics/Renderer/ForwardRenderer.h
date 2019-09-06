@@ -26,7 +26,7 @@ namespace Engine
 
         void FlushData() override;
         void ResetData() override;
-        void UpdatePrimitive(DrawingResourceTable& resTable) override;
+
         void CreateShadowmapTextureTarget();
         void CreateScreenSpaceShadowTextureTarget();
 
@@ -37,7 +37,6 @@ namespace Engine
         void DefineLightProjMatrixConstantBuffer(DrawingResourceTable& resTable);
         void DefineShaderResource(DrawingResourceTable& resTable);
         void DefineShadowMapSampler(DrawingResourceTable& resTable);
-        void DefinePointSampler(DrawingResourceTable& resTable);
 
         void BindCameraConstants(DrawingPass& pass);
         void BindLightConstants(DrawingPass& pass);
@@ -73,7 +72,6 @@ namespace Engine
         FuncResourceName(ScreenSpaceShadowTexture)
         // Define texture sampler names
         FuncResourceName(ShadowMapSampler)
-        FuncResourceName(PointSampler)
 
     private:
         std::shared_ptr<DrawingPass> CreateDepthPass();

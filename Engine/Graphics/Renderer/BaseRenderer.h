@@ -21,11 +21,12 @@ namespace Engine
         virtual void DefineResources(DrawingResourceTable& resTable) override = 0;
         virtual void SetupBuffers(DrawingResourceTable& resTable) override = 0;
 
-        void Begin() override;
         void AddRenderables(RenderQueueItemListType renderables) override;
 
         void Clear(DrawingResourceTable& resTable, std::shared_ptr<DrawingPass> pPass) override;
-        void Flush(DrawingResourceTable& resTable, std::shared_ptr<DrawingPass> pPass) override;
+        void Render(DrawingResourceTable& resTable, std::shared_ptr<DrawingPass> pPass) override;
+        void RenderRect(DrawingResourceTable& resTable, std::shared_ptr<DrawingPass> pPass) override;
+        void CopyRect(DrawingResourceTable& resTable, std::shared_ptr<std::string> pSrcName, std::shared_ptr<std::string> pDstName, const int2& dstOrigin) override;
 
         void AttachDevice(const std::shared_ptr<DrawingDevice>& pDevice, const std::shared_ptr<DrawingContext>& pContext) override;
         void AttachMesh(const IMesh* pMesh) override;
@@ -34,24 +35,32 @@ namespace Engine
         virtual void BuildPass() = 0;
         std::shared_ptr<DrawingPass> GetPass(std::shared_ptr<std::string> pName) override;
 
+        void UpdateRectTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+
     private:
         virtual void BeginDrawPass() = 0;
         virtual void EndDrawPass() = 0;
 
         virtual void FlushData() = 0;
         virtual void ResetData() = 0;
-        virtual void UpdatePrimitive(DrawingResourceTable& resTable) = 0;
+
+        void UpdatePrimitive(DrawingResourceTable& resTable);
+        void UpdateRectPrimitive(DrawingResourceTable& resTable);
 
         float4x4 UpdateWorldMatrix(const TransformComponent* pTransform);
 
     public:
         // Define shader resource names
-        FuncResourceName(PostProcessVertexShader)
-        FuncResourceName(PostProcessSSAOPixelShader)
+        FuncResourceName(RectVertexShader)
+        FuncResourceName(RectPixelShader)
+        FuncResourceName(SSAOPixelShader)
         // Define effect resource names
-        FuncResourceName(PostProcessSSAOEffect)
+        FuncResourceName(RectEffect)
+        FuncResourceName(SSAOEffect)
         // Define pass names
-        FuncResourceName(PostProcessSSAOPass)
+        FuncResourceName(RectPass)
+        FuncResourceName(SSAOPass)
+        FuncResourceName(DebugLayerPass)
 
         // Vertex format names
         FuncResourceName(VertexFormatP)
@@ -77,6 +86,7 @@ namespace Engine
         FuncResourceName(ScreenTarget)
         FuncResourceName(ScreenDepthBuffer)
         FuncResourceName(SSAOTarget)
+        FuncResourceName(DebugLayerTarget)
         // Render state names
         FuncResourceName(DefaultDepthState)
         FuncResourceName(DepthStateNoWrite)
@@ -86,8 +96,13 @@ namespace Engine
         FuncResourceName(RasterStateFrontCull)
         // Varing states names
         FuncResourceName(DefaultVaringStates)
+        // Define texture names
+        FuncResourceName(RectTexture)
+        // Define texture sampler names
+        FuncResourceName(LinearSampler)
         // Primitive names
         FuncResourceName(DefaultPrimitive)
+        FuncResourceName(RectPrimitive)
 
     protected:
         void DefineDefaultResources(DrawingResourceTable& resTable);
@@ -116,6 +131,7 @@ namespace Engine
         void DefineDefaultBlendState(DrawingResourceTable& resTable);
         void DefineDefaultRasterState(DrawingResourceTable& resTable);
 
+        void DefineTarget(std::shared_ptr<std::string> pName, uint32_t width, uint32_t height, DrawingResourceTable& resTable);
         void DefineTarget(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable);
         void DefineDepthBuffer(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable);
 
@@ -127,6 +143,7 @@ namespace Engine
         void DefineDynamicTextureWithInit(std::shared_ptr<std::string> pName, EDrawingFormatType format, uint32_t elementCount, void* pData, uint32_t size, DrawingResourceTable& resTable);
         void DefineVaringStates(DrawingResourceTable& resTable);
         void DefinePrimitive(std::shared_ptr<std::string> pName, DrawingResourceTable& resTable);
+        void DefineLinearSampler(DrawingResourceTable& resTable);
 
         void BindResource(DrawingPass& pass, std::shared_ptr<std::string> slotName, std::shared_ptr<std::string> resName);
         void BindEffect(DrawingPass& pass, std::shared_ptr<std::string> pName);
@@ -154,6 +171,7 @@ namespace Engine
         void BindOutput(DrawingPass& pass);
 
         void BindConstants(DrawingPass& pass);
+        void BindRectTexture(DrawingPass& pass);
 
         std::shared_ptr<DrawingTransientTexture> CreateTransientTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
         std::shared_ptr<DrawingPersistTexture> CreatePersistTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
@@ -165,7 +183,8 @@ namespace Engine
         std::shared_ptr<DrawingPersistIndexBuffer> CreatePersistIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
 
         std::shared_ptr<DrawingPass> CreatePass(std::shared_ptr<std::string> pName);
-        std::shared_ptr<DrawingPass> CreatePostProcessPass(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEffectName);
+        std::shared_ptr<DrawingPass> CreateRectPass(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pTarget);
+        std::shared_ptr<DrawingPass> CreateDebugLayerPass();
 
     private:
         void DefineShaderResource(DrawingResourceTable& resTable);
