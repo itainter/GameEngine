@@ -26,6 +26,48 @@ std::shared_ptr<DrawingPass> BaseRenderer::GetPass(std::shared_ptr<std::string> 
     return iter->second;
 }
 
+void BaseRenderer::UpdateShadowMapAsTarget(DrawingResourceTable& resTable)
+{
+    auto pEntry = resTable.GetResourceEntry(ShadowMapTarget());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(m_pShadowMap->GetTarget());
+}
+
+void BaseRenderer::UpdateShadowMapAsTexture(DrawingResourceTable& resTable)
+{
+    auto pEntry = resTable.GetResourceEntry(ShadowMapTexture());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(m_pShadowMap->GetTexture());
+}
+
+void BaseRenderer::UpdateScreenSpaceShadowAsTarget(DrawingResourceTable& resTable)
+{
+    auto pEntry = resTable.GetResourceEntry(ScreenSpaceShadowTarget());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(m_pScreenSpaceShadow->GetTarget());
+}
+
+void BaseRenderer::UpdateScreenSpaceShadowAsTexture(DrawingResourceTable& resTable)
+{
+    auto pEntry = resTable.GetResourceEntry(ScreenSpaceShadowTexture());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(m_pScreenSpaceShadow->GetTexture());
+}
+
+void BaseRenderer::UpdateSSAOTextureAsTarget(DrawingResourceTable& resTable)
+{
+    auto pEntry = resTable.GetResourceEntry(SSAOTarget());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(m_pSSAOTexture->GetTarget());
+}
+
+void BaseRenderer::UpdateSSAOTextureAsTexture(DrawingResourceTable& resTable)
+{
+    auto pEntry = resTable.GetResourceEntry(SSAOTexture());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(m_pSSAOTexture->GetTexture());
+}
+
 void BaseRenderer::UpdateRectTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
 {
     auto pEntry = resTable.GetResourceEntry(RectTexture());
@@ -119,8 +161,143 @@ void BaseRenderer::AttachMesh(const IMesh* pMesh)
     m_pTransientIndexBuffer->FillData(pMesh->GetIndexData().get(), indexCount);
 }
 
+std::shared_ptr<DrawingPass> BaseRenderer::CreatePass(std::shared_ptr<std::string> pName)
+{
+    return std::make_shared<DrawingPass>(pName, m_pDevice);
+}
+
+std::shared_ptr<DrawingPass> BaseRenderer::CreateShadowCasterPass()
+{
+    auto pPass = CreatePass(ShadowCasterPass());
+
+    BindEffect(*pPass, BasicEffect());
+    BindDynamicInputsP(*pPass);
+    BindDepthState(*pPass, DepthStateDisable());
+    BindBlendState(*pPass, ShadowCasterBlendState());
+    BindRasterState(*pPass, DefaultRasterState());
+    BindTarget(*pPass, 0, ShadowMapTarget());
+    BindPrimitive(*pPass, DefaultPrimitive());
+    BindVaringStates(*pPass, DefaultVaringStates());
+
+    BindConstants(*pPass);
+
+    return pPass;
+}
+
+std::shared_ptr<DrawingPass> BaseRenderer::CreateScreenSpaceShadowPass()
+{
+    auto pPass = CreatePass(ScreenSpaceShadowPass());
+
+    BindEffect(*pPass, ScreenSpaceShadowEffect());
+    BindDynamicInputsPN(*pPass);
+    BindDepthState(*pPass, DepthStateNoWrite());
+    BindBlendState(*pPass, DefaultBlendState());
+    BindRasterState(*pPass, DefaultRasterState());
+    BindTarget(*pPass, 0, ScreenSpaceShadowTarget());
+    BindDepthBuffer(*pPass, ScreenDepthBuffer());
+    BindPrimitive(*pPass, DefaultPrimitive());
+    BindVaringStates(*pPass, DefaultVaringStates());
+    BindShadowMapTexture(*pPass);
+
+    BindConstants(*pPass);
+    BindLightConstants(*pPass);
+
+    return pPass;
+}
+
+std::shared_ptr<DrawingPass> BaseRenderer::CreateSSAOPass()
+{
+    auto pPass = CreatePass(SSAOPass());
+
+    BindEffect(*pPass, SSAOEffect());
+    BindStates(*pPass);
+    BindTarget(*pPass, 0, SSAOTarget());
+    BindPrimitive(*pPass, RectPrimitive());
+    BindVaringStates(*pPass, DefaultVaringStates());
+
+    return pPass;
+}
+
+std::shared_ptr<DrawingPass> BaseRenderer::CreateRectPass(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pTarget)
+{
+    auto pPass = CreatePass(pName);
+
+    BindEffect(*pPass, pEffectName);
+    BindStates(*pPass);
+    BindTarget(*pPass, 0, pTarget);
+    BindPrimitive(*pPass, RectPrimitive());
+    BindVaringStates(*pPass, DefaultVaringStates());
+    BindRectTexture(*pPass);
+
+    return pPass;
+}
+
+ std::shared_ptr<DrawingPass> BaseRenderer::CreateDebugLayerPass()
+ {
+    auto pPass = CreateRectPass(DebugLayerPass(), RectEffect(), DebugLayerTarget());
+    return pPass;
+ }
+
+std::shared_ptr<DrawingTransientTexture> BaseRenderer::CreateTransientTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
+{
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingTexture>(pEntry->GetResource());
+    return std::make_shared<DrawingTransientTexture>(pTex);
+}
+
+std::shared_ptr<DrawingPersistTexture> BaseRenderer::CreatePersistTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
+{
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingTexture>(pEntry->GetResource());
+    return std::make_shared<DrawingPersistTexture>(pTex);
+}
+
+std::shared_ptr<DrawingTransientVertexBuffer> BaseRenderer::CreateTransientVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
+{
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingVertexBuffer>(pEntry->GetResource());
+    return std::make_shared<DrawingTransientVertexBuffer>(pTex);
+}
+
+std::shared_ptr<DrawingPersistVertexBuffer> BaseRenderer::CreatePersistVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
+{
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingVertexBuffer>(pEntry->GetResource());
+    return std::make_shared<DrawingPersistVertexBuffer>(pTex);
+}
+
+std::shared_ptr<DrawingTransientIndexBuffer> BaseRenderer::CreateTransientIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
+{
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingIndexBuffer>(pEntry->GetResource());
+    return std::make_shared<DrawingTransientIndexBuffer>(pTex);
+}
+
+std::shared_ptr<DrawingPersistIndexBuffer> BaseRenderer::CreatePersistIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
+{
+    auto pEntry = resTable.GetResourceEntry(pName);
+    assert(pEntry != nullptr);
+
+    auto pTex = std::dynamic_pointer_cast<DrawingIndexBuffer>(pEntry->GetResource());
+    return std::make_shared<DrawingPersistIndexBuffer>(pTex);
+}
+
 void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
 {
+    CreateShadowmapTextureTarget();
+    CreateScreenSpaceShadowTextureTarget();
+    CreateSSAOTextureTarget();
+
     DefineVertexFormatP(resTable);
     DefineVertexFormatPN(resTable);
 
@@ -137,13 +314,19 @@ void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
 
     DefineExternalTarget(ShadowMapTarget(), resTable);
     DefineExternalTarget(ScreenSpaceShadowTarget(), resTable);
+    DefineExternalTarget(SSAOTarget(), resTable);
     DefineExternalTarget(ScreenTarget(), resTable);
     DefineExternalDepthBuffer(ScreenDepthBuffer(), resTable);
 
     DefineDefaultDepthState(resTable);
-    
     DefineDefaultBlendState(resTable);
     DefineDefaultRasterState(resTable);
+    DefineShadowCasterBlendState(resTable);
+
+    DefineExternalTexture(ShadowMapTexture(), resTable);
+    DefineExternalTexture(ScreenSpaceShadowTexture(), resTable);
+    DefineExternalTexture(SSAOTexture(), resTable);
+    DefineShadowMapSampler(resTable);
 
     DefineExternalTexture(RectTexture(), resTable);
     DefineLinearSampler(resTable);
@@ -345,6 +528,54 @@ void BaseRenderer::DefineProjectionMatrixConstantBuffer(DrawingResourceTable& re
     resTable.AddResourceEntry(DefaultProjectionMatrix(), pDesc);
 }
 
+void BaseRenderer::DefineCameraDirVectorConstantBuffer(DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingConstantBufferDesc>();
+
+    DrawingConstantBufferDesc::ParamDesc param;
+    param.mpName = strPtr("gCameraDir");
+    param.mType = EParam_Float3;
+    pDesc->mParameters.emplace_back(param);
+
+    resTable.AddResourceEntry(CameraDirVector(), pDesc);
+}
+
+void BaseRenderer::DefineLightDirVectorConstantBuffer(DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingConstantBufferDesc>();
+
+    DrawingConstantBufferDesc::ParamDesc param;
+    param.mpName = strPtr("gLightDir");
+    param.mType = EParam_Float3;
+    pDesc->mParameters.emplace_back(param);
+
+    resTable.AddResourceEntry(LightDirVector(), pDesc);
+}
+
+void BaseRenderer::DefineLightViewMatrixConstantBuffer(DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingConstantBufferDesc>();
+
+    DrawingConstantBufferDesc::ParamDesc param;
+    param.mpName = strPtr("gLightViewMatrix");
+    param.mType = EParam_Float4x4;
+    pDesc->mParameters.emplace_back(param);
+
+    resTable.AddResourceEntry(LightViewMatrix(), pDesc);
+}
+
+void BaseRenderer::DefineLightProjMatrixConstantBuffer(DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingConstantBufferDesc>();
+
+    DrawingConstantBufferDesc::ParamDesc param;
+    param.mpName = strPtr("gLightProjMatrix");
+    param.mType = EParam_Float4x4;
+    pDesc->mParameters.emplace_back(param);
+
+    resTable.AddResourceEntry(LightProjMatrix(), pDesc);
+}
+
 void BaseRenderer::DefineDefaultDepthState(DrawingResourceTable& resTable)
 {
     auto pDesc1 = std::make_shared<DrawingDepthStateDesc>();
@@ -501,7 +732,7 @@ void BaseRenderer::DefineDepthBuffer(std::shared_ptr<std::string> pName, Drawing
 
     pDesc->mWidth = gpGlobal->GetConfiguration<AppConfiguration>().GetWidth();
     pDesc->mHeight = gpGlobal->GetConfiguration<AppConfiguration>().GetHeight();
-    pDesc->mFormat = eFormat_D24S8;
+    pDesc->mFormat = eFormat_R24G8_TYPELESS;
 
     resTable.AddResourceEntry(pName, pDesc);
 }
@@ -749,6 +980,40 @@ void BaseRenderer::BindConstants(DrawingPass& pass)
     AddConstantSlot(pass, DefaultProjectionMatrix());
 }
 
+void BaseRenderer::BindCameraConstants(DrawingPass& pass)
+{
+    AddConstantSlot(pass, CameraDirVector());
+}
+
+void BaseRenderer::BindLightConstants(DrawingPass& pass)
+{
+    AddConstantSlot(pass, LightDirVector());
+    AddConstantSlot(pass, LightViewMatrix());
+    AddConstantSlot(pass, LightProjMatrix());
+}
+
+void BaseRenderer::BindShadowMapTexture(DrawingPass& pass)
+{
+    auto shadowmap_tex_slot = strPtr("ShadowMapTex");
+    AddTextureSlot(pass, shadowmap_tex_slot, strPtr("gShadowMapTexture"));
+    BindResource(pass, shadowmap_tex_slot, ShadowMapTexture());
+
+    auto shadowmap_sampler_slot = strPtr("ShadowMapSampler");
+    pass.AddResourceSlot(shadowmap_sampler_slot, ResourceSlot_Sampler, strPtr("gShadowMapSampler"));
+    BindResource(pass, shadowmap_sampler_slot, ShadowMapSampler());
+}
+
+void BaseRenderer::BindScreenSpaceShadowTexture(DrawingPass& pass)
+{
+    auto screenspaceshadow_tex_slot = strPtr("ScreenSpaceShadowTex");
+    AddTextureSlot(pass, screenspaceshadow_tex_slot, strPtr("gScreenSpaceShadowTexture"));
+    BindResource(pass, screenspaceshadow_tex_slot, ScreenSpaceShadowTexture());
+
+    auto linear_sampler_slot = strPtr("LinearSampler");
+    pass.AddResourceSlot(linear_sampler_slot, ResourceSlot_Sampler, strPtr("gLinearSampler"));
+    BindResource(pass, linear_sampler_slot, LinearSampler());
+}
+
 void BaseRenderer::BindRectTexture(DrawingPass& pass)
 {
     auto rect_tex_slot = strPtr("RectTex");
@@ -760,93 +1025,89 @@ void BaseRenderer::BindRectTexture(DrawingPass& pass)
     BindResource(pass, linear_sampler_slot, LinearSampler());
 }
 
-std::shared_ptr<DrawingTransientTexture> BaseRenderer::CreateTransientTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
-{
-    auto pEntry = resTable.GetResourceEntry(pName);
-    assert(pEntry != nullptr);
-
-    auto pTex = std::dynamic_pointer_cast<DrawingTexture>(pEntry->GetResource());
-    return std::make_shared<DrawingTransientTexture>(pTex);
-}
-
-std::shared_ptr<DrawingPersistTexture> BaseRenderer::CreatePersistTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
-{
-    auto pEntry = resTable.GetResourceEntry(pName);
-    assert(pEntry != nullptr);
-
-    auto pTex = std::dynamic_pointer_cast<DrawingTexture>(pEntry->GetResource());
-    return std::make_shared<DrawingPersistTexture>(pTex);
-}
-
-std::shared_ptr<DrawingTransientVertexBuffer> BaseRenderer::CreateTransientVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
-{
-    auto pEntry = resTable.GetResourceEntry(pName);
-    assert(pEntry != nullptr);
-
-    auto pTex = std::dynamic_pointer_cast<DrawingVertexBuffer>(pEntry->GetResource());
-    return std::make_shared<DrawingTransientVertexBuffer>(pTex);
-}
-
-std::shared_ptr<DrawingPersistVertexBuffer> BaseRenderer::CreatePersistVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
-{
-    auto pEntry = resTable.GetResourceEntry(pName);
-    assert(pEntry != nullptr);
-
-    auto pTex = std::dynamic_pointer_cast<DrawingVertexBuffer>(pEntry->GetResource());
-    return std::make_shared<DrawingPersistVertexBuffer>(pTex);
-}
-
-std::shared_ptr<DrawingTransientIndexBuffer> BaseRenderer::CreateTransientIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
-{
-    auto pEntry = resTable.GetResourceEntry(pName);
-    assert(pEntry != nullptr);
-
-    auto pTex = std::dynamic_pointer_cast<DrawingIndexBuffer>(pEntry->GetResource());
-    return std::make_shared<DrawingTransientIndexBuffer>(pTex);
-}
-
-std::shared_ptr<DrawingPersistIndexBuffer> BaseRenderer::CreatePersistIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName)
-{
-    auto pEntry = resTable.GetResourceEntry(pName);
-    assert(pEntry != nullptr);
-
-    auto pTex = std::dynamic_pointer_cast<DrawingIndexBuffer>(pEntry->GetResource());
-    return std::make_shared<DrawingPersistIndexBuffer>(pTex);
-}
-
-std::shared_ptr<DrawingPass> BaseRenderer::CreatePass(std::shared_ptr<std::string> pName)
-{
-    return std::make_shared<DrawingPass>(pName, m_pDevice);
-}
-
-std::shared_ptr<DrawingPass> BaseRenderer::CreateRectPass(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pTarget)
-{
-    auto pPass = CreatePass(pName);
-
-    BindEffect(*pPass, pEffectName);
-    BindStates(*pPass);
-    BindTarget(*pPass, 0, pTarget);
-    BindPrimitive(*pPass, RectPrimitive());
-    BindVaringStates(*pPass, DefaultVaringStates());
-    BindRectTexture(*pPass);
-
-    return pPass;
-}
-
- std::shared_ptr<DrawingPass> BaseRenderer::CreateDebugLayerPass()
- {
-    auto pPass = CreateRectPass(DebugLayerPass(), RectEffect(), DebugLayerTarget());
-    return pPass;
- }
-
 void BaseRenderer::DefineShaderResource(DrawingResourceTable& resTable)
 {
-    DefineVertexShader(RectVertexShader(), strPtr("Asset\\Shader\\HLSL\\rect.vs"), strPtr("Rect_VS"), resTable);
-    DefinePixelShader(RectPixelShader(), strPtr("Asset\\Shader\\HLSL\\rect.ps"), strPtr("Rect_PS"), resTable);
-    //DefinePixelShader(SSAOPixelShader(), strPtr("Asset\\Shader\\HLSL\\ssao.ps"), strPtr("SSAO_PS"), resTable);
+    DefineVertexShader(BasicVertexShader(), strPtr("Asset\\Shader\\HLSL\\basic.vs"), strPtr("Basic_VS"), resTable);
+    DefinePixelShader(BasicPixelShader(), strPtr("Asset\\Shader\\HLSL\\basic.ps"), strPtr("Basic_PS"), resTable);
+    DefineLinkedEffect(BasicEffect(), BasicVertexShader(), BasicPixelShader(), resTable);
 
+    DefineVertexShader(ScreenSpaceShadowVertexShader(), strPtr("Asset\\Shader\\HLSL\\screen_space_shadow.vs"), strPtr("ScreenSpaceShadow_VS"), resTable);
+    DefinePixelShader(ScreenSpaceShadowPixelShader(), strPtr("Asset\\Shader\\HLSL\\screen_space_shadow.ps"), strPtr("ScreenSpaceShadow_PS"), resTable);
+    DefineLinkedEffect(ScreenSpaceShadowEffect(), ScreenSpaceShadowVertexShader(), ScreenSpaceShadowPixelShader(), resTable);
+
+    DefineVertexShader(RectVertexShader(), strPtr("Asset\\Shader\\HLSL\\rect.vs"), strPtr("Rect_VS"), resTable);
+    DefinePixelShader(SSAOPixelShader(), strPtr("Asset\\Shader\\HLSL\\ssao.ps"), strPtr("SSAO_PS"), resTable);
+    DefineLinkedEffect(SSAOEffect(), RectVertexShader(), SSAOPixelShader(), resTable);
+
+    DefinePixelShader(RectPixelShader(), strPtr("Asset\\Shader\\HLSL\\rect.ps"), strPtr("Rect_PS"), resTable);
     DefineLinkedEffect(RectEffect(), RectVertexShader(), RectPixelShader(), resTable);
-    //DefineLinkedEffect(SSAOEffect(), RectVertexShader(), SSAOPixelShader(), resTable);
+}
+
+void BaseRenderer::DefineShadowCasterBlendState(DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingBlendStateDesc>();
+
+    pDesc->mAlphaToCoverageEnable = false;
+    pDesc->mIndependentBlendEnable = false;
+
+    for (uint32_t i = 0; i < MAX_TARGETS; ++i)
+    {
+        pDesc->mTargets[i].mBlendEnable = true;
+
+        pDesc->mTargets[i].mColorBlend.mBlendSrc = eBlend_One;
+        pDesc->mTargets[i].mColorBlend.mBlendDst = eBlend_Zero;
+        pDesc->mTargets[i].mColorBlend.mBlendOp = eBlendOp_Min;
+
+        pDesc->mTargets[i].mAlphaBlend.mBlendSrc = eBlend_One;
+        pDesc->mTargets[i].mAlphaBlend.mBlendDst = eBlend_Zero;
+        pDesc->mTargets[i].mAlphaBlend.mBlendOp = eBlendOp_Min;
+
+        pDesc->mTargets[i].mRenderTargetWriteMask = DrawingBlendStateDesc::BlendTarget::WriteMast_All;
+    }
+
+    resTable.AddResourceEntry(ShadowCasterBlendState(), pDesc);
+}
+
+void BaseRenderer::DefineShadowMapSampler(DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingSamplerStateDesc>();
+
+    pDesc->mSamplerMode = eSamplerMode_Compare;
+    pDesc->mAddressU = eAddressMode_Clamp;
+    pDesc->mAddressV = eAddressMode_Clamp;
+    pDesc->mAddressW = eAddressMode_Clamp;
+    pDesc->mBorderColor[0] = 0;
+    pDesc->mBorderColor[1] = 0;
+    pDesc->mBorderColor[2] = 0;
+    pDesc->mBorderColor[3] = 0;
+    pDesc->mComparisonFunc = eComparison_Always;
+    pDesc->mMinFilter = eFilterMode_Linear;
+    pDesc->mMagFilter = eFilterMode_Linear;
+    pDesc->mMipFilter = eFilterMode_Linear;
+    pDesc->mMinLOD = 0;
+    pDesc->mMaxLOD = std::numeric_limits<float>::max();
+    pDesc->mMipLODBias = 0.0f;
+    pDesc->mMaxAnisotropy = 1;
+
+    resTable.AddResourceEntry(ShadowMapSampler(), pDesc);
+}
+
+void BaseRenderer::CreateShadowmapTextureTarget()
+{
+    m_pShadowMap = std::make_shared<DrawingTextureTarget>(m_pDevice);
+    m_pShadowMap->Initialize(gpGlobal->GetConfiguration<AppConfiguration>().GetWidth(), gpGlobal->GetConfiguration<AppConfiguration>().GetHeight(), eFormat_R32_FLOAT);
+}
+
+void BaseRenderer::CreateScreenSpaceShadowTextureTarget()
+{
+    m_pScreenSpaceShadow = std::make_shared<DrawingTextureTarget>(m_pDevice);
+    m_pScreenSpaceShadow->Initialize(gpGlobal->GetConfiguration<AppConfiguration>().GetWidth(), gpGlobal->GetConfiguration<AppConfiguration>().GetHeight(), eFormat_R8G8B8A8_UNORM);
+}
+
+void BaseRenderer::CreateSSAOTextureTarget()
+{
+    m_pSSAOTexture = std::make_shared<DrawingTextureTarget>(m_pDevice);
+    m_pSSAOTexture->Initialize(gpGlobal->GetConfiguration<AppConfiguration>().GetWidth(), gpGlobal->GetConfiguration<AppConfiguration>().GetHeight(), eFormat_R8G8B8A8_UNORM);
 }
 
 void BaseRenderer::UpdatePrimitive(DrawingResourceTable& resTable)

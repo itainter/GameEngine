@@ -185,7 +185,7 @@ std::shared_ptr<DrawingDepthBuffer> DrawingSystem::CreateDepthBuffer()
     DrawingDepthBufferDesc desc;
     desc.mWidth = m_deviceSize.x;
     desc.mHeight = m_deviceSize.y;
-    desc.mFormat = eFormat_D24S8;
+    desc.mFormat = eFormat_R24G8_TYPELESS;
 
     std::shared_ptr<DrawingDepthBuffer> pDepthBuffer;
 
@@ -239,7 +239,7 @@ void DrawingSystem::BuildFrameGraph()
 
 bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGraph, std::shared_ptr<IEntity> pCamera)
 {
-    auto& pRenderer = gpGlobal->GetRenderer(eRenderer_Forward);
+    auto& pRenderer = std::dynamic_pointer_cast<ForwardRenderer>(gpGlobal->GetRenderer(eRenderer_Forward));
     if (pRenderer == nullptr)
         return false;
 
@@ -311,10 +311,7 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         RenderQueueItemListType items;
         GetVisableRenderable(items);
 
-        auto pForwardRenderer = std::static_pointer_cast<ForwardRenderer>(pRenderer);
-        assert(pForwardRenderer != nullptr);
-
-        pForwardRenderer->UpdateShadowMapAsTarget(*m_pResourceTable);
+        pRenderer->UpdateShadowMapAsTarget(*m_pResourceTable);
 
         pRenderer->AddRenderables(items);
         pRenderer->Render(*m_pResourceTable, pShadowPass);
@@ -325,7 +322,7 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
     assert(pSSSPass != nullptr);
     auto& sssNode = pFrameGraph->AddPass(pSSSPass, GraphicsBit);
 
-    sssNode.SetClearColorFunc(0, [&, pCameraComponent](float4& color) -> void {
+    sssNode.SetClearColorFunc(0, [&](float4& color) -> void {
         color = float4(1.0f, 1.0f, 1.0f, 1.0f);
     });
 
@@ -350,11 +347,8 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         RenderQueueItemListType items;
         GetVisableRenderable(items);
 
-        auto pForwardRenderer = std::static_pointer_cast<ForwardRenderer>(pRenderer);
-        assert(pForwardRenderer != nullptr);
-
-        pForwardRenderer->UpdateShadowMapAsTexture(*m_pResourceTable);
-        pForwardRenderer->UpdateScreenSpaceShadowAsTarget(*m_pResourceTable);
+        pRenderer->UpdateShadowMapAsTexture(*m_pResourceTable);
+        pRenderer->UpdateScreenSpaceShadowAsTarget(*m_pResourceTable);
 
         pRenderer->AddRenderables(items);
         pRenderer->Render(*m_pResourceTable, pSSSPass);
@@ -391,13 +385,27 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         RenderQueueItemListType items;
         GetVisableRenderable(items);
 
-        auto pForwardRenderer = std::static_pointer_cast<ForwardRenderer>(pRenderer);
-        assert(pForwardRenderer != nullptr);
-
-        pForwardRenderer->UpdateScreenSpaceShadowAsTexture(*m_pResourceTable);
+        pRenderer->UpdateScreenSpaceShadowAsTexture(*m_pResourceTable);
 
         pRenderer->AddRenderables(items);
         pRenderer->Render(*m_pResourceTable, pForwardShadingPass);
+    });
+
+    // SSAO pass.
+    auto pSSAOPass = pRenderer->GetPass(ForwardRenderer::SSAOPass());
+    assert(pSSAOPass != nullptr);
+    auto& ssaoNode = pFrameGraph->AddPass(pSSAOPass, GraphicsBit);
+
+    ssaoNode.SetClearColorFunc(0, [&](float4& color) -> void {
+        color = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    });
+
+    ssaoNode.SetExecuteFunc([&, pRenderer, pSSAOPass](void) -> void {
+        m_pContext->SetViewport(Box2(float2(0, 0), float2((float)gpGlobal->GetConfiguration<AppConfiguration>().GetWidth(), (float)gpGlobal->GetConfiguration<AppConfiguration>().GetHeight())));
+        m_pContext->UpdateContext(*m_pResourceTable);
+
+        pRenderer->UpdateSSAOTextureAsTarget(*m_pResourceTable);
+        pRenderer->RenderRect(*m_pResourceTable, pSSAOPass);
     });
 
     // Debug layer pass.
@@ -417,16 +425,20 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         m_pContext->SetViewport(Box2(float2(0, 0), float2((float)gpGlobal->GetConfiguration<DebugConfiguration>().GetWidth(), (float)gpGlobal->GetConfiguration<DebugConfiguration>().GetHeight())));
         m_pContext->UpdateContext(*m_pResourceTable);
 
-        auto pForwardRenderer = std::static_pointer_cast<ForwardRenderer>(pRenderer);
-        assert(pForwardRenderer != nullptr);
-
-        pForwardRenderer->UpdateRectTexture(*m_pResourceTable, ForwardRenderer::ScreenSpaceShadowTexture());
+        pRenderer->UpdateShadowMapAsTexture(*m_pResourceTable);
+        pRenderer->UpdateRectTexture(*m_pResourceTable, ForwardRenderer::ShadowMapTexture());
         pRenderer->RenderRect(*m_pResourceTable, pDebugLayerPass);
         pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(0, 0));
 
-        pForwardRenderer->UpdateRectTexture(*m_pResourceTable, ForwardRenderer::ShadowMapTexture());
+        pRenderer->UpdateScreenSpaceShadowAsTexture(*m_pResourceTable);
+        pRenderer->UpdateRectTexture(*m_pResourceTable, ForwardRenderer::ScreenSpaceShadowTexture());
         pRenderer->RenderRect(*m_pResourceTable, pDebugLayerPass);
         pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(gpGlobal->GetConfiguration<DebugConfiguration>().GetWidth() + 5, 0));
+
+        pRenderer->UpdateSSAOTextureAsTexture(*m_pResourceTable);
+        pRenderer->UpdateRectTexture(*m_pResourceTable, ForwardRenderer::SSAOTexture());
+        pRenderer->RenderRect(*m_pResourceTable, pDebugLayerPass);
+        pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(gpGlobal->GetConfiguration<DebugConfiguration>().GetWidth() + 5, 0) * 2);
     });
 
     pFrameGraph->FetchResources(*m_pResourceTable);

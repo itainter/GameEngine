@@ -69,8 +69,10 @@ namespace Engine
     {
         eFormat_Unknown = 0,
 
+        eFormat_R24G8_TYPELESS,
         eFormat_D24S8,
         eFormat_D24X8,
+        eFormat_R32_TYPELESS,
         eFormat_D32_FLOAT,
 
         eFormat_R8_UNORM,

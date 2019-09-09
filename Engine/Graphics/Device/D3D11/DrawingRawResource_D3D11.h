@@ -954,7 +954,23 @@ namespace Engine
         {
             auto pTargetRaw = m_pTarget.get();
             ID3D11DepthStencilView* pDepthStencilViewRaw = nullptr;
-            HRESULT hr = m_pDevice->GetDevice()->CreateDepthStencilView(pTargetRaw, nullptr, &pDepthStencilViewRaw);
+            HRESULT hr;
+
+            if (desc.Format == DXGI_FORMAT_R24G8_TYPELESS)
+            {
+                D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+                dsvDesc.Flags = 0;
+                dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+                dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+                dsvDesc.Texture2D.MipSlice = 0;
+
+                hr = m_pDevice->GetDevice()->CreateDepthStencilView(pTargetRaw, &dsvDesc, &pDepthStencilViewRaw);
+            }
+            else
+            {
+                hr = m_pDevice->GetDevice()->CreateDepthStencilView(pTargetRaw, nullptr, &pDepthStencilViewRaw);
+            }
+
             assert(SUCCEEDED(hr));
             m_pDepthStencilView = std::shared_ptr<ID3D11DepthStencilView>(pDepthStencilViewRaw, D3D11Releaser<ID3D11DepthStencilView>);
         }

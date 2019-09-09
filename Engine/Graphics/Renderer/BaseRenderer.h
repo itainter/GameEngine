@@ -9,6 +9,7 @@
 
 #include "RenderQueue.h"
 #include "DrawingStreamedResource.h"
+#include "DrawingTextureTarget.h"
 
 namespace Engine
 {
@@ -35,6 +36,12 @@ namespace Engine
         virtual void BuildPass() = 0;
         std::shared_ptr<DrawingPass> GetPass(std::shared_ptr<std::string> pName) override;
 
+        void UpdateShadowMapAsTarget(DrawingResourceTable& resTable);
+        void UpdateShadowMapAsTexture(DrawingResourceTable& resTable);
+        void UpdateScreenSpaceShadowAsTarget(DrawingResourceTable& resTable);
+        void UpdateScreenSpaceShadowAsTexture(DrawingResourceTable& resTable);
+        void UpdateSSAOTextureAsTarget(DrawingResourceTable& resTable);
+        void UpdateSSAOTextureAsTexture(DrawingResourceTable& resTable);
         void UpdateRectTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
 
     private:
@@ -44,6 +51,13 @@ namespace Engine
         virtual void FlushData() = 0;
         virtual void ResetData() = 0;
 
+        void DefineShadowCasterBlendState(DrawingResourceTable& resTable);
+        void DefineShadowMapSampler(DrawingResourceTable& resTable);
+
+        void CreateShadowmapTextureTarget();
+        void CreateScreenSpaceShadowTextureTarget();
+        void CreateSSAOTextureTarget();
+
         void UpdatePrimitive(DrawingResourceTable& resTable);
         void UpdateRectPrimitive(DrawingResourceTable& resTable);
 
@@ -51,13 +65,21 @@ namespace Engine
 
     public:
         // Define shader resource names
+        FuncResourceName(BasicVertexShader)
+        FuncResourceName(BasicPixelShader)
+        FuncResourceName(ScreenSpaceShadowVertexShader)
+        FuncResourceName(ScreenSpaceShadowPixelShader)
         FuncResourceName(RectVertexShader)
         FuncResourceName(RectPixelShader)
         FuncResourceName(SSAOPixelShader)
         // Define effect resource names
+        FuncResourceName(BasicEffect)
+        FuncResourceName(ScreenSpaceShadowEffect)
         FuncResourceName(RectEffect)
         FuncResourceName(SSAOEffect)
         // Define pass names
+        FuncResourceName(ShadowCasterPass)
+        FuncResourceName(ScreenSpaceShadowPass)
         FuncResourceName(RectPass)
         FuncResourceName(SSAOPass)
         FuncResourceName(DebugLayerPass)
@@ -80,12 +102,16 @@ namespace Engine
         FuncResourceName(DefaultWorldMatrix)
         FuncResourceName(DefaultViewMatrix)
         FuncResourceName(DefaultProjectionMatrix)
+        FuncResourceName(CameraDirVector)
+        FuncResourceName(LightDirVector)
+        FuncResourceName(LightViewMatrix)
+        FuncResourceName(LightProjMatrix)
         // Render target names
         FuncResourceName(ShadowMapTarget)
         FuncResourceName(ScreenSpaceShadowTarget)
+        FuncResourceName(SSAOTarget)
         FuncResourceName(ScreenTarget)
         FuncResourceName(ScreenDepthBuffer)
-        FuncResourceName(SSAOTarget)
         FuncResourceName(DebugLayerTarget)
         // Render state names
         FuncResourceName(DefaultDepthState)
@@ -94,17 +120,39 @@ namespace Engine
         FuncResourceName(DefaultBlendState)
         FuncResourceName(DefaultRasterState)
         FuncResourceName(RasterStateFrontCull)
+        FuncResourceName(ShadowCasterBlendState)
         // Varing states names
         FuncResourceName(DefaultVaringStates)
         // Define texture names
+        FuncResourceName(ShadowMapTexture)
+        FuncResourceName(ScreenSpaceShadowTexture)
+        FuncResourceName(SSAOTexture)
         FuncResourceName(RectTexture)
         // Define texture sampler names
+        FuncResourceName(ShadowMapSampler)
         FuncResourceName(LinearSampler)
         // Primitive names
         FuncResourceName(DefaultPrimitive)
         FuncResourceName(RectPrimitive)
 
     protected:
+        std::shared_ptr<DrawingPass> CreatePass(std::shared_ptr<std::string> pName);
+
+        std::shared_ptr<DrawingPass> CreateShadowCasterPass();
+        std::shared_ptr<DrawingPass> CreateScreenSpaceShadowPass();
+        std::shared_ptr<DrawingPass> CreateSSAOPass();
+        std::shared_ptr<DrawingPass> CreateRectPass(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pTarget);
+        std::shared_ptr<DrawingPass> CreateDebugLayerPass();
+
+        std::shared_ptr<DrawingTransientTexture> CreateTransientTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+        std::shared_ptr<DrawingPersistTexture> CreatePersistTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+
+        std::shared_ptr<DrawingTransientVertexBuffer> CreateTransientVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+        std::shared_ptr<DrawingPersistVertexBuffer> CreatePersistVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+
+        std::shared_ptr<DrawingTransientIndexBuffer> CreateTransientIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+        std::shared_ptr<DrawingPersistIndexBuffer> CreatePersistIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
+
         void DefineDefaultResources(DrawingResourceTable& resTable);
 
         void DefineGeneralEffect(std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pSourceName, std::shared_ptr<std::string> pTechName, DrawingResourceTable& resTable);
@@ -126,6 +174,11 @@ namespace Engine
         void DefineWorldMatrixConstantBuffer(DrawingResourceTable& resTable);
         void DefineViewMatrixConstantBuffer(DrawingResourceTable& resTable);
         void DefineProjectionMatrixConstantBuffer(DrawingResourceTable& resTable);
+
+        void DefineCameraDirVectorConstantBuffer(DrawingResourceTable& resTable);
+        void DefineLightDirVectorConstantBuffer(DrawingResourceTable& resTable);
+        void DefineLightViewMatrixConstantBuffer(DrawingResourceTable& resTable);
+        void DefineLightProjMatrixConstantBuffer(DrawingResourceTable& resTable);
 
         void DefineDefaultDepthState(DrawingResourceTable& resTable);
         void DefineDefaultBlendState(DrawingResourceTable& resTable);
@@ -171,20 +224,12 @@ namespace Engine
         void BindOutput(DrawingPass& pass);
 
         void BindConstants(DrawingPass& pass);
+        void BindCameraConstants(DrawingPass& pass);
+        void BindLightConstants(DrawingPass& pass);
+
+        void BindShadowMapTexture(DrawingPass& pass);
+        void BindScreenSpaceShadowTexture(DrawingPass& pass);
         void BindRectTexture(DrawingPass& pass);
-
-        std::shared_ptr<DrawingTransientTexture> CreateTransientTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
-        std::shared_ptr<DrawingPersistTexture> CreatePersistTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
-
-        std::shared_ptr<DrawingTransientVertexBuffer> CreateTransientVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
-        std::shared_ptr<DrawingPersistVertexBuffer> CreatePersistVertexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
-
-        std::shared_ptr<DrawingTransientIndexBuffer> CreateTransientIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
-        std::shared_ptr<DrawingPersistIndexBuffer> CreatePersistIndexBuffer(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
-
-        std::shared_ptr<DrawingPass> CreatePass(std::shared_ptr<std::string> pName);
-        std::shared_ptr<DrawingPass> CreateRectPass(std::shared_ptr<std::string> pName, std::shared_ptr<std::string> pEffectName, std::shared_ptr<std::string> pTarget);
-        std::shared_ptr<DrawingPass> CreateDebugLayerPass();
 
     private:
         void DefineShaderResource(DrawingResourceTable& resTable);
@@ -207,6 +252,10 @@ namespace Engine
         std::shared_ptr<DrawingTransientVertexBuffer> m_pTransientPositionBuffer;
         std::shared_ptr<DrawingTransientVertexBuffer> m_pTransientNormalBuffer;
         std::shared_ptr<DrawingTransientIndexBuffer> m_pTransientIndexBuffer;
+
+        std::shared_ptr<DrawingTextureTarget> m_pShadowMap;
+        std::shared_ptr<DrawingTextureTarget> m_pScreenSpaceShadow;
+        std::shared_ptr<DrawingTextureTarget> m_pSSAOTexture;
 
         std::shared_ptr<DrawingDevice> m_pDevice;
         std::shared_ptr<DrawingContext> m_pDeviceContext;

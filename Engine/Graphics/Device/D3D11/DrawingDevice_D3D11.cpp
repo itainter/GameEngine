@@ -297,11 +297,16 @@ bool DrawingDevice_D3D11::CreateDepthBuffer(const DrawingDepthBufferDesc& desc, 
     depthTargetDesc.Height = desc.mHeight;
     depthTargetDesc.MipLevels = 1;
     depthTargetDesc.ArraySize = desc.mSlices;
-    depthTargetDesc.Format = D3D11Enum(desc.mFormat);
+    depthTargetDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
     depthTargetDesc.SampleDesc.Count = desc.mMultiSampleCount;
     depthTargetDesc.SampleDesc.Quality = desc.mMultiSampleQuality;
     depthTargetDesc.Usage = D3D11_USAGE_DEFAULT;
-    depthTargetDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+    if (desc.mFormat == eFormat_R24G8_TYPELESS)
+        depthTargetDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+    else
+        depthTargetDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
     depthTargetDesc.CPUAccessFlags = 0;
     depthTargetDesc.MiscFlags = D3D11ResourceMiscFlag(desc.mFlags);
 
