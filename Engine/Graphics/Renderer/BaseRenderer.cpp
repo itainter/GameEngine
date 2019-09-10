@@ -26,6 +26,13 @@ std::shared_ptr<DrawingPass> BaseRenderer::GetPass(std::shared_ptr<std::string> 
     return iter->second;
 }
 
+void BaseRenderer::UpdateDepthAsTexture(DrawingResourceTable& resTable)
+{
+    auto pEntry = resTable.GetResourceEntry(ScreenDepthTexture());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(m_pDepthBuffer->GetTexture());
+}
+
 void BaseRenderer::UpdateShadowMapAsTarget(DrawingResourceTable& resTable)
 {
     auto pEntry = resTable.GetResourceEntry(ShadowMapTarget());
@@ -294,6 +301,7 @@ std::shared_ptr<DrawingPersistIndexBuffer> BaseRenderer::CreatePersistIndexBuffe
 
 void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
 {
+    CreateDepthTextureTarget();
     CreateShadowmapTextureTarget();
     CreateScreenSpaceShadowTextureTarget();
     CreateSSAOTextureTarget();
@@ -323,6 +331,7 @@ void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
     DefineDefaultRasterState(resTable);
     DefineShadowCasterBlendState(resTable);
 
+    DefineExternalTexture(ScreenDepthTexture(), resTable);
     DefineExternalTexture(ShadowMapTexture(), resTable);
     DefineExternalTexture(ScreenSpaceShadowTexture(), resTable);
     DefineExternalTexture(SSAOTexture(), resTable);
@@ -1090,6 +1099,19 @@ void BaseRenderer::DefineShadowMapSampler(DrawingResourceTable& resTable)
     pDesc->mMaxAnisotropy = 1;
 
     resTable.AddResourceEntry(ShadowMapSampler(), pDesc);
+}
+
+void BaseRenderer::CreateDepthTextureTarget()
+{
+    std::shared_ptr<DrawingTexture> pTexture = nullptr;
+
+    auto pDepthBuffer = m_pDeviceContext->GetDepthBuffer();
+    assert(pDepthBuffer != nullptr);
+
+    m_pDevice->CreateTexture(DrawingTextureDesc(), pTexture, pDepthBuffer);
+    assert(pTexture != nullptr);
+
+    m_pDepthBuffer = std::make_shared<DrawingTextureDepthBuffer>(m_pDevice, pDepthBuffer, pTexture);
 }
 
 void BaseRenderer::CreateShadowmapTextureTarget()

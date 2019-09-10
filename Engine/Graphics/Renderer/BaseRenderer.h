@@ -36,6 +36,7 @@ namespace Engine
         virtual void BuildPass() = 0;
         std::shared_ptr<DrawingPass> GetPass(std::shared_ptr<std::string> pName) override;
 
+        void UpdateDepthAsTexture(DrawingResourceTable& resTable);
         void UpdateShadowMapAsTarget(DrawingResourceTable& resTable);
         void UpdateShadowMapAsTexture(DrawingResourceTable& resTable);
         void UpdateScreenSpaceShadowAsTarget(DrawingResourceTable& resTable);
@@ -54,6 +55,7 @@ namespace Engine
         void DefineShadowCasterBlendState(DrawingResourceTable& resTable);
         void DefineShadowMapSampler(DrawingResourceTable& resTable);
 
+        void CreateDepthTextureTarget();
         void CreateShadowmapTextureTarget();
         void CreateScreenSpaceShadowTextureTarget();
         void CreateSSAOTextureTarget();
@@ -124,6 +126,7 @@ namespace Engine
         // Varing states names
         FuncResourceName(DefaultVaringStates)
         // Define texture names
+        FuncResourceName(ScreenDepthTexture)
         FuncResourceName(ShadowMapTexture)
         FuncResourceName(ScreenSpaceShadowTexture)
         FuncResourceName(SSAOTexture)
@@ -253,6 +256,7 @@ namespace Engine
         std::shared_ptr<DrawingTransientVertexBuffer> m_pTransientNormalBuffer;
         std::shared_ptr<DrawingTransientIndexBuffer> m_pTransientIndexBuffer;
 
+        std::shared_ptr<DrawingTextureDepthBuffer> m_pDepthBuffer;
         std::shared_ptr<DrawingTextureTarget> m_pShadowMap;
         std::shared_ptr<DrawingTextureTarget> m_pScreenSpaceShadow;
         std::shared_ptr<DrawingTextureTarget> m_pSSAOTexture;

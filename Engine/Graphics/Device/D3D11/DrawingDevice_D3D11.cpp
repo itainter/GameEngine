@@ -165,8 +165,16 @@ bool DrawingDevice_D3D11::CreateTexture(const DrawingTextureDesc& desc, std::sha
     auto pTexture = std::make_shared<DrawingTexture>(shared_from_this());
     std::shared_ptr<DrawingRawTexture> pRawTexture = nullptr;
 
-    auto pTarget = std::static_pointer_cast<DrawingTarget>(pRefRes);
-    if (pTarget != nullptr)
+    auto pTarget = std::dynamic_pointer_cast<DrawingTarget>(pRefRes);
+    auto pDepthBuffer = std::dynamic_pointer_cast<DrawingDepthBuffer>(pRefRes);
+    if (pDepthBuffer != nullptr)
+    {
+        auto pRawDepthBuffer = std::static_pointer_cast<DrawingRawDepthTarget_D3D11>(pDepthBuffer->GetResource());
+        assert(pRawDepthBuffer != nullptr);
+
+        pRawTexture = std::make_shared<DrawingRawTexture2D_D3D11>(*pRawDepthBuffer);
+    }
+    else if (pTarget != nullptr)
     {
         auto pRawTarget = std::static_pointer_cast<DrawingRawRenderTarget_D3D11>(pTarget->GetResource());
         assert(pRawTarget != nullptr);

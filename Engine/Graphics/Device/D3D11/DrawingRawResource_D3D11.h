@@ -954,17 +954,22 @@ namespace Engine
         {
             auto pTargetRaw = m_pTarget.get();
             ID3D11DepthStencilView* pDepthStencilViewRaw = nullptr;
+            ID3D11ShaderResourceView* pShaderResourceViewRaw = nullptr;
             HRESULT hr;
 
             if (desc.Format == DXGI_FORMAT_R24G8_TYPELESS)
             {
                 D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-                dsvDesc.Flags = 0;
                 dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
                 dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-                dsvDesc.Texture2D.MipSlice = 0;
-
                 hr = m_pDevice->GetDevice()->CreateDepthStencilView(pTargetRaw, &dsvDesc, &pDepthStencilViewRaw);
+
+                D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+                srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+                srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+                srvDesc.Texture2D.MostDetailedMip = 0;
+                srvDesc.Texture2D.MipLevels = -1;
+                hr = m_pDevice->GetDevice()->CreateShaderResourceView(pTargetRaw, &srvDesc, &pShaderResourceViewRaw);
             }
             else
             {
@@ -973,13 +978,19 @@ namespace Engine
 
             assert(SUCCEEDED(hr));
             m_pDepthStencilView = std::shared_ptr<ID3D11DepthStencilView>(pDepthStencilViewRaw, D3D11Releaser<ID3D11DepthStencilView>);
+            m_pShaderResourceView = std::shared_ptr<ID3D11ShaderResourceView>(pShaderResourceViewRaw, D3D11Releaser<ID3D11ShaderResourceView>);
         }
 
         virtual ~DrawingRawDepthTarget_D3D11() = default;
 
-        std::shared_ptr<ID3D11DepthStencilView> GetDepthStencilView()
+        std::shared_ptr<ID3D11DepthStencilView> GetDepthStencilView() const
         {
             return m_pDepthStencilView;
+        }
+
+        std::shared_ptr<ID3D11ShaderResourceView> GetShaderResourceView() const
+        {
+            return m_pShaderResourceView;
         }
 
         ETargetType GetTargetType() const override
@@ -987,8 +998,11 @@ namespace Engine
             return eTarget_Depth;
         }
 
+        friend class DrawingRawTexture2D_D3D11;
+
     private:
         std::shared_ptr<ID3D11DepthStencilView> m_pDepthStencilView;
+        std::shared_ptr<ID3D11ShaderResourceView> m_pShaderResourceView;
     };
 
     class DrawingRawTexture_D3D11 : public DrawingRawTexture
@@ -1054,6 +1068,10 @@ namespace Engine
         }
 
         DrawingRawTexture2D_D3D11(const DrawingRawRenderTarget_D3D11& target) : DrawingRawTexture_D3D11(target.m_pDevice, target.m_pShaderResourceView), m_pTexture2D(target.m_pTarget)
+        {
+        }
+
+        DrawingRawTexture2D_D3D11(const DrawingRawDepthTarget_D3D11& target) : DrawingRawTexture_D3D11(target.m_pDevice, target.m_pShaderResourceView), m_pTexture2D(target.m_pTarget)
         {
         }
 

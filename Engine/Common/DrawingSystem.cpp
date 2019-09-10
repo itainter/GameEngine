@@ -138,6 +138,12 @@ bool DrawingSystem::CreateDevice()
 
 bool DrawingSystem::CreatePreResource()
 {
+    auto pSwapChain = CreateSwapChain();
+    auto pDepthBuffer = CreateDepthBuffer(); 
+
+    m_pContext->SetSwapChain(pSwapChain);
+    m_pContext->SetDepthBuffer(pDepthBuffer);
+
     m_pEffectPool = std::make_shared<DrawingEffectPool>(m_pDevice);
     m_pResourceFactory = std::make_shared<DrawingResourceFactory>(m_pDevice);
     m_pResourceTable = std::make_shared<DrawingResourceTable>(*m_pResourceFactory);
@@ -197,12 +203,6 @@ std::shared_ptr<DrawingDepthBuffer> DrawingSystem::CreateDepthBuffer()
 
 bool DrawingSystem::PostConfiguration()
 {
-    auto pSwapChain = CreateSwapChain();
-    auto pDepthBuffer = CreateDepthBuffer(); 
-
-    m_pContext->SetSwapChain(pSwapChain);
-    m_pContext->SetDepthBuffer(pDepthBuffer);
-
     m_pContext->UpdateTargets(*m_pResourceTable);
 
     if(!m_pResourceTable->BuildResources())
@@ -425,20 +425,25 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         m_pContext->SetViewport(Box2(float2(0, 0), float2((float)gpGlobal->GetConfiguration<DebugConfiguration>().GetWidth(), (float)gpGlobal->GetConfiguration<DebugConfiguration>().GetHeight())));
         m_pContext->UpdateContext(*m_pResourceTable);
 
+        pRenderer->UpdateDepthAsTexture(*m_pResourceTable);
+        pRenderer->UpdateRectTexture(*m_pResourceTable, ForwardRenderer::ScreenDepthTexture());
+        pRenderer->RenderRect(*m_pResourceTable, pDebugLayerPass);
+        pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(0, 0));
+
         pRenderer->UpdateShadowMapAsTexture(*m_pResourceTable);
         pRenderer->UpdateRectTexture(*m_pResourceTable, ForwardRenderer::ShadowMapTexture());
         pRenderer->RenderRect(*m_pResourceTable, pDebugLayerPass);
-        pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(0, 0));
+        pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(gpGlobal->GetConfiguration<DebugConfiguration>().GetWidth() + 5, 0));
 
         pRenderer->UpdateScreenSpaceShadowAsTexture(*m_pResourceTable);
         pRenderer->UpdateRectTexture(*m_pResourceTable, ForwardRenderer::ScreenSpaceShadowTexture());
         pRenderer->RenderRect(*m_pResourceTable, pDebugLayerPass);
-        pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(gpGlobal->GetConfiguration<DebugConfiguration>().GetWidth() + 5, 0));
+        pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(gpGlobal->GetConfiguration<DebugConfiguration>().GetWidth() + 5, 0) * 2);
 
         pRenderer->UpdateSSAOTextureAsTexture(*m_pResourceTable);
         pRenderer->UpdateRectTexture(*m_pResourceTable, ForwardRenderer::SSAOTexture());
         pRenderer->RenderRect(*m_pResourceTable, pDebugLayerPass);
-        pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(gpGlobal->GetConfiguration<DebugConfiguration>().GetWidth() + 5, 0) * 2);
+        pRenderer->CopyRect(*m_pResourceTable, ForwardRenderer::DebugLayerTarget(), ForwardRenderer::ScreenTarget(), int2(gpGlobal->GetConfiguration<DebugConfiguration>().GetWidth() + 5, 0) * 3);
     });
 
     pFrameGraph->FetchResources(*m_pResourceTable);
