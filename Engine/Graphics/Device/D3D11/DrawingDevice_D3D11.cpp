@@ -1231,8 +1231,8 @@ std::shared_ptr<DrawingRawPixelShader_D3D11> DrawingDevice_D3D11::CreatePixelSha
 
     hr = D3DReflect(pShaderByteCode, length, IID_ID3D11ShaderReflection, (void**)&pReflection);
     if (!SUCCEEDED(hr))
-        return nullptr;
 
+        return nullptr;
     return std::make_shared<DrawingRawPixelShader_D3D11>(std::static_pointer_cast<DrawingDevice_D3D11>(shared_from_this()), pName, std::shared_ptr<ID3D11ShaderReflection>(pReflection, D3D11Releaser<ID3D11ShaderReflection>), std::shared_ptr<ID3D11PixelShader>(pPixelShader, D3D11Releaser<ID3D11PixelShader>));
 }
 

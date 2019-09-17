@@ -232,7 +232,9 @@ namespace Engine
 
         void BindShadowMapTexture(DrawingPass& pass);
         void BindScreenSpaceShadowTexture(DrawingPass& pass);
+        void BindDepthTexture(DrawingPass& pass);
         void BindRectTexture(DrawingPass& pass);
+        void BindLinearSampler(DrawingPass& pass);
 
     private:
         void DefineShaderResource(DrawingResourceTable& resTable);

@@ -221,6 +221,8 @@ std::shared_ptr<DrawingPass> BaseRenderer::CreateSSAOPass()
     BindTarget(*pPass, 0, SSAOTarget());
     BindPrimitive(*pPass, RectPrimitive());
     BindVaringStates(*pPass, DefaultVaringStates());
+    BindDepthTexture(*pPass);
+    BindLinearSampler(*pPass);
 
     return pPass;
 }
@@ -235,6 +237,7 @@ std::shared_ptr<DrawingPass> BaseRenderer::CreateRectPass(std::shared_ptr<std::s
     BindPrimitive(*pPass, RectPrimitive());
     BindVaringStates(*pPass, DefaultVaringStates());
     BindRectTexture(*pPass);
+    BindLinearSampler(*pPass);
 
     return pPass;
 }
@@ -1017,10 +1020,13 @@ void BaseRenderer::BindScreenSpaceShadowTexture(DrawingPass& pass)
     auto screenspaceshadow_tex_slot = strPtr("ScreenSpaceShadowTex");
     AddTextureSlot(pass, screenspaceshadow_tex_slot, strPtr("gScreenSpaceShadowTexture"));
     BindResource(pass, screenspaceshadow_tex_slot, ScreenSpaceShadowTexture());
+}
 
-    auto linear_sampler_slot = strPtr("LinearSampler");
-    pass.AddResourceSlot(linear_sampler_slot, ResourceSlot_Sampler, strPtr("gLinearSampler"));
-    BindResource(pass, linear_sampler_slot, LinearSampler());
+void BaseRenderer::BindDepthTexture(DrawingPass& pass)
+{
+    auto depth_tex_slot = strPtr("DepthTex");
+    AddTextureSlot(pass, depth_tex_slot, strPtr("gDepthTexture"));
+    BindResource(pass, depth_tex_slot, ScreenDepthTexture());
 }
 
 void BaseRenderer::BindRectTexture(DrawingPass& pass)
@@ -1028,7 +1034,10 @@ void BaseRenderer::BindRectTexture(DrawingPass& pass)
     auto rect_tex_slot = strPtr("RectTex");
     AddTextureSlot(pass, rect_tex_slot, strPtr("gRectTexture"));
     BindResource(pass, rect_tex_slot, RectTexture());
+}
 
+void BaseRenderer::BindLinearSampler(DrawingPass& pass)
+{
     auto linear_sampler_slot = strPtr("LinearSampler");
     pass.AddResourceSlot(linear_sampler_slot, ResourceSlot_Sampler, strPtr("gLinearSampler"));
     BindResource(pass, linear_sampler_slot, LinearSampler());
