@@ -1,32 +1,11 @@
+#define PREDEFINE_SETUP
+#define PREDEFINE_APP
+
 #include <random>
-
-#include "WindowsApplication.h"
-#include "EventSystem.h"
-#include "AnimationSystem.h"
-#include "DrawingSystem.h"
-#include "SceneSystem.h"
-#include "InputSystem.h"
-#include "LogSystem.h"
-
-#include "AnimationComponent.h"
-#include "CameraComponent.h"
-#include "LightComponent.h"
-#include "MeshFilterComponent.h"
-#include "MeshRendererComponent.h"
-#include "TransformComponent.h"
-
-#include "CubeMesh.h"
-#include "PlaneMesh.h"
-#include "GLTF2Mesh.h"
-
-#include "DirectionalLight.h"
-
-#include "ForwardRenderer.h"
+#include "Setup.h"
+#include "Algorithm.h"
 
 using namespace Engine;
-using namespace Platform;
-
-PRE_DEFINE_SETUP
 
 class GameSetup : public Setup
 {
@@ -39,25 +18,7 @@ public:
         gpGlobal->GetConfiguration<GraphicsConfiguration>().SetDeviceType(eDevice_D3D11);
         gpGlobal->GetConfiguration<GraphicsConfiguration>().SetMSAA(eMSAA_4);
 
-        gpGlobal->RegisterApp<WindowsApplication>();
-
-        gpGlobal->RegisterRuntimeModule<InputSystem>(eSystem_Input);
-        gpGlobal->RegisterRuntimeModule<EventSystem>(eSystem_Event);
-        gpGlobal->RegisterRuntimeModule<SceneSystem>(eSystem_Scene);
-        gpGlobal->RegisterRuntimeModule<AnimationSystem>(eSystem_Animation);
-        gpGlobal->RegisterRuntimeModule<DrawingSystem>(eSystem_Drawing);
-        gpGlobal->RegisterRuntimeModule<LogSystem>(eSystem_Log);
-
-        gpGlobal->RegisterRenderer<ForwardRenderer>(eRenderer_Forward);
-
         auto& pWorld = gpGlobal->GetECSWorld();
-
-        // ECSSystem
-        pWorld->AddECSSystem(gpGlobal->GetInputSystem());
-        pWorld->AddECSSystem(gpGlobal->GetEventSystem());
-        pWorld->AddECSSystem(gpGlobal->GetAnimationSystem());
-        pWorld->AddECSSystem(gpGlobal->GetDrawingSystem());
-        pWorld->AddECSSystem(gpGlobal->GetLogSystem());
 
         // Plane
         TransformComponent planeTransformComp;

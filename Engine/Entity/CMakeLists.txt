@@ -13,19 +13,11 @@ file(GLOB SRC_MESH
     "Mesh/*.h"
 )
 
-file(GLOB SRC_SCENE
-    "Scene/*.cpp"
-    "Scene/*.h"
-)
-
-source_group(Scene FILES ${SRC_SCENE})
-
 add_library(
     Entity
     ${SRC_ENTITY}
     ${SRC_LIGHT}
     ${SRC_MESH}
-    ${SRC_SCENE}
     ${SRC_SYSTEM}
 )
 
@@ -35,6 +27,9 @@ target_link_libraries(
     Entity
     ${GLTF2_LOADER_LIB}
 )
+
+source_group(Light FILES ${SRC_LIGHT})
+source_group(Mesh FILES ${SRC_MESH})
 
 set_target_properties(
     Entity
