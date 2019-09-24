@@ -1,3 +1,4 @@
+#include "Matrix.h"
 #include "BaseRenderer.h"
 #include "DrawingResourceDesc.h"
 
@@ -1187,9 +1188,6 @@ float4x4 BaseRenderer::UpdateWorldMatrix(const TransformComponent* pTransform)
     float3 rotate = pTransform->GetRotate();
     float3 scale = pTransform->GetScale();
 
-    float cosR = std::cosf(rotate.y);
-    float sinR = std::sinf(rotate.y);
-
     float4x4 posMatrix = {
         1.f, 0.f, 0.f, 0.f,
         0.f, 1.f, 0.f, 0.f,
@@ -1197,10 +1195,11 @@ float4x4 BaseRenderer::UpdateWorldMatrix(const TransformComponent* pTransform)
         position.x, position.y, position.z, 1.f
     };
 
+    auto rotMat = Mat::RotateLH(rotate.x, rotate.y, rotate.z);
     float4x4 rotMatrix = {
-        cosR, 0.f, sinR, 0.f,
-        0.f, 1.f, 0.f, 0.f,
-        -sinR, 0.f, cosR, 0.f,
+        rotMat.x00, rotMat.x01, rotMat.x02, 0.f,
+        rotMat.x10, rotMat.x11, rotMat.x12, 0.f,
+        rotMat.x20, rotMat.x21, rotMat.x22, 0.f,
         0.f, 0.f, 0.f, 1.f
     };
 

@@ -1,11 +1,11 @@
 #define PREDEFINE_SETUP
-#define PREDEFINE_APP
+#define PREDEFINE_WINDOWS_APP
 
 #include <random>
+
 #include "Setup.h"
 #include "Algorithm.h"
-
-using namespace Engine;
+#include "GLTF2Loader.h"
 
 class GameSetup : public Setup
 {
@@ -19,49 +19,6 @@ public:
         gpGlobal->GetConfiguration<GraphicsConfiguration>().SetMSAA(eMSAA_4);
 
         auto& pWorld = gpGlobal->GetECSWorld();
-
-        // Plane
-        TransformComponent planeTransformComp;
-        MeshFilterComponent planeMeshFilterComp;
-        MeshRendererComponent planeMeshRendererComp;
-        planeTransformComp.SetPosition(float3(0.0f, -0.5f, 0.0f));
-        auto pPlaneMesh = std::make_shared<PlaneMesh>();
-        planeMeshFilterComp.SetMesh(pPlaneMesh);
-        auto pPlane = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(planeTransformComp, planeMeshFilterComp, planeMeshRendererComp);
-
-        // Entity 1
-        TransformComponent cubeTransformComp1;
-        MeshFilterComponent cubeMeshFilterComp1;
-        MeshRendererComponent cubeMeshRendererComp1;
-        AnimationComponent cubeAnimationComp1;
-        cubeTransformComp1.SetPosition(float3(2.0f, 4.0f, -1.0f));
-        cubeTransformComp1.SetRotate(float3(0.0f, 0.0f, 90.0f));
-        // auto pCubeMesh1 = std::make_shared<CubeMesh>();
-        auto pMesh = std::make_shared<GLTF2Mesh>("Asset/Scene/Test/DamagedHelmet.gltf");
-        cubeMeshFilterComp1.SetMesh(pMesh);
-        auto pCube1 = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent, AnimationComponent>(cubeTransformComp1, cubeMeshFilterComp1, cubeMeshRendererComp1, cubeAnimationComp1);
-        AnimationFunc func = [pCube1](float elapsedTime) -> void
-        {
-            float second = elapsedTime / 1000;
-
-            auto pTrans = pCube1->GetComponent<TransformComponent>();
-            auto rotate = pTrans->GetRotate();
-            rotate.y += second * 1.f;
-            pTrans->SetRotate(rotate);
-        };
-        pCube1->GetComponent<AnimationComponent>()->SetAnimationFunc(func);
-
-        // Entity 2
-        TransformComponent cubeTransformComp2;
-        MeshFilterComponent cubeMeshFilterComp2;
-        MeshRendererComponent cubeMeshRendererComp2;
-        AnimationComponent cubeAnimationComp;
-        cubeTransformComp2.SetPosition(float3(0.0f, 2.0f, 1.0f));
-        cubeTransformComp2.SetRotate(float3(0.0f, -1.0f, 0.0f));
-        cubeTransformComp2.SetScale(float3(2.0f, 4.0f, 2.0f));
-        auto pCubeMesh2 = std::make_shared<CubeMesh>();
-        cubeMeshFilterComp2.SetMesh(pCubeMesh2);
-        auto pCube2 = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(cubeTransformComp2, cubeMeshFilterComp2, cubeMeshRendererComp2);
 
         // Camera
         TransformComponent cameraTransformComp;
@@ -90,6 +47,52 @@ public:
             pTrans->SetRotate(rotate);
         };
         pLight->GetComponent<AnimationComponent>()->SetAnimationFunc(func2);
+
+        GLTF2Loader loader;
+        loader.Load("Asset/Scene/Test/DamagedHelmet/DamagedHelmet.gltf");
+        loader.ApplyToWorld();
+
+        // Plane
+        TransformComponent planeTransformComp;
+        MeshFilterComponent planeMeshFilterComp;
+        MeshRendererComponent planeMeshRendererComp;
+        planeTransformComp.SetPosition(float3(0.0f, -0.5f, 0.0f));
+        auto pPlaneMesh = std::make_shared<PlaneMesh>();
+        planeMeshFilterComp.SetMesh(pPlaneMesh);
+        auto pPlane = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(planeTransformComp, planeMeshFilterComp, planeMeshRendererComp);
+
+        // Entity 1
+        TransformComponent cubeTransformComp1;
+        MeshFilterComponent cubeMeshFilterComp1;
+        MeshRendererComponent cubeMeshRendererComp1;
+        AnimationComponent cubeAnimationComp1;
+        cubeTransformComp1.SetPosition(float3(2.0f, 4.0f, -1.0f));
+        cubeTransformComp1.SetRotate(float3(0.0f, 0.0f, 30.0f));
+        auto pMesh = std::make_shared<CubeMesh>();
+        cubeMeshFilterComp1.SetMesh(pMesh);
+        auto pCube1 = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent, AnimationComponent>(cubeTransformComp1, cubeMeshFilterComp1, cubeMeshRendererComp1, cubeAnimationComp1);
+        AnimationFunc func = [pCube1](float elapsedTime) -> void
+        {
+            float second = elapsedTime / 1000;
+
+            auto pTrans = pCube1->GetComponent<TransformComponent>();
+            auto rotate = pTrans->GetRotate();
+            rotate.y += second * 45.f;
+            pTrans->SetRotate(rotate);
+        };
+        pCube1->GetComponent<AnimationComponent>()->SetAnimationFunc(func);
+
+        // Entity 2
+        TransformComponent cubeTransformComp2;
+        MeshFilterComponent cubeMeshFilterComp2;
+        MeshRendererComponent cubeMeshRendererComp2;
+        AnimationComponent cubeAnimationComp;
+        cubeTransformComp2.SetPosition(float3(0.0f, 2.0f, 1.0f));
+        cubeTransformComp2.SetRotate(float3(0.0f, -1.0f, 0.0f));
+        cubeTransformComp2.SetScale(float3(2.0f, 4.0f, 2.0f));
+        auto pCubeMesh2 = std::make_shared<CubeMesh>();
+        cubeMeshFilterComp2.SetMesh(pCubeMesh2);
+        auto pCube2 = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(cubeTransformComp2, cubeMeshFilterComp2, cubeMeshRendererComp2);
     }
 };
 

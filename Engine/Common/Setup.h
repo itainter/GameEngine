@@ -8,9 +8,12 @@
     #include "LogSystem.h"
 
     using namespace Engine;
-    #ifdef PREDEFINE_APP
+    #ifdef PREDEFINE_WINDOWS_APP
         #include "WindowsApplication.h"
+        #define PREDEFINE_APP
+    #endif
 
+    #ifdef PREDEFINE_APP
         #include "AnimationSystem.h"
         #include "DrawingSystem.h"
         #include "SceneSystem.h"
@@ -24,7 +27,6 @@
 
         #include "CubeMesh.h"
         #include "PlaneMesh.h"
-        #include "GLTF2Mesh.h"
 
         #include "DirectionalLight.h"
 
@@ -45,8 +47,9 @@
 
     #ifdef PREDEFINE_APP
             gpGlobal->RegisterApp<WindowsApplication>();
-    #endif
+    #else
             gpGlobal->RegisterApp<BaseApplication>();
+    #endif
 
             gpGlobal->RegisterRuntimeModule<InputSystem>(eSystem_Input);
             gpGlobal->RegisterRuntimeModule<EventSystem>(eSystem_Event);

@@ -23,13 +23,14 @@ namespace Engine
         const uint32_t VertexCount() const override;
         const uint32_t IndexCount() const override;
 
+        void AttachVertexData(const char array[], const uint32_t size, const uint32_t count, Attribute::ESemanticType type, Attribute::EFormatType format, std::string name) override;
+        void AttachIndexData(const char array[], const uint32_t size, const uint32_t count) override;
+
     protected:
         template<typename T>
         void AttachVertexData(const T array[], const uint32_t count, Attribute::ESemanticType type, Attribute::EFormatType format, std::string name);
-        void AttachVertexData(const char array[], const uint32_t size, const uint32_t count, Attribute::ESemanticType type, Attribute::EFormatType format, std::string name);
         template<typename T>
         void AttachIndexData(const T array[], const uint32_t count);
-        void AttachIndexData(const char array[], const uint32_t size, const uint32_t count);
 
     protected:
         std::vector<std::shared_ptr<Attribute>> m_pAttributes;

@@ -13,12 +13,17 @@ file(GLOB SRC_MESH
     "Mesh/*.h"
 )
 
+file(GLOB SRC_IMPORT
+    "Import/*.cpp"
+    "Import/*.h"
+)
+
 add_library(
     Entity
     ${SRC_ENTITY}
     ${SRC_LIGHT}
     ${SRC_MESH}
-    ${SRC_SYSTEM}
+    ${SRC_IMPORT}
 )
 
 include_directories("${PROJECT_SOURCE_DIR}/Thirdparts/glTF2-loader/Include")

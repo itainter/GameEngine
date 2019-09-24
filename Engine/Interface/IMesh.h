@@ -50,5 +50,8 @@ namespace Engine
 
         virtual const uint32_t VertexCount() const = 0;
         virtual const uint32_t IndexCount() const = 0;
+
+        virtual void AttachVertexData(const char array[], const uint32_t size, const uint32_t count, Attribute::ESemanticType type, Attribute::EFormatType format, std::string name) = 0;
+        virtual void AttachIndexData(const char array[], const uint32_t size, const uint32_t count) = 0;
     };
 }
