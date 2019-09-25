@@ -169,6 +169,11 @@ bool DrawingDevice_D3D12::CreateTexture(const DrawingTextureDesc& desc, std::sha
     return true;
 }
 
+bool DrawingDevice_D3D12::CreateTextureFromFile(std::string uri, std::shared_ptr<DrawingTexture>& pRes)
+{
+    return true;
+}
+
 bool DrawingDevice_D3D12::CreateTarget(const DrawingTargetDesc& desc, std::shared_ptr<DrawingTarget>& pRes)
 {
     std::shared_ptr<DrawingRawTarget> pTargetRaw = nullptr;

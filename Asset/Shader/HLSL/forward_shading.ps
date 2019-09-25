@@ -1,6 +1,7 @@
 #include "forward_shading.h"
 
 Texture2D<float> gScreenSpaceShadowTexture : register(t0);
+Texture2D<float4> gBaseColorTexture : register(t1);
 
 SamplerState gLinearSampler : LinearSampler
 {

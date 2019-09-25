@@ -49,6 +49,7 @@ void ForwardRenderer::BeginDrawPass()
 {
     m_pTransientPositionBuffer->Open();
     m_pTransientNormalBuffer->Open();
+    m_pTransientTexcoordBuffer->Open();
     m_pTransientIndexBuffer->Open();
 }
 
@@ -56,6 +57,7 @@ void ForwardRenderer::EndDrawPass()
 {
     m_pTransientPositionBuffer->Close();
     m_pTransientNormalBuffer->Close();
+    m_pTransientTexcoordBuffer->Close();
     m_pTransientIndexBuffer->Close();
 }
 
@@ -63,6 +65,7 @@ void ForwardRenderer::FlushData()
 {
     m_pTransientPositionBuffer->FlushData();
     m_pTransientNormalBuffer->FlushData();
+    m_pTransientTexcoordBuffer->FlushData();
     m_pTransientIndexBuffer->FlushData();
 }
 
@@ -70,6 +73,7 @@ void ForwardRenderer::ResetData()
 {
     m_pTransientPositionBuffer->ResetData();
     m_pTransientNormalBuffer->ResetData();
+    m_pTransientTexcoordBuffer->ResetData();
     m_pTransientIndexBuffer->ResetData();
 }
 
@@ -101,7 +105,7 @@ std::shared_ptr<DrawingPass> ForwardRenderer::CreateForwardShadingPass()
     auto pPass = CreatePass(ForwardShadingPass());
 
     BindEffect(*pPass, ForwardShadingEffect());
-    BindDynamicInputsPN(*pPass);
+    BindDynamicInputsPNT(*pPass);
     BindDepthState(*pPass, DepthStateNoWrite());
     BindBlendState(*pPass, DefaultBlendState());
     BindRasterState(*pPass, DefaultRasterState());
@@ -109,6 +113,7 @@ std::shared_ptr<DrawingPass> ForwardRenderer::CreateForwardShadingPass()
     BindPrimitive(*pPass, DefaultPrimitive());
     BindVaringStates(*pPass, DefaultVaringStates());
     BindScreenSpaceShadowTexture(*pPass);
+    BindBaseColorTexture(*pPass);
     BindLinearSampler(*pPass);
 
     BindConstants(*pPass);

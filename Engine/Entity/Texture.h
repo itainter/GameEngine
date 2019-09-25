@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "ITexture.h"
 #include "DrawingDevice.h"
+#include "ITexture.h"
 
 namespace Engine
 {
@@ -17,8 +17,11 @@ namespace Engine
         std::string GetURI() const override;
         void SetURI(std::string uri) override;
 
+        std::shared_ptr<DrawingTexture> GetTexture() const override;
+        void SetTexture(std::shared_ptr<DrawingTexture> pTexture) override;
+
     protected:
         std::string m_uri;
-        std::weak_ptr<DrawingTexture> m_pTexture;
+        std::shared_ptr<DrawingTexture> m_pTexture;
     };
 }

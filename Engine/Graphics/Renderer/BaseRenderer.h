@@ -45,6 +45,8 @@ namespace Engine
         void UpdateSSAOTextureAsTexture(DrawingResourceTable& resTable);
         void UpdateRectTexture(DrawingResourceTable& resTable, std::shared_ptr<std::string> pName);
 
+        void UpdateBaseColorTexture(DrawingResourceTable& resTable, std::shared_ptr<DrawingResource> pTexture);
+
     private:
         virtual void BeginDrawPass() = 0;
         virtual void EndDrawPass() = 0;
@@ -89,6 +91,7 @@ namespace Engine
         // Vertex format names
         FuncResourceName(VertexFormatP)
         FuncResourceName(VertexFormatPN)
+        FuncResourceName(VertexFormatPNT)
         FuncResourceName(VertexFormatT)
         // Vertex buffer names
         FuncResourceName(DefaultStaticPositionBuffer)
@@ -129,6 +132,7 @@ namespace Engine
         FuncResourceName(ScreenDepthTexture)
         FuncResourceName(ShadowMapTexture)
         FuncResourceName(ScreenSpaceShadowTexture)
+        FuncResourceName(BaseColorTexture)
         FuncResourceName(SSAOTexture)
         FuncResourceName(RectTexture)
         // Define texture sampler names
@@ -168,6 +172,7 @@ namespace Engine
 
         void DefineVertexFormatP(DrawingResourceTable& resTable);
         void DefineVertexFormatPN(DrawingResourceTable& resTable);
+        void DefineVertexFormatPNT(DrawingResourceTable& resTable);
         void DefineStaticVertexBuffer(std::shared_ptr<std::string> pName, uint32_t stride, uint32_t count, const void* data, uint32_t size, DrawingResourceTable& resTable);
         void DefineStaticIndexBuffer(std::shared_ptr<std::string> pName, uint32_t count, const void* data, uint32_t size, DrawingResourceTable& resTable);
 
@@ -221,6 +226,8 @@ namespace Engine
         void BindDynamicInputsP(DrawingPass& pass);
         void BindStaticInputsPN(DrawingPass& pass);
         void BindDynamicInputsPN(DrawingPass& pass);
+        void BindStaticInputsPNT(DrawingPass& pass);
+        void BindDynamicInputsPNT(DrawingPass& pass);
         void BindStaticInputsT(DrawingPass& pass);
         void BindDynamicInputsT(DrawingPass& pass);
         void BindStates(DrawingPass& pass);
@@ -232,6 +239,7 @@ namespace Engine
 
         void BindShadowMapTexture(DrawingPass& pass);
         void BindScreenSpaceShadowTexture(DrawingPass& pass);
+        void BindBaseColorTexture(DrawingPass& pass);
         void BindDepthTexture(DrawingPass& pass);
         void BindRectTexture(DrawingPass& pass);
         void BindLinearSampler(DrawingPass& pass);
@@ -253,9 +261,11 @@ namespace Engine
 
         static const uint32_t PositionOffset = sizeof(float3);
         static const uint32_t NormalOffset = sizeof(float3);
+        static const uint32_t TexcoordOffset = sizeof(float2);
 
         std::shared_ptr<DrawingTransientVertexBuffer> m_pTransientPositionBuffer;
         std::shared_ptr<DrawingTransientVertexBuffer> m_pTransientNormalBuffer;
+        std::shared_ptr<DrawingTransientVertexBuffer> m_pTransientTexcoordBuffer;
         std::shared_ptr<DrawingTransientIndexBuffer> m_pTransientIndexBuffer;
 
         std::shared_ptr<DrawingTextureDepthBuffer> m_pDepthBuffer;

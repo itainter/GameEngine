@@ -23,8 +23,8 @@ public:
         // Camera
         TransformComponent cameraTransformComp;
         CameraComponent cameraComp;
-        cameraTransformComp.SetPosition(float3(0.0f, 6.0f, -10.0f));
-        cameraTransformComp.SetRotate(float3(0.0f, -90.0f, -20.0f));
+        cameraTransformComp.SetPosition(float3(3.0f, 0.0f, 3.0f));
+        cameraTransformComp.SetRotate(float3(0.0f, 135.0f, 0.0f));
         cameraComp.SetBackground(float4(33.f / 255.f, 40.f / 255.f, 48.f / 255.f, 1.0f));
         auto pCamera = pWorld->CreateEntity<TransformComponent, CameraComponent>(cameraTransformComp, cameraComp);
 
@@ -52,7 +52,7 @@ public:
         loader.Load("Asset/Scene/Test/DamagedHelmet/DamagedHelmet.gltf");
         loader.ApplyToWorld();
 
-        // Plane
+        /*// Plane
         TransformComponent planeTransformComp;
         MeshFilterComponent planeMeshFilterComp;
         MeshRendererComponent planeMeshRendererComp;
@@ -92,7 +92,7 @@ public:
         cubeTransformComp2.SetScale(float3(2.0f, 4.0f, 2.0f));
         auto pCubeMesh2 = std::make_shared<CubeMesh>();
         cubeMeshFilterComp2.SetMesh(pCubeMesh2);
-        auto pCube2 = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(cubeTransformComp2, cubeMeshFilterComp2, cubeMeshRendererComp2);
+        auto pCube2 = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(cubeTransformComp2, cubeMeshFilterComp2, cubeMeshRendererComp2);*/
     }
 };
 

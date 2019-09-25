@@ -68,7 +68,23 @@ void DrawingSystem::FlushEntity(std::shared_ptr<IEntity> pEntity)
         m_pLightList.emplace_back(pEntity);
 
     if (pEntity->HasComponent<MeshFilterComponent>() && pEntity->HasComponent<TransformComponent>())
+    {
         m_pMeshList.emplace_back(pEntity);
+        auto pComponent = pEntity->GetComponent<MeshRendererComponent>();
+        auto size = pComponent->GetMaterialSize();
+        for (uint32_t i = 0; i < size; i++)
+        {
+            auto pMaterial = pComponent->GetMaterial(i);
+            auto pAlbedoMap = pMaterial->GetAlbedoMap();
+            if (pAlbedoMap && pAlbedoMap->GetTexture() != nullptr)
+            {
+                auto uri = pAlbedoMap->GetURI();
+                std::shared_ptr<DrawingTexture> pTexture = nullptr;
+                m_pDevice->CreateTextureFromFile(uri, pTexture);
+                pAlbedoMap->SetTexture(pTexture);
+            }
+        }
+    }
 }
 
 EConfigurationDeviceType DrawingSystem::GetDeviceType() const
@@ -474,7 +490,7 @@ void DrawingSystem::GetViewMatrix(TransformComponent* pTransform, float4x4& view
 
     float3 up = float3(0.0f, 1.0f, 0.0f);
     dir = float3(1.0f, 0.0f, 0.0f);
-    dir = Mat::Mul(dir, Mat::RotateLH(rotate.x, rotate.y, rotate.z));
+    dir = Mat::Mul(dir, Mat::EulerRotateLH(rotate.x, rotate.y, rotate.z));
     auto at = dir + pos;
 
     view = Mat::LookAtLH(pos, at, up);
@@ -498,7 +514,7 @@ void DrawingSystem::GetLightViewProjectionMatrix(TransformComponent* pTransform,
     float3 at = float3(0.0f, 0.0f, 0.0f);
     float3 up = float3(0.0f, 1.0f, 0.0f);
     dir = float3(1.0f, 0.0f, 0.0f);
-    dir = Vec::Normalize(Mat::Mul(dir, Mat::RotateLH(rotate.x, rotate.y, rotate.z)));
+    dir = Vec::Normalize(Mat::Mul(dir, Mat::EulerRotateLH(rotate.x, rotate.y, rotate.z)));
     float3 pos = at - dir;
 
     view = Mat::LookAtLH(pos, at, up);

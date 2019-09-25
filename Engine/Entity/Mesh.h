@@ -23,12 +23,12 @@ namespace Engine
         const uint32_t VertexCount() const override;
         const uint32_t IndexCount() const override;
 
-        void AttachVertexData(const char array[], const uint32_t size, const uint32_t count, Attribute::ESemanticType type, Attribute::EFormatType format, std::string name) override;
+        void AttachVertexData(const char array[], const uint32_t size, const uint32_t count, Attribute::ESemanticType type, std::string name) override;
         void AttachIndexData(const char array[], const uint32_t size, const uint32_t count) override;
 
     protected:
         template<typename T>
-        void AttachVertexData(const T array[], const uint32_t count, Attribute::ESemanticType type, Attribute::EFormatType format, std::string name);
+        void AttachVertexData(const T array[], const uint32_t count, Attribute::ESemanticType type, std::string name);
         template<typename T>
         void AttachIndexData(const T array[], const uint32_t count);
 
@@ -42,7 +42,7 @@ namespace Engine
     };
 
     template<typename T>
-    void Mesh::AttachVertexData(const T array[], const uint32_t count, Attribute::ESemanticType type, Attribute::EFormatType format, std::string name)
+    void Mesh::AttachVertexData(const T array[], const uint32_t count, Attribute::ESemanticType type, std::string name)
     {
         uint32_t size = count * sizeof(T);
         char* pData = new char[size];
@@ -51,7 +51,6 @@ namespace Engine
 
         auto pAttribute = std::make_shared<Attribute>();
         pAttribute->semanticType = type;
-        pAttribute->formatType = format;
         pAttribute->name = name;
         pAttribute->pData = std::shared_ptr<char>(pData);
         pAttribute->size = size;

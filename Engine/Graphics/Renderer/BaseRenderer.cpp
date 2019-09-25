@@ -15,6 +15,7 @@ void BaseRenderer::CreateDataResources(DrawingResourceTable& resTable)
 {
     m_pTransientPositionBuffer = CreateTransientVertexBuffer(resTable, DefaultDynamicPositionBuffer());
     m_pTransientNormalBuffer = CreateTransientVertexBuffer(resTable, DefaultDynamicNormalBuffer());
+    m_pTransientTexcoordBuffer = CreateTransientVertexBuffer(resTable, DefaultDynamicTexcoordBuffer());
     m_pTransientIndexBuffer = CreateTransientIndexBuffer(resTable, DefaultDynamicIndexBuffer());
 }
 
@@ -87,6 +88,13 @@ void BaseRenderer::UpdateRectTexture(DrawingResourceTable& resTable, std::shared
     pEntry->SetExternalResource(pEntrySrc->GetResource());
 }
 
+void BaseRenderer::UpdateBaseColorTexture(DrawingResourceTable& resTable, std::shared_ptr<DrawingResource> pTexture)
+{
+    auto pEntry = resTable.GetResourceEntry(BaseColorTexture());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(pTexture);
+}
+
 void BaseRenderer::AddRenderables(RenderQueueItemListType renderables)
 {
     m_renderQueue.Reset();
@@ -151,6 +159,7 @@ void BaseRenderer::AttachMesh(const IMesh* pMesh)
 
     assert(m_pTransientPositionBuffer->CheckCapacity(vertexCount));
     assert(m_pTransientNormalBuffer->CheckCapacity(vertexCount));
+    assert(m_pTransientTexcoordBuffer->CheckCapacity(vertexCount));
     assert(m_pTransientIndexBuffer->CheckCapacity(indexCount));
 
     auto pAttributes = pMesh->GetAttributes();
@@ -164,6 +173,9 @@ void BaseRenderer::AttachMesh(const IMesh* pMesh)
 
         if (type == (uint32_t)Attribute::ESemanticType::Normal)
             m_pTransientNormalBuffer->FillData(pElem->pData.get(), vertexCount);
+
+        if (type == (uint32_t)Attribute::ESemanticType::Texcoord0)
+            m_pTransientTexcoordBuffer->FillData(pElem->pData.get(), vertexCount);
     });
 
     m_pTransientIndexBuffer->FillData(pMesh->GetIndexData().get(), indexCount);
@@ -312,9 +324,11 @@ void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
 
     DefineVertexFormatP(resTable);
     DefineVertexFormatPN(resTable);
+    DefineVertexFormatPNT(resTable);
 
     DefineDynamicVertexBuffer(DefaultDynamicPositionBuffer(), PositionOffset, MAX_VERTEX_COUNT, resTable);
     DefineDynamicVertexBuffer(DefaultDynamicNormalBuffer(), NormalOffset, MAX_VERTEX_COUNT, resTable);
+    DefineDynamicVertexBuffer(DefaultDynamicTexcoordBuffer(), TexcoordOffset, MAX_VERTEX_COUNT, resTable);
     DefineDynamicIndexBuffer(DefaultDynamicIndexBuffer(), MAX_INDEX_COUNT, resTable);
 
     DefineWorldMatrixConstantBuffer(resTable);
@@ -338,6 +352,7 @@ void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
     DefineExternalTexture(ScreenDepthTexture(), resTable);
     DefineExternalTexture(ShadowMapTexture(), resTable);
     DefineExternalTexture(ScreenSpaceShadowTexture(), resTable);
+    DefineExternalTexture(BaseColorTexture(), resTable);
     DefineExternalTexture(SSAOTexture(), resTable);
     DefineShadowMapSampler(resTable);
 
@@ -435,6 +450,39 @@ void BaseRenderer::DefineVertexFormatPN(DrawingResourceTable& resTable)
     pDesc->m_inputElements.emplace_back(inputElem);
 
     resTable.AddResourceEntry(VertexFormatPN(), pDesc);
+}
+
+void BaseRenderer::DefineVertexFormatPNT(DrawingResourceTable& resTable)
+{
+    auto pDesc = std::make_shared<DrawingVertexFormatDesc>();
+
+    DrawingVertexFormatDesc::VertexInputElement inputElem;
+
+    inputElem.mFormat = eFormat_R32G32B32_FLOAT;
+    inputElem.mpName = strPtr("POSITION");
+    inputElem.mIndex = 0;
+    inputElem.mSlot = 0;
+    inputElem.mOffset = 0;
+    inputElem.mInstanceStepRate = 0;
+    pDesc->m_inputElements.emplace_back(inputElem);
+
+    inputElem.mFormat = eFormat_R32G32B32_FLOAT;
+    inputElem.mpName = strPtr("NORMAL");
+    inputElem.mIndex = 0;
+    inputElem.mSlot = 1;
+    inputElem.mOffset = 0;
+    inputElem.mInstanceStepRate = 0;
+    pDesc->m_inputElements.emplace_back(inputElem);
+
+    inputElem.mFormat = eFormat_R32G32_FLOAT;
+    inputElem.mpName = strPtr("TEXCOORD");
+    inputElem.mIndex = 0;
+    inputElem.mSlot = 2;
+    inputElem.mOffset = 0;
+    inputElem.mInstanceStepRate = 0;
+    pDesc->m_inputElements.emplace_back(inputElem);
+
+    resTable.AddResourceEntry(VertexFormatPNT(), pDesc);
 }
 
 void BaseRenderer::DefineStaticVertexBuffer(std::shared_ptr<std::string> pName, uint32_t stride, uint32_t count, const void* data, uint32_t size, DrawingResourceTable& resTable)
@@ -962,6 +1010,24 @@ void BaseRenderer::BindDynamicInputsPN(DrawingPass& pass)
     BindIndexBuffer(pass, DefaultDynamicIndexBuffer());
 }
 
+void BaseRenderer::BindStaticInputsPNT(DrawingPass& pass)
+{
+    BindVertexFormat(pass, VertexFormatPNT());
+    BindVertexBuffer(pass, 0, DefaultStaticPositionBuffer());
+    BindVertexBuffer(pass, 1, DefaultStaticNormalBuffer());
+    BindVertexBuffer(pass, 2, DefaultStaticTexcoordBuffer());
+    BindIndexBuffer(pass, DefaultStaticIndexBuffer());
+}
+
+void BaseRenderer::BindDynamicInputsPNT(DrawingPass& pass)
+{
+    BindVertexFormat(pass, VertexFormatPNT());
+    BindVertexBuffer(pass, 0, DefaultDynamicPositionBuffer());
+    BindVertexBuffer(pass, 1, DefaultDynamicNormalBuffer());
+    BindVertexBuffer(pass, 2, DefaultDynamicTexcoordBuffer());
+    BindIndexBuffer(pass, DefaultDynamicIndexBuffer());
+}
+
 void BaseRenderer::BindStaticInputsT(DrawingPass& pass)
 {
     BindVertexFormat(pass, VertexFormatT());
@@ -971,6 +1037,7 @@ void BaseRenderer::BindStaticInputsT(DrawingPass& pass)
 void BaseRenderer::BindDynamicInputsT(DrawingPass& pass)
 {
     BindVertexFormat(pass, VertexFormatT());
+    BindVertexBuffer(pass, 0, DefaultDynamicTexcoordBuffer());
 }
 
 void BaseRenderer::BindStates(DrawingPass& pass)
@@ -1021,6 +1088,13 @@ void BaseRenderer::BindScreenSpaceShadowTexture(DrawingPass& pass)
     auto screenspaceshadow_tex_slot = strPtr("ScreenSpaceShadowTex");
     AddTextureSlot(pass, screenspaceshadow_tex_slot, strPtr("gScreenSpaceShadowTexture"));
     BindResource(pass, screenspaceshadow_tex_slot, ScreenSpaceShadowTexture());
+}
+
+void BaseRenderer::BindBaseColorTexture(DrawingPass& pass)
+{
+    auto basecolor_tex_slot = strPtr("BaseColorTex");
+    AddTextureSlot(pass, basecolor_tex_slot, strPtr("gBaseColorTexture"));
+    BindResource(pass, basecolor_tex_slot, BaseColorTexture());
 }
 
 void BaseRenderer::BindDepthTexture(DrawingPass& pass)
@@ -1187,6 +1261,7 @@ float4x4 BaseRenderer::UpdateWorldMatrix(const TransformComponent* pTransform)
     float3 position = pTransform->GetPosition();
     float3 rotate = pTransform->GetRotate();
     float3 scale = pTransform->GetScale();
+    float4 quaternion = pTransform->GetQuaternion();
 
     float4x4 posMatrix = {
         1.f, 0.f, 0.f, 0.f,
@@ -1195,11 +1270,19 @@ float4x4 BaseRenderer::UpdateWorldMatrix(const TransformComponent* pTransform)
         position.x, position.y, position.z, 1.f
     };
 
-    auto rotMat = Mat::RotateLH(rotate.x, rotate.y, rotate.z);
+    auto rotMat = Mat::EulerRotateLH(rotate.x, rotate.y, rotate.z);
     float4x4 rotMatrix = {
         rotMat.x00, rotMat.x01, rotMat.x02, 0.f,
         rotMat.x10, rotMat.x11, rotMat.x12, 0.f,
         rotMat.x20, rotMat.x21, rotMat.x22, 0.f,
+        0.f, 0.f, 0.f, 1.f
+    };
+
+    auto quatMat = Mat::QuatRotateLH(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+    float4x4 quatMatrix = {
+        quatMat.x00, quatMat.x01, quatMat.x02, 0.f,
+        quatMat.x10, quatMat.x11, quatMat.x12, 0.f,
+        quatMat.x20, quatMat.x21, quatMat.x22, 0.f,
         0.f, 0.f, 0.f, 1.f
     };
 
@@ -1210,5 +1293,5 @@ float4x4 BaseRenderer::UpdateWorldMatrix(const TransformComponent* pTransform)
         0.f, 0.f, 0.f, 1.f
     };
 
-    return Mat::Mul(scaleMatrix, Mat::Mul(rotMatrix, posMatrix));
+    return Mat::Mul(scaleMatrix, Mat::Mul(quatMatrix, Mat::Mul(rotMatrix, posMatrix)));
 }

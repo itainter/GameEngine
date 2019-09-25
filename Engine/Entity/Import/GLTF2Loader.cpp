@@ -39,15 +39,22 @@ void GLTF2Loader::ApplyToWorld()
     std::for_each(nodes.begin(), nodes.end(), [&](gltf2::Node& aNode){
         auto mesh = meshes[aNode.mesh];
 
-        //auto pMaterial = m_pMaterials[meshes[mesh.primitives[0].material]];
+        auto pMaterial = m_pMaterials[mesh.primitives[0].material];
         auto pMesh = m_pMeshes[aNode.mesh];
 
         TransformComponent transformComp;
         MeshFilterComponent meshFilterComp;
         MeshRendererComponent meshRendererComp;
 
+        float x = aNode.rotation[0];
+        float y = aNode.rotation[1];
+        float z = aNode.rotation[2];
+        float w = aNode.rotation[3];
+
+        transformComp.SetQuaternion(float4(x, y, z, w));
         meshFilterComp.SetMesh(std::shared_ptr<IMesh>(pMesh));
-        //meshRendererComp.SetMaterial(std::shared_ptr<IMaterial>(pMaterial));
+        meshRendererComp.SetMaterialSize(1);
+        meshRendererComp.SetMaterial(std::shared_ptr<IMaterial>(pMaterial));
 
         pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(transformComp, meshFilterComp, meshRendererComp);
     });
@@ -60,25 +67,37 @@ void GLTF2Loader::LoadMaterials()
     auto images = m_asset.images;
 
     std::for_each(materials.begin(), materials.end(), [&](gltf2::Material& aMaterial){
-        float4 baseColor = aMaterial.pbr.baseColorFactor;
-        auto baseColorTexture = images[textures[aMaterial.pbr.baseColorTexture.index].source].uri;
-        auto normalTexture = images[textures[aMaterial.normalTexture.index].source].uri;
-
-        auto metallic = aMaterial.pbr.metallicFactor;
-        auto roughness = aMaterial.pbr.roughnessFactor;
-        auto metallicRoughnessTexture = images[textures[aMaterial.pbr.metallicRoughnessTexture.index].source].uri;
-        auto occlusionTexture = images[textures[aMaterial.occlusionTexture.index].source].uri;
-
         IMaterial* pMaterial = new Material();
 
-        pMaterial->SetAlbedoColor(baseColor);
-        pMaterial->SetAlbedoMap(std::shared_ptr<ITexture>(new Texture(baseColorTexture)));
-        pMaterial->SetNormalMap(std::shared_ptr<ITexture>(new Texture(normalTexture)));
+        float4 baseColor = aMaterial.pbr.baseColorFactor;
+        auto metallic = aMaterial.pbr.metallicFactor;
+        auto roughness = aMaterial.pbr.roughnessFactor;
 
+        pMaterial->SetAlbedoColor(baseColor);
         pMaterial->SetMetallic(metallic);
         pMaterial->SetRoughness(roughness);
-        pMaterial->SetMetallicRoughnessMap(std::shared_ptr<ITexture>(new Texture(metallicRoughnessTexture)));
-        pMaterial->SetOcclusionMap(std::shared_ptr<ITexture>(new Texture(occlusionTexture)));
+
+        uint32_t index = -1;
+        if ((index = aMaterial.pbr.baseColorTexture.index) != -1)
+        {
+            auto baseColorTexture = images[textures[index].source].uri;
+            pMaterial->SetAlbedoMap(std::shared_ptr<ITexture>(new Texture(baseColorTexture)));
+        }
+        if ((index = aMaterial.normalTexture.index) != -1)
+        {
+            auto normalTexture = images[textures[index].source].uri;
+            pMaterial->SetNormalMap(std::shared_ptr<ITexture>(new Texture(normalTexture)));
+        }
+        if ((index = aMaterial.pbr.metallicRoughnessTexture.index) != -1)
+        {
+            auto metallicRoughnessTexture = images[textures[index].source].uri;
+            pMaterial->SetMetallicRoughnessMap(std::shared_ptr<ITexture>(new Texture(metallicRoughnessTexture)));
+        }
+        if ((index = aMaterial.occlusionTexture.index) != -1)
+        {
+            auto occlusionTexture = images[textures[index].source].uri;
+            pMaterial->SetOcclusionMap(std::shared_ptr<ITexture>(new Texture(occlusionTexture)));
+        }
 
         m_pMaterials.push_back(pMaterial);
     });
@@ -120,7 +139,7 @@ void GLTF2Loader::LoadMeshes()
                 char* data = new char[subsize];
                 memcpy(data, pData + offset, subsize);
 
-                pMesh->AttachVertexData(data, subsize, count, type, Attribute::EFormatType::Float3, str);
+                pMesh->AttachVertexData(data, subsize, count, type, str);
             });
 
             auto indexNum = aPrimitive.indices;
