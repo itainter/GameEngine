@@ -169,7 +169,7 @@ bool DrawingDevice_D3D12::CreateTexture(const DrawingTextureDesc& desc, std::sha
     return true;
 }
 
-bool DrawingDevice_D3D12::CreateTextureFromFile(std::string uri, std::shared_ptr<DrawingTexture>& pRes)
+bool DrawingDevice_D3D12::CreateTextureFromFile(const std::string uri, std::shared_ptr<DrawingTexture>& pRes)
 {
     return true;
 }

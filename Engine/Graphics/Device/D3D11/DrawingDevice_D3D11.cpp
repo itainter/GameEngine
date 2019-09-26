@@ -246,12 +246,12 @@ bool DrawingDevice_D3D11::CreateTexture(const DrawingTextureDesc& desc, std::sha
     return true;
 }
 
-bool DrawingDevice_D3D11::CreateTextureFromFile(std::string uri, std::shared_ptr<DrawingTexture>& pRes)
+bool DrawingDevice_D3D11::CreateTextureFromFile(const std::string uri, std::shared_ptr<DrawingTexture>& pRes)
 {
     auto pTexture = std::make_shared<DrawingTexture>(shared_from_this());
 
-    //std::shared_ptr<DrawingRawTexture> pRawTexture = std::make_shared<DrawingRawTexture2D_D3D11>(std::static_pointer_cast<DrawingDevice_D3D11>(shared_from_this()), texture2DDesc, subResData);;
-    //pTexture->SetResource(pRawTexture);
+    std::shared_ptr<DrawingRawTexture> pRawTexture = std::make_shared<DrawingRawTexture2D_D3D11>(std::static_pointer_cast<DrawingDevice_D3D11>(shared_from_this()), uri);
+    pTexture->SetResource(pRawTexture);
 
     pRes = pTexture;
 

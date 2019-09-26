@@ -2,13 +2,14 @@
 
 Texture2D<float> gScreenSpaceShadowTexture : register(t0);
 Texture2D<float4> gBaseColorTexture : register(t1);
+Texture2D<float4> gOcclusionTexture : register(t2);
+Texture2D<float4> gMetallicRoughnessTexture : register(t3);
 
 SamplerState gLinearSampler : LinearSampler
 {
-    Texture = <gScreenSpaceShadowTexture>;
     Filter = MIN_MAG_MIP_LINEAR;
-    AddressU = Border;
-    AddressV = Border;
+    AddressU = Wrap;
+    AddressV = Wrap;
 };
 
 cbuffer LightBuffer : register(b0)
@@ -23,26 +24,23 @@ cbuffer CameraBuffer : register(b1)
 
 float4 ForwardShading_PS(ForwardShading_VertexAttr input) : SV_Target
 {
-    float4 color = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    float3 color = float3(0.0f, 0.0f, 0.0f);
     float2 coord = 0.5f * float2(input.pos.x ,-input.pos.y) / input.pos.w + 0.5f;
 
     float4 sssVal = gScreenSpaceShadowTexture.Sample(gLinearSampler, coord);
+    float4 baseColor = gBaseColorTexture.Sample(gLinearSampler, input.texcoord);
+    float occlusion = gOcclusionTexture.Sample(gLinearSampler, input.texcoord).x;
+    float4 metallicRoughness = gMetallicRoughnessTexture.Sample(gLinearSampler, input.texcoord);
 
-    float4 lightColor = float4(0.98039f, 0.94118f, 0.90196f, 1.0f);
-    float matA = 0.3f;
-    float matD = 0.5f;
-    float matS = 0.2f;
+    float3 lightColor = float3(1.0f, 1.0f, 1.0f);
 
-    float4 ambient = lightColor * matA;
-    float4 diffuse = lightColor * matD * saturate(dot(-gLightDir, input.normal));
-    float3 v = reflect(-gLightDir, input.normal);
-    float specFactor = 2.0f;
-    float4 spec = lightColor * pow(max(dot(v, gCameraDir), 0), specFactor) * matS;
+    float3 diffuse = lightColor * saturate(dot(-gLightDir, input.normal));
+    float3 h = -normalize(gLightDir + gCameraDir);
+    float specFactor = 16.0f;
+    float3 spec = lightColor * pow(max(dot(input.normal, h), 0), 1.0f / metallicRoughness.y);
 
-    color = ambient + (diffuse + spec) * sssVal;
-    color.w = 1.0f;
-
+    color += (0.2 + (diffuse + spec) * sssVal) * baseColor * occlusion;
     color = saturate(color);
 
-    return color;
+    return float4(color, 1.0f);
 }

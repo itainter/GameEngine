@@ -114,6 +114,8 @@ std::shared_ptr<DrawingPass> ForwardRenderer::CreateForwardShadingPass()
     BindVaringStates(*pPass, DefaultVaringStates());
     BindScreenSpaceShadowTexture(*pPass);
     BindBaseColorTexture(*pPass);
+    BindOcclusionTexture(*pPass);
+    BindMetallicRoughnessTexture(*pPass);
     BindLinearSampler(*pPass);
 
     BindConstants(*pPass);

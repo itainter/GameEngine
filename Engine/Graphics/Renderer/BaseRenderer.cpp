@@ -95,6 +95,20 @@ void BaseRenderer::UpdateBaseColorTexture(DrawingResourceTable& resTable, std::s
     pEntry->SetExternalResource(pTexture);
 }
 
+void BaseRenderer::UpdateOcclusionTexture(DrawingResourceTable& resTable, std::shared_ptr<DrawingResource> pTexture)
+{
+    auto pEntry = resTable.GetResourceEntry(OcclusionTexture());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(pTexture);
+}
+
+void BaseRenderer::UpdateMetallicRoughnessTexture(DrawingResourceTable& resTable, std::shared_ptr<DrawingResource> pTexture)
+{
+    auto pEntry = resTable.GetResourceEntry(MetallicRoughnessTexture());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(pTexture);
+}
+
 void BaseRenderer::AddRenderables(RenderQueueItemListType renderables)
 {
     m_renderQueue.Reset();
@@ -353,6 +367,8 @@ void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
     DefineExternalTexture(ShadowMapTexture(), resTable);
     DefineExternalTexture(ScreenSpaceShadowTexture(), resTable);
     DefineExternalTexture(BaseColorTexture(), resTable);
+    DefineExternalTexture(OcclusionTexture(), resTable);
+    DefineExternalTexture(MetallicRoughnessTexture(), resTable);
     DefineExternalTexture(SSAOTexture(), resTable);
     DefineShadowMapSampler(resTable);
 
@@ -890,9 +906,9 @@ void BaseRenderer::DefineLinearSampler(DrawingResourceTable& resTable)
     auto pDesc = std::make_shared<DrawingSamplerStateDesc>();
 
     pDesc->mSamplerMode = eSamplerMode_Compare;
-    pDesc->mAddressU = eAddressMode_Border;
-    pDesc->mAddressV = eAddressMode_Border;
-    pDesc->mAddressW = eAddressMode_Border;
+    pDesc->mAddressU = eAddressMode_Wrap;
+    pDesc->mAddressV = eAddressMode_Wrap;
+    pDesc->mAddressW = eAddressMode_Wrap;
     pDesc->mBorderColor[0] = 0;
     pDesc->mBorderColor[1] = 0;
     pDesc->mBorderColor[2] = 0;
@@ -1095,6 +1111,20 @@ void BaseRenderer::BindBaseColorTexture(DrawingPass& pass)
     auto basecolor_tex_slot = strPtr("BaseColorTex");
     AddTextureSlot(pass, basecolor_tex_slot, strPtr("gBaseColorTexture"));
     BindResource(pass, basecolor_tex_slot, BaseColorTexture());
+}
+
+void BaseRenderer::BindOcclusionTexture(DrawingPass& pass)
+{
+    auto occlusion_tex_slot = strPtr("OcclusionTex");
+    AddTextureSlot(pass, occlusion_tex_slot, strPtr("gOcclusionTexture"));
+    BindResource(pass, occlusion_tex_slot, OcclusionTexture());
+}
+
+void BaseRenderer::BindMetallicRoughnessTexture(DrawingPass& pass)
+{
+    auto metallicroughness_tex_slot = strPtr("MetallicRoughnessTex");
+    AddTextureSlot(pass, metallicroughness_tex_slot, strPtr("gMetallicRoughnessTexture"));
+    BindResource(pass, metallicroughness_tex_slot, MetallicRoughnessTexture());
 }
 
 void BaseRenderer::BindDepthTexture(DrawingPass& pass)

@@ -46,7 +46,7 @@ namespace Engine
         bool RegisterRenderer();
         bool PostConfiguration();
 
-        void BuildFrameGraph();
+        void BuildFrameGraph(std::shared_ptr<IEntity> pCamera);
         bool BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGraph, std::shared_ptr<IEntity> pCamera);
         bool BuildDeferredFrameGraph(std::shared_ptr<FrameGraph> pFrameGraph, std::shared_ptr<IEntity> pCamera);
 
