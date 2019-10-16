@@ -105,6 +105,24 @@ void DrawingSystem::FlushEntity(std::shared_ptr<IEntity> pEntity)
                 m_pDevice->CreateTextureFromFile(uri, pTexture);
                 pMetallicRoughnessMap->SetTexture(pTexture);
             }
+
+            auto pNormalMap = pMaterial->GetNormalMap();
+            if (pNormalMap && pNormalMap->GetTexture() == nullptr)
+            {
+                auto uri = pNormalMap->GetURI();
+                std::shared_ptr<DrawingTexture> pTexture = nullptr;
+                m_pDevice->CreateTextureFromFile(uri, pTexture);
+                pNormalMap->SetTexture(pTexture);
+            }
+
+            auto pEmissiveMap = pMaterial->GetEmissiveMap();
+            if (pEmissiveMap && pEmissiveMap->GetTexture() == nullptr)
+            {
+                auto uri = pEmissiveMap->GetURI();
+                std::shared_ptr<DrawingTexture> pTexture = nullptr;
+                m_pDevice->CreateTextureFromFile(uri, pTexture);
+                pEmissiveMap->SetTexture(pTexture);
+            }
         }
     }
 }
@@ -525,6 +543,14 @@ void DrawingSystem::GetVisableRenderable(RenderQueueItemListType& items)
         pTexture = pMeshRenderer->GetMaterial(0)->GetMetallicRoughnessMap();
         if (pTexture != nullptr)
             pRenderer->UpdateMetallicRoughnessTexture(*m_pResourceTable, pTexture->GetTexture());
+
+        pTexture = pMeshRenderer->GetMaterial(0)->GetNormalMap();
+        if (pTexture != nullptr)
+            pRenderer->UpdateNormalTexture(*m_pResourceTable, pTexture->GetTexture());
+
+        pTexture = pMeshRenderer->GetMaterial(0)->GetEmissiveMap();
+        if (pTexture != nullptr)
+            pRenderer->UpdateEmissiveTexture(*m_pResourceTable, pTexture->GetTexture());
     }
 }
 

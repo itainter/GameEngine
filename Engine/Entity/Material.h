@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Vector.h"
 #include "IMaterial.h"
 
 namespace Engine
@@ -34,6 +35,12 @@ namespace Engine
         std::shared_ptr<ITexture> GetOcclusionMap() const override;
         void SetOcclusionMap(std::shared_ptr<ITexture> map) override;
 
+        std::shared_ptr<ITexture> GetEmissiveMap() const override;
+        void SetEmissiveMap(std::shared_ptr<ITexture> map) override;
+
+        float3 GetEmissive() const override;
+        void SetEmissive(float* emissive) override;
+
     protected:
         std::shared_ptr<ITexture> m_pAlbedoMap;
         float4 m_albedoColor;
@@ -45,5 +52,8 @@ namespace Engine
         std::shared_ptr<ITexture> m_pNormalMap;
         std::shared_ptr<ITexture> m_pHeightMap;
         std::shared_ptr<ITexture> m_pOcclusionMap;
+
+        std::shared_ptr<ITexture> m_pEmissiveMap;
+        float3 m_emissive;
     };
 }

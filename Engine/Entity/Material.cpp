@@ -97,3 +97,23 @@ void Material::SetOcclusionMap(std::shared_ptr<ITexture> map)
 {
     m_pOcclusionMap = map;
 }
+
+std::shared_ptr<ITexture> Material::GetEmissiveMap() const
+{
+    return m_pEmissiveMap;
+}
+
+void Material::SetEmissiveMap(std::shared_ptr<ITexture> map)
+{
+    m_pEmissiveMap = map;
+}
+
+float3 Material::GetEmissive() const
+{
+    return m_emissive;
+}
+
+void Material::SetEmissive(float* emissive)
+{
+    m_emissive = float3(emissive[0], emissive[1], emissive[2]);
+}

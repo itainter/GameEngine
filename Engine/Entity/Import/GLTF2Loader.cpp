@@ -72,10 +72,12 @@ void GLTF2Loader::LoadMaterials()
         float4 baseColor = aMaterial.pbr.baseColorFactor;
         auto metallic = aMaterial.pbr.metallicFactor;
         auto roughness = aMaterial.pbr.roughnessFactor;
+        auto emissive = aMaterial.emissiveFactor;
 
         pMaterial->SetAlbedoColor(baseColor);
         pMaterial->SetMetallic(metallic);
         pMaterial->SetRoughness(roughness);
+        pMaterial->SetEmissive(emissive);
 
         uint32_t index = -1;
         if ((index = aMaterial.pbr.baseColorTexture.index) != -1)
@@ -97,6 +99,11 @@ void GLTF2Loader::LoadMaterials()
         {
             auto occlusionTexture = images[textures[index].source].uri;
             pMaterial->SetOcclusionMap(std::shared_ptr<ITexture>(new Texture(occlusionTexture)));
+        }
+        if ((index = aMaterial.emissiveTexture.index) != -1)
+        {
+            auto emissiveTexture = images[textures[index].source].uri;
+            pMaterial->SetEmissiveMap(std::shared_ptr<ITexture>(new Texture(emissiveTexture)));
         }
 
         m_pMaterials.push_back(pMaterial);

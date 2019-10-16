@@ -109,6 +109,20 @@ void BaseRenderer::UpdateMetallicRoughnessTexture(DrawingResourceTable& resTable
     pEntry->SetExternalResource(pTexture);
 }
 
+void BaseRenderer::UpdateNormalTexture(DrawingResourceTable& resTable, std::shared_ptr<DrawingResource> pTexture)
+{
+    auto pEntry = resTable.GetResourceEntry(NormalTexture());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(pTexture);
+}
+
+void BaseRenderer::UpdateEmissiveTexture(DrawingResourceTable& resTable, std::shared_ptr<DrawingResource> pTexture)
+{
+    auto pEntry = resTable.GetResourceEntry(EmissiveTexture());
+    assert(pEntry != nullptr);
+    pEntry->SetExternalResource(pTexture);
+}
+
 void BaseRenderer::AddRenderables(RenderQueueItemListType renderables)
 {
     m_renderQueue.Reset();
@@ -369,6 +383,8 @@ void BaseRenderer::DefineDefaultResources(DrawingResourceTable& resTable)
     DefineExternalTexture(BaseColorTexture(), resTable);
     DefineExternalTexture(OcclusionTexture(), resTable);
     DefineExternalTexture(MetallicRoughnessTexture(), resTable);
+    DefineExternalTexture(EmissiveTexture(), resTable);
+    DefineExternalTexture(NormalTexture(), resTable);
     DefineExternalTexture(SSAOTexture(), resTable);
     DefineShadowMapSampler(resTable);
 
@@ -1125,6 +1141,20 @@ void BaseRenderer::BindMetallicRoughnessTexture(DrawingPass& pass)
     auto metallicroughness_tex_slot = strPtr("MetallicRoughnessTex");
     AddTextureSlot(pass, metallicroughness_tex_slot, strPtr("gMetallicRoughnessTexture"));
     BindResource(pass, metallicroughness_tex_slot, MetallicRoughnessTexture());
+}
+
+void BaseRenderer::BindNormalTexture(DrawingPass& pass)
+{
+    auto normal_tex_slot = strPtr("NormalTex");
+    AddTextureSlot(pass, normal_tex_slot, strPtr("gNormalTexture"));
+    BindResource(pass, normal_tex_slot, NormalTexture());
+}
+
+void BaseRenderer::BindEmissiveTexture(DrawingPass& pass)
+{
+    auto emissive_tex_slot = strPtr("EmissiveTex");
+    AddTextureSlot(pass, emissive_tex_slot, strPtr("gEmissiveTexture"));
+    BindResource(pass, emissive_tex_slot, EmissiveTexture());
 }
 
 void BaseRenderer::BindDepthTexture(DrawingPass& pass)

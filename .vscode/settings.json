@@ -74,7 +74,8 @@
         "atomic": "cpp",
         "condition_variable": "cpp",
         "shared_mutex": "cpp",
-        "clocale": "cpp"
+        "clocale": "cpp",
+        "codecvt": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

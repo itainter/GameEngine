@@ -37,5 +37,11 @@ namespace Engine
 
         virtual std::shared_ptr<ITexture> GetOcclusionMap() const = 0;
         virtual void SetOcclusionMap(std::shared_ptr<ITexture> map) = 0;
+
+        virtual std::shared_ptr<ITexture> GetEmissiveMap() const = 0;
+        virtual void SetEmissiveMap(std::shared_ptr<ITexture> map) = 0;
+
+        virtual float3 GetEmissive() const = 0;
+        virtual void SetEmissive(float* emissive) = 0;
     };
 }

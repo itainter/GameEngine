@@ -48,6 +48,8 @@ namespace Engine
         void UpdateBaseColorTexture(DrawingResourceTable& resTable, std::shared_ptr<DrawingResource> pTexture);
         void UpdateOcclusionTexture(DrawingResourceTable& resTable, std::shared_ptr<DrawingResource> pTexture);
         void UpdateMetallicRoughnessTexture(DrawingResourceTable& resTable, std::shared_ptr<DrawingResource> pTexture);
+        void UpdateNormalTexture(DrawingResourceTable& resTable, std::shared_ptr<DrawingResource> pTexture);
+        void UpdateEmissiveTexture(DrawingResourceTable& resTable, std::shared_ptr<DrawingResource> pTexture);
 
     private:
         virtual void BeginDrawPass() = 0;
@@ -137,6 +139,8 @@ namespace Engine
         FuncResourceName(BaseColorTexture)
         FuncResourceName(OcclusionTexture)
         FuncResourceName(MetallicRoughnessTexture)
+        FuncResourceName(NormalTexture)
+        FuncResourceName(EmissiveTexture)
         FuncResourceName(SSAOTexture)
         FuncResourceName(RectTexture)
         // Define texture sampler names
@@ -246,6 +250,8 @@ namespace Engine
         void BindBaseColorTexture(DrawingPass& pass);
         void BindOcclusionTexture(DrawingPass& pass);
         void BindMetallicRoughnessTexture(DrawingPass& pass);
+        void BindNormalTexture(DrawingPass& pass);
+        void BindEmissiveTexture(DrawingPass& pass);
         void BindDepthTexture(DrawingPass& pass);
         void BindRectTexture(DrawingPass& pass);
         void BindLinearSampler(DrawingPass& pass);
