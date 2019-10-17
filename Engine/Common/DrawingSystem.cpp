@@ -269,6 +269,11 @@ bool DrawingSystem::PostConfiguration()
     return true;
 }
 
+void DrawingSystem::FlushMaterial(std::shared_ptr<IMaterial> pMaterial)
+{
+
+}
+
 void DrawingSystem::BuildFrameGraph(std::shared_ptr<IEntity> pCamera)
 {
     std::shared_ptr<FrameGraph> pFrameGraph = std::make_shared<FrameGraph>();

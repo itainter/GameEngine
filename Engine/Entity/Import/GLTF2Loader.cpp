@@ -1,7 +1,5 @@
 #include "GLTF2Loader.h"
 
-#include "Mesh.h"
-#include "Material.h"
 #include "Texture.h"
 
 #include "TransformComponent.h"
@@ -67,7 +65,7 @@ void GLTF2Loader::LoadMaterials()
     auto images = m_asset.images;
 
     std::for_each(materials.begin(), materials.end(), [&](gltf2::Material& aMaterial){
-        IMaterial* pMaterial = new Material();
+        auto pMaterial = new StandardMaterial();
 
         float4 baseColor = aMaterial.pbr.baseColorFactor;
         auto metallic = aMaterial.pbr.metallicFactor;

@@ -16,6 +16,8 @@
 #include "ForwardRenderer.h"
 #include "FrameGraph.h"
 
+#include "StandardMaterial.h"
+
 namespace Engine
 {
     class TransformComponent;
@@ -45,6 +47,9 @@ namespace Engine
         bool CreatePreResource();
         bool RegisterRenderer();
         bool PostConfiguration();
+
+        void FlushMaterial(IMaterial* pMaterial);
+        void FlushStandardMaterial(StandardMaterial* pMaterial);
 
         void BuildFrameGraph(std::shared_ptr<IEntity> pCamera);
         bool BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGraph, std::shared_ptr<IEntity> pCamera);
