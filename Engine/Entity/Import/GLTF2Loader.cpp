@@ -115,10 +115,11 @@ void GLTF2Loader::LoadMeshes()
     auto accessors = m_asset.accessors;
     auto bufferViews = m_asset.bufferViews;
 
-    std::for_each(meshes.begin(), meshes.end(), [&](gltf2::Mesh& aMesh){
+    std::for_each(meshes.begin(), meshes.end(), [&](gltf2::Mesh& aMesh)
+    {
         auto primitives = aMesh.primitives;
         std::for_each(primitives.begin(), primitives.end(), [&](gltf2::Primitive& aPrimitive){
-            IMesh* pMesh = new Mesh();
+            auto pMesh = new Mesh();
             auto attributes = aPrimitive.attributes;
             std::for_each(attributes.begin(), attributes.end(), [&](gltf2::Attributes::value_type& aAttribute){
                 auto str = aAttribute.first;

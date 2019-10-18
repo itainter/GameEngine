@@ -11,6 +11,11 @@ namespace Engine
         StandardMaterial();
         virtual ~StandardMaterial();
 
+        EMaterialType GetMaterialType() const override
+        {
+            return eMaterial_Standard;
+        }
+
         std::shared_ptr<ITexture> GetAlbedoMap() const;
         void SetAlbedoMap(std::shared_ptr<ITexture> map);
 
