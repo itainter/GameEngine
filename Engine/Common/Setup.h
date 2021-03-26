@@ -24,9 +24,12 @@
         #include "MeshFilterComponent.h"
         #include "MeshRendererComponent.h"
         #include "TransformComponent.h"
+        #include "SkyboxComponent.h"
 
         #include "CubeMesh.h"
         #include "PlaneMesh.h"
+
+        #include "Texture.h"
 
         #include "DirectionalLight.h"
 

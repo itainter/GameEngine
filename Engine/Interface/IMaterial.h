@@ -10,6 +10,8 @@ namespace Engine
     enum EMaterialType
     {
         eMaterial_Standard = 0,
+
+        eMaterial_Skybox_Panoramic,
     };
 
     class IMaterial

@@ -13,8 +13,8 @@ public:
     GameSetup()
     {
         gpGlobal->GetConfiguration<AppConfiguration>().SetAppName("Game Test");
-        gpGlobal->GetConfiguration<AppConfiguration>().SetWidth(1080);
-        gpGlobal->GetConfiguration<AppConfiguration>().SetHeight(1080);
+        gpGlobal->GetConfiguration<AppConfiguration>().SetWidth(800);
+        gpGlobal->GetConfiguration<AppConfiguration>().SetHeight(800);
         gpGlobal->GetConfiguration<GraphicsConfiguration>().SetDeviceType(eDevice_D3D11);
         gpGlobal->GetConfiguration<GraphicsConfiguration>().SetMSAA(eMSAA_4);
 
@@ -23,16 +23,20 @@ public:
         // Camera
         TransformComponent cameraTransformComp;
         CameraComponent cameraComp;
+        SkyboxComponent cameraSkyboxComp;
         cameraTransformComp.SetPosition(float3(3.0f, 0.0f, 3.0f));
         cameraTransformComp.SetRotate(float3(0.0f, 135.0f, 0.0f));
         cameraComp.SetBackground(float4(33.f / 255.f, 40.f / 255.f, 48.f / 255.f, 1.0f));
-        auto pCamera = pWorld->CreateEntity<TransformComponent, CameraComponent>(cameraTransformComp, cameraComp);
+        auto pSkyboxMaterial = std::make_shared<SkyboxPanoramicMaterial>();
+        pSkyboxMaterial->SetHDRMap(std::make_shared<Texture>("Asset/HDR/PaperMill_E_3k.hdr"));
+        cameraSkyboxComp.SetSkyboxMaterial(std::static_pointer_cast<SkyboxMaterial>(pSkyboxMaterial));
+        auto pCamera = pWorld->CreateEntity<TransformComponent, CameraComponent, SkyboxComponent>(cameraTransformComp, cameraComp, cameraSkyboxComp);
 
         // Directional Light
         TransformComponent lightTransformComp;
         LightComponent lightComp;
         AnimationComponent lightAnimationComp;
-        lightTransformComp.SetRotate(float3(0.0f, -135.0f, -45.0f));
+        lightTransformComp.SetRotate(float3(0.0f, -135.0f, -60.0f));
         auto pDirectionalLight = std::make_shared<DirectionalLight>();
         lightComp.SetLight(pDirectionalLight);
         auto pLight = pWorld->CreateEntity<TransformComponent, LightComponent, AnimationComponent>(lightTransformComp, lightComp, lightAnimationComp);
@@ -49,20 +53,20 @@ public:
         pLight->GetComponent<AnimationComponent>()->SetAnimationFunc(func2);
 
         GLTF2Loader loader;
-        loader.Load("Asset/Scene/Test/DamagedHelmet/DamagedHelmet.gltf");
+        loader.Load("D:/Itainter/GameEngine/bin/Test/GLTF2/Debug/Test/DamagedHelmet/DamagedHelmet.gltf");
         loader.ApplyToWorld();
 
-        /*// Plane
+        // Plane
         TransformComponent planeTransformComp;
         MeshFilterComponent planeMeshFilterComp;
         MeshRendererComponent planeMeshRendererComp;
-        planeTransformComp.SetPosition(float3(0.0f, -0.5f, 0.0f));
+        planeTransformComp.SetPosition(float3(0.0f, -2.0f, 0.0f));
         auto pPlaneMesh = std::make_shared<PlaneMesh>();
         planeMeshFilterComp.SetMesh(pPlaneMesh);
         auto pPlane = pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(planeTransformComp, planeMeshFilterComp, planeMeshRendererComp);
 
         // Entity 1
-        TransformComponent cubeTransformComp1;
+        /*TransformComponent cubeTransformComp1;
         MeshFilterComponent cubeMeshFilterComp1;
         MeshRendererComponent cubeMeshRendererComp1;
         AnimationComponent cubeAnimationComp1;

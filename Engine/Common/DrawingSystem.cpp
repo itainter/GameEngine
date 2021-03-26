@@ -78,7 +78,7 @@ void DrawingSystem::FlushEntity(IEntity* pEntity)
         for (uint32_t i = 0; i < size; i++)
         {
             auto pMaterial = pComponent->GetMaterial(i);
-            FlushMaterial(pMaterial.get());
+            FlushMaterial(pMaterial);
         }
     }
 }
@@ -475,22 +475,18 @@ bool DrawingSystem::BuildForwardFrameGraph(std::shared_ptr<FrameGraph> pFrameGra
         pRenderer->Render(*m_pResourceTable, pForwardShadingPass);
     });
 
-    // SSAO pass.
-    auto pSSAOPass = pRenderer->GetPass(ForwardRenderer::SSAOPass());
-    assert(pSSAOPass != nullptr);
-    auto& ssaoNode = pFrameGraph->AddPass(pSSAOPass, GraphicsBit);
+    // Skybox pass.
+    /*auto pSkyboxPass = pRenderer->GetPass(ForwardRenderer::SkyboxPass());
+    assert(pSkyboxPass != nullptr);
+    auto& skyboxNode = pFrameGraph->AddPass(pSkyboxPass, GraphicsBit);
 
-    ssaoNode.SetClearColorFunc(0, [&](float4& color) -> void {
-        color = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    skyboxNode.SetClearColorFunc(0, [&](float4& color) -> void {
+        color = pCameraComponent->GetBackground();
     });
 
-    ssaoNode.SetExecuteFunc([&, pRenderer, pSSAOPass](void) -> void {
-        m_pContext->SetViewport(Box2(float2(0, 0), float2((float)gpGlobal->GetConfiguration<AppConfiguration>().GetWidth(), (float)gpGlobal->GetConfiguration<AppConfiguration>().GetHeight())));
-        m_pContext->UpdateContext(*m_pResourceTable);
-
-        pRenderer->UpdateSSAOTextureAsTarget(*m_pResourceTable);
-        pRenderer->RenderRect(*m_pResourceTable, pSSAOPass);
-    });
+    skyboxNode.SetExecuteFunc([&, pRenderer, pSkyboxPass](void) -> void {
+        pRenderer->Render(*m_pResourceTable, pSkyboxPass);
+    });*/
 
     // Debug layer pass.
     auto pDebugLayerPass = pRenderer->GetPass(ForwardRenderer::DebugLayerPass());
@@ -550,8 +546,9 @@ void DrawingSystem::GetVisableRenderable(RenderQueueItemListType& items)
 
         items.push_back(RenderQueueItem{ dynamic_cast<IRenderable*>(pMeshFilter->GetMesh().get()), pTrans});
 
-        auto pMaterial = pMeshRenderer->GetMaterial(0).get();
-        UpdateMaterial(pMaterial);
+        auto pMaterial = pMeshRenderer->GetMaterial(0);
+        if (pMaterial != nullptr)
+            UpdateMaterial(pMaterial);
     }
 }
 

@@ -81,11 +81,13 @@ namespace Engine
         FuncResourceName(RectPixelShader)
         FuncResourceName(SSAOPixelShader)
         // Define effect resource names
+        FuncResourceName(SkyboxEffect)
         FuncResourceName(BasicEffect)
         FuncResourceName(ScreenSpaceShadowEffect)
         FuncResourceName(RectEffect)
         FuncResourceName(SSAOEffect)
         // Define pass names
+        FuncResourceName(SkyboxPass)
         FuncResourceName(ShadowCasterPass)
         FuncResourceName(ScreenSpaceShadowPass)
         FuncResourceName(RectPass)
@@ -153,6 +155,7 @@ namespace Engine
     protected:
         std::shared_ptr<DrawingPass> CreatePass(std::shared_ptr<std::string> pName);
 
+        std::shared_ptr<DrawingPass> CreateSkyboxPass();
         std::shared_ptr<DrawingPass> CreateShadowCasterPass();
         std::shared_ptr<DrawingPass> CreateScreenSpaceShadowPass();
         std::shared_ptr<DrawingPass> CreateSSAOPass();

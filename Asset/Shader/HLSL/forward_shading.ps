@@ -27,48 +27,60 @@ cbuffer CameraBuffer : register(b2)
     float3 gCameraDir : CAMERA_DIR;
 };
 
-float DistributionGGX(float3 N, float3 H, float roughness)
+float Pow5 (float x)
 {
-    float a = roughness * roughness;
-    float a2 = a*a;
-    float NdotH = max(dot(N, H), 0.0f);
-    float NdotH2 = NdotH * NdotH;
-
-    float nom = a2;
-    float denom = (NdotH2 * (a2 - 1.0f) + 1.0f);
-    denom = PI * denom * denom;
-
-    return nom / denom;
+    return x * x * x * x * x;
 }
 
-float GeometrySchlickGGX(float NdotV, float roughness)
+float OneMinusReflectivityFromMetallic(half4 unity_ColorSpaceDielectricSpec, float metallic)
 {
-    float r = (roughness + 1.0f);
-    float k = (r * r) / 8.0f;
-
-    float nom = NdotV;
-    float denom = NdotV * (1.0f - k) + k;
-
-    return nom / denom;
+    float oneMinusDielectricSpec = unity_ColorSpaceDielectricSpec.w;
+    return oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
 }
 
-float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
+void DiffuseAndSpecularFromMetallic (half4 unity_ColorSpaceDielectricSpec, float3 albedo, float metallic, out float3 diffColor, out float3 specColor)
 {
-    float NdotV = max(dot(N, V), 0.0f);
-    float NdotL = max(dot(N, L), 0.0f);
-    float ggx2  = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1  = GeometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
+    specColor = lerp (unity_ColorSpaceDielectricSpec.xyz, albedo, metallic);
+    float oneMinusReflectivity = OneMinusReflectivityFromMetallic(unity_ColorSpaceDielectricSpec, metallic);
+    diffColor = albedo * oneMinusReflectivity;
 }
 
-float3 FresnelSchlick(float cosTheta, float3 F0)
+float3 FresnelTerm (float3 F0, float cosA)
 {
-    return F0 + (1.0f - F0) * pow(1.0f - cosTheta, 5.0f);
+    float t = Pow5 (1.f - cosA);
+    return F0 + (1.f - F0) * t;
+}
+
+float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float perceptualRoughness)
+{
+    float fd90 = 0.5 + 2.f * LdotH * LdotH * perceptualRoughness;
+
+    float lightScatter = (1.f + (fd90 - 1.f) * Pow5(1.f - NdotL));
+    float viewScatter = (1.f + (fd90 - 1.f) * Pow5(1.f - NdotV));
+
+    return lightScatter * viewScatter;
+}
+
+float SmithJointGGXVisibilityTerm (float NdotL, float NdotV, float roughness)
+{
+    float a = roughness;
+    float lambdaV = NdotL * (NdotV * (1.f - a) + a);
+    float lambdaL = NdotV * (NdotL * (1.f - a) + a);
+
+    return 0.5f / (lambdaV + lambdaL + 1e-5f);
+}
+
+float GGXTerm (float NdotH, float roughness)
+{
+    float a2 = roughness * roughness;
+    float d = (NdotH * a2 - NdotH) * NdotH + 1.0f;
+    return PI * a2 / (d * d + 1e-7f);
 }
 
 float4 ForwardShading_PS(ForwardShading_VertexAttr input) : SV_Target
 {
+    half4 unity_ColorSpaceDielectricSpec = half4(0.22f, 0.22f, 0.22f, 0.779f);
+
     float3 color = float3(0.0f, 0.0f, 0.0f);
     float2 coord = 0.5f * float2(input.pos.x ,-input.pos.y) / input.pos.w + 0.5f;
 
@@ -83,37 +95,37 @@ float4 ForwardShading_PS(ForwardShading_VertexAttr input) : SV_Target
 
     float3 N = normalize(input.normal);
     float3 V = normalize(-gCameraDir);
-
-    float3 F0 = 0.04f; 
-    F0 = lerp(F0, albedo, metallic);
-
-    float3 Lo = 0.0f;
-
     float3 L = normalize(-gLightDir);
     float3 H = normalize(V + L);
 
-    float NDF = DistributionGGX(N, H, roughness);
-    float G = GeometrySmith(N, V, L, roughness);
-    float3 F = FresnelSchlick(max(dot(H, V), 0.0f), F0);
+    float nv = saturate(dot(N, V));
+    float nl = saturate(dot(N, L));
+    float nh = saturate(dot(N, H));
+    float lh = saturate(dot(L, H));
 
-    float3 kS = F;
-    float3 kD = 1.0f - kS;
-    kD *= 1.0f - metallic;
+    float3 diffColor;
+    float3 specColor;
+    DiffuseAndSpecularFromMetallic(unity_ColorSpaceDielectricSpec, albedo, metallic, diffColor, specColor);
 
-    float3 nominator = NDF * G * F;
-    float denominator = 4.0f * max(dot(N, V), 0.0f) * max(dot(N, L), 0.0f) + 0.001f; 
-    float3 specular = nominator / denominator;
+    float diffuseTerm = DisneyDiffuse(nv, nl, lh, roughness) * nl;
+    float specularTerm;
 
-    float NdotL = max(dot(N, L), 0.0f);
-    Lo += (kD * albedo / PI + specular) * float3(1.0f, 1.0f, 1.0f) * NdotL; 
+    float G, D;
+    roughness *= roughness;
+    roughness = max(roughness, 0.002);
+    G = SmithJointGGXVisibilityTerm (nl, nv, roughness);
+    D = GGXTerm (nh, roughness);
 
-    float3 ambient = 0.03f * albedo * ao;
-    color = ambient + Lo * sssVal;
+    specularTerm = G * D * PI;
+    specularTerm = sqrt(max(1e-4h, specularTerm));
 
-    color = color / (color + 1.0f);
-    color = pow(color, 1.0f / 2.2f);
+    specularTerm = max(0.f, specularTerm * nl);
+    specularTerm *= any(specColor) ? 1.0 : 0.0;
 
-    color += emissive;
+    color = diffColor * (float3(1.0f, 1.0f, 1.0f) * diffuseTerm) * ao + specularTerm * float3(1.0f, 1.0f, 1.0f) * FresnelTerm (specColor, lh);
+    color *= sssVal;
+
+    color += emissive.xyz;
 
     return float4(color, 1.0f);
 }

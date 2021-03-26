@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.bjsl": "xml",
         "memory": "cpp",
         "stdexcept": "cpp",
         "cmath": "cpp",
@@ -75,7 +76,8 @@
         "condition_variable": "cpp",
         "shared_mutex": "cpp",
         "clocale": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "concepts": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

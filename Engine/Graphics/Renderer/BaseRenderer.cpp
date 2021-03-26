@@ -214,6 +214,16 @@ std::shared_ptr<DrawingPass> BaseRenderer::CreatePass(std::shared_ptr<std::strin
     return std::make_shared<DrawingPass>(pName, m_pDevice);
 }
 
+std::shared_ptr<DrawingPass> BaseRenderer::CreateSkyboxPass()
+{
+    auto pPass = CreatePass(SkyboxPass());
+
+    BindEffect(*pPass, SkyboxEffect());
+    BindDynamicInputsP(*pPass);
+
+    return pPass;
+}
+
 std::shared_ptr<DrawingPass> BaseRenderer::CreateShadowCasterPass()
 {
     auto pPass = CreatePass(ShadowCasterPass());

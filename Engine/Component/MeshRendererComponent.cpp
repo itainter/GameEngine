@@ -25,13 +25,16 @@ void MeshRendererComponent::SetMaterialSize(uint32_t size)
     m_pMaterialList.resize(m_materialSize);
 }
 
-std::shared_ptr<IMaterial> MeshRendererComponent::GetMaterial(uint32_t index) const
+IMaterial* MeshRendererComponent::GetMaterial(uint32_t index) const
 {
+    if (m_materialSize == 0)
+        return nullptr;
+
     assert(index < m_materialSize);
     return m_pMaterialList[index];
 }
 
-void MeshRendererComponent::SetMaterial(std::shared_ptr<IMaterial> pMaterial, uint32_t index)
+void MeshRendererComponent::SetMaterial(IMaterial* pMaterial, uint32_t index)
 {
     assert(index < m_materialSize);
     m_pMaterialList[index] = pMaterial;

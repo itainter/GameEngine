@@ -17,11 +17,11 @@ namespace Engine
         uint32_t GetMaterialSize() const;
         void SetMaterialSize(uint32_t size);
 
-        std::shared_ptr<IMaterial> GetMaterial(uint32_t index) const;
-        void SetMaterial(std::shared_ptr<IMaterial> pMaterial, uint32_t index = 0);
+        IMaterial* GetMaterial(uint32_t index) const;
+        void SetMaterial(IMaterial* pMaterial, uint32_t index = 0);
 
     private:
         uint32_t m_materialSize;
-        std::vector<std::shared_ptr<IMaterial>> m_pMaterialList;
+        std::vector<IMaterial*> m_pMaterialList;
     };
 }

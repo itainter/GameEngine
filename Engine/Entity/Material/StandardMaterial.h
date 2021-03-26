@@ -2,6 +2,7 @@
 
 #include "Vector.h"
 #include "IMaterial.h"
+#include "ITexture.h"
 
 namespace Engine
 {

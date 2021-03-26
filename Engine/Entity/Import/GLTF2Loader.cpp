@@ -52,7 +52,7 @@ void GLTF2Loader::ApplyToWorld()
         transformComp.SetQuaternion(float4(x, y, z, w));
         meshFilterComp.SetMesh(std::shared_ptr<IMesh>(pMesh));
         meshRendererComp.SetMaterialSize(1);
-        meshRendererComp.SetMaterial(std::shared_ptr<IMaterial>(pMaterial));
+        meshRendererComp.SetMaterial(pMaterial);
 
         pWorld->CreateEntity<TransformComponent, MeshFilterComponent, MeshRendererComponent>(transformComp, meshFilterComp, meshRendererComp);
     });
